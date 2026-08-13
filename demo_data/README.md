@@ -1,27 +1,26 @@
-# demo_data — 시연·공개용 가상 자료
+# 매뉴얼을 채우는 법
 
-이 폴더의 자료는 **전부 생성기로 만든 가상 데이터**입니다.
-실제 프로젝트 문서가 아니며, 고객사 정보가 들어 있지 않습니다.
+이 폴더는 비어 있습니다. **벤더 매뉴얼은 제조사에 저작권이 있어
+저장소에 포함하지 않습니다.** 아래 세 종을 직접 내려받아 이 폴더에
+넣으시면 데모가 온전히 동작합니다.
 
-| 파일 | 내용 | 출처 |
+| 파일명 | 문서 | 제조사 |
 |---|---|---|
-| `IO_LIST.xlsx` | 입력 76 + 출력 24 = 100점 | `tools/make_io_list.py` |
-| `INSTRUMENT_LIST.xlsx` | 계기 사양 100건 | `tools/make_io_list.py` |
-| `TB_LIST.xlsx` | 판넬 6 · TB 블록 36 | `tools/make_tb_list.py` |
-| `interlock/DEMO_INTERLOCK_LIST.xlsx` | 인터락 33건 / 조건 92행 | `tools/make_interlock_list.py` |
-| `drawings/DEMO_*.pdf` | P&ID · 배치도 · 외형도 · 결선도 | 합성 도면 |
-| `manuals/*.pdf` | 공개 벤더 카탈로그 3종 | 제조사 공개 자료 |
+| `M300.pdf` | M300 Transmitter 사용설명서 | Mettler Toledo |
+| `M9e.pdf` | Sievers M9e TOC Analyzer | Veolia Sievers |
+| `et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf` | SIMATIC ET 200SP HA · AI 16xI 2-wire HART | Siemens |
 
-재생성이 필요하면 프로젝트 최상위에서:
+각 제조사 홈페이지에서 모델명으로 검색하면 받을 수 있습니다.
+파일명은 위와 같게 맞춰 주십시오 — 계기 리스트의 모델명과
+대조해서 매뉴얼을 찾습니다.
 
-    set COPILOT_DATA_DIR=%CD%\demo_data
-    set COPILOT_DERIVED_DIR=%CD%\demo_derived
-    set COPILOT_INDEX_DIR=%CD%\demo_index
-    python -m tools.make_io_list
-    python -m tools.make_interlock_list --out demo_data\interlock
-    python -m tools.make_tb_list
-    python -m tools.make_arrangement
+넣은 뒤 색인을 만듭니다.
+
     python -m ingest.build_index
     python -m retrieval.dense
-    python -m eval.make_eval_interlock
-    python -m eval.make_eval_panel
+
+## 매뉴얼 없이 돌리려면
+
+넣지 않아도 서버는 뜹니다. 태그 조회·판넬 조회·인터락 조회·도면
+보기는 그대로 동작하고, **매뉴얼 근거만 비게 됩니다.** 알람 조회는
+근거가 없으므로 거절(abstain)로 답합니다 — 이것도 의도된 동작입니다.

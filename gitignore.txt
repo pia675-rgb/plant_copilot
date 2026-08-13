@@ -3,9 +3,9 @@ data/
 index/
 derived/
 
-# 데모 임베딩은 각자 만든다 (용량이 크고 재생성이 쉽다)
-demo_index/embeddings.npy
-demo_index/embeddings.meta.json
+# 벤더 매뉴얼 원본과 그 본문 색인 — 재배포하지 않는다.
+# 제조사 공개 자료라도 저작권은 제조사에 있다. 클론한 사람은
+# demo_data/manuals/README.md 를 보고 직접 내려받아 채운다.
 
 # 의존성
 ui/react/node_modules/
