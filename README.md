@@ -48,11 +48,11 @@
 
 | 알람 조회 | 근거 원문 |
 |---|---|
-| ![알람 조회](docs/img/01-diagnose.png) | ![근거 원문](docs/img/02-evidence.png) |
+| ![알람 조회](docs/img/01-diagnose.PNG) | ![근거 원문](docs/img/02-evidence.PNG) |
 
 | 도면 태그 강조 | 4D 리포트 |
 |---|---|
-| ![도면](docs/img/03-drawing.png) | ![리포트](docs/img/04-report.png) |
+| ![도면](docs/img/03-drawing.PNG) | ![리포트](docs/img/04-report.PNG) |
 
 ## 빠른 시작
 
