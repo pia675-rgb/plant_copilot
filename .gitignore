@@ -1,0 +1,15 @@
+# 생성물 — 커밋하지 않는다
+index/embeddings.npy
+index/embeddings.meta.json
+eval/grades_dump.json
+
+# 의존성
+ui/react/node_modules/
+ui/react/dist/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 로컬 설정
+.env

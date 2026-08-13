@@ -1,0 +1,1218 @@
+[
+  {
+    "id": "M300-Warning-pH-slope-102",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning pH slope > 102%",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-pH-Slope-90",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning pH Slope < 90%",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-pH-Zero-7-5-pH",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning pH Zero >7.5 pH",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-pH-Zero-6-5-pH",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning pH Zero < 6.5 pH",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-pHGls-change-0-3",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning pHGls change < 0.3",
+    "description": "Glass electrode resistance changed by more than factor 0.3",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-pHGls-change-3",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning pHGls change > 3",
+    "description": "Glass electrode resistance changed by more than factor 3",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-pHRef-change-0-3",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning pHRef change < 0.3",
+    "description": "Reference electrode resistance changed by more than factor 0.3",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-pHRef-change-3",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning pHRef change > 3",
+    "description": "Reference electrode resistance changed by more than factor 3",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Watchdog-time-out",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Watchdog time-out",
+    "description": "SW/System fault",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-pH-Slope-103",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error pH Slope >103%",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-pH-Slope-80",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error pH Slope < 80%",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-pH-Zero-8-0-pH",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error pH Zero > 8.0 pH",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-pH-Zero-6-0-pH",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error pH Zero < 6.0 pH",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-pH-Ref-Res-150-K",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error pH Ref Res >150 KΩ",
+    "description": "Reference electrode resistance too big (break)",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-pH-Ref-Res-2000",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error pH Ref Res < 2000 Ω",
+    "description": "Reference electrode resistance too small (short)",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-pH-Gls-Res-2000-M",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error pH Gls Res > 2000 MΩ",
+    "description": "Glass electrode resistance too big (break)",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-pH-Gls-Res-5-M",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error pH Gls Res < 5 MΩ",
+    "description": "Glass electrode resistance too small (short)",
+    "remedy": "",
+    "scope": null,
+    "parameter": "pH",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 90,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-O-Slope-90-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning O Slope < –90 nA 2",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-O-Slope-35-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning O Slope > –35 nA 2",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-O-ZeroPt-0-3-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning O ZeroPt > 0.3 nA 2",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-O-ZeroPt-0-3-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning O ZeroPt < –0.3 nA 2",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-O-Slope-110-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error O Slope < –110 nA 2",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-O-Slope-30-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error O Slope > – 30 nA 2",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-O-ZeroPt-0-6-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error O ZeroPt > 0.6 nA 2",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-O-ZeroPt-0-6-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error O ZeroPt < – 0.6 nA 2",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Cond-Cell-open",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Cond Cell open",
+    "description": "Cell running dry (no measurement solution) or wires are broken",
+    "remedy": "",
+    "scope": null,
+    "parameter": "Cond",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Cond-Cell-shorted",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Cond Cell shorted",
+    "description": "Short circuit caused by sensor or cable",
+    "remedy": "",
+    "scope": null,
+    "parameter": "Cond",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-Slope-460-nA",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning DO Slope < – 460 nA",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-Slope-250-nA",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning DO Slope > – 250 nA",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-ZeroPt-0-5-nA",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning DO ZeroPt > 0.5 nA",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-ZeroPt-0-5-nA",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning DO ZeroPt < – 0.5 nA",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-Install-O2-Jumper",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error Install O2 Jumper",
+    "description": "Wrong installation of jumper",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-DO-Slope-525-nA",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error DO Slope < – 525 nA",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-DO-Slope-220-nA",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error DO Slope > – 220 nA",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-DO-ZeroPt-1-0-nA",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error DO ZeroPt > 1.0 nA",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-DO-ZeroPt-1-0-nA",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error DO ZeroPt < – 1.0 nA",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 92,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-Slope-1-50",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning DO Slope >1.50",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-Slope-0-65",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning DO Slope < 0.65",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-ZeroPt-15-V",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning DO ZeroPt >15 μV",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-ZeroPt-15-V",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning DO ZeroPt < –15 μV",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-Slope-2-00",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Warning DO Slope < 2.00",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-Slope-0-25",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Warning DO Slope < 0.25",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-ZeroPt-30-V",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Warning DO ZeroPt > 30 μV",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-DO-ZeroPt-30-V",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Warning DO ZeroPt < –30 μV",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": "DO",
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-O-Slope-1-83-nA-3",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning O Slope >1.83 nA 3",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-O-Slope-0-73-nA-3",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning O Slope < 0.73 nA 3",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-O-ZeroPt-0-5-nA-3",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning O ZeroPt > 0.5 nA 3",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Warning-O-ZeroPt-0-5-nA-3",
+    "device": "M300",
+    "code": null,
+    "severity": "warning",
+    "name": "Warning O ZeroPt < – 0.5 nA 3",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-O-Slope-2-75-nA-3",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error O Slope > 2.75 nA 3",
+    "description": "Slope too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-O-Slope-0-65-nA-3",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error O Slope < 0.65 nA 3",
+    "description": "Slope too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-O-ZeroPt-1-0-nA-3",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error O ZeroPt >1.0 nA 3",
+    "description": "Zero offset too big",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "M300-Error-O-ZeroPt-1-0-nA-2",
+    "device": "M300",
+    "code": null,
+    "severity": "alarm",
+    "name": "Error O ZeroPt < –1.0 nA 2",
+    "description": "Zero offset too small",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "source": {
+      "file": "OM_Transmitter_M300_en_52121389_Dec14.pdf",
+      "pdf_page": 93,
+      "section": "14. Troubleshooting"
+    }
+  },
+  {
+    "id": "ET200SP-1FH",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "1FH",
+    "severity": "diagnostic",
+    "name": "Channel/component temporarily unavailable",
+    "description": "Update of the firmware is being performed or has been canceled. The module does not perform any measurements during this time.",
+    "remedy": "● Restart firmware update ● Wait for firmware update",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-5H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "5H",
+    "severity": "diagnostic",
+    "name": "Overtemperature",
+    "description": "● Ambient temperature is too high ● Short-circuit or overload of one or more digital outputs/sensor supplies",
+    "remedy": "● Check wiring ● Eliminate the cause of the excess temperature and restart the module",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-6H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "6H",
+    "severity": "diagnostic",
+    "name": "Wire break",
+    "description": "● Impedance of encoder circuitry is too high ● Wire break between the module and sensor ● Channel not connected (open)",
+    "remedy": "● Use a different encoder type or modify the wiring, for example, using cables with a larger cross-section ● Connect the cable ● Disable diagnostics ● Connect the encoder contacts",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-7H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "7H",
+    "severity": "diagnostic",
+    "name": "High limit violated",
+    "description": "● The analog value is above the overrange. ● Short-circuit of input to L+",
+    "remedy": "Correct the module/encoder tuning",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-8H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "8H",
+    "severity": "diagnostic",
+    "name": "Low limit violated",
+    "description": "The analog value is below the underrange.",
+    "remedy": "Correct the module/encoder tuning",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-10H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "10H",
+    "severity": "diagnostic",
+    "name": "Parameter assignment error",
+    "description": "● Parameter assignment does not match the terminal block used ● Incorrect parameter assignment",
+    "remedy": "● Correct the parameter assignment ● Check terminal block1",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-11H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "11H",
+    "severity": "diagnostic",
+    "name": "Supply voltage missing",
+    "description": "Missing or insufficient supply voltage L+",
+    "remedy": "● Check wiring of the supply voltage L+ on the terminal block ● Check the terminal block type",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-16H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "16H",
+    "severity": "diagnostic",
+    "name": "Hardware interrupt lost",
+    "description": "Error is reported because the events occur faster than they can be processed in the system",
+    "remedy": "",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-100H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "100H",
+    "severity": "diagnostic",
+    "name": "Module is faulty",
+    "description": "Internal module error has occurred",
+    "remedy": "Replace module",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-105H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "105H",
+    "severity": "diagnostic",
+    "name": "Short-circuit to L+",
+    "description": "Short-circuit of the analog input to sensor supply or L+",
+    "remedy": "Correct the process wiring",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 54,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-10EH",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "10EH",
+    "severity": "diagnostic",
+    "name": "Short-circuit/overload at external encoder supply",
+    "description": "● Short-circuit of the encoder supply to ground ● Encoder supply overload",
+    "remedy": "● Correct the module/ encoder tuning ● Check the wiring",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 55,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-123H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "123H",
+    "severity": "diagnostic",
+    "name": "Inconsistent parameter assignment",
+    "description": "Error in the redundancy parameters transferred to the module",
+    "remedy": "● Check the parameter assignment ● Check the slot and terminal block",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 55,
+      "section": "Table A-1"
+    }
+  },
+  {
+    "id": "ET200SP-154H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "154H",
+    "severity": "maintenance",
+    "name": "Retentive memory in carrier module defective",
+    "description": "Fault detected in the data block on the carrier module during operation",
+    "remedy": "Replace carrier module",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 57,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-155H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "155H",
+    "severity": "maintenance",
+    "name": "Retentive memory in the terminal block defective",
+    "description": "A memory block error was detected on the terminal block during operation",
+    "remedy": "Replace terminal block",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 57,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-120H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "120H",
+    "severity": "maintenance",
+    "name": "Redundancy partner has different hardware/firmware version",
+    "description": "The redundantly configured and interconnected I/O modules are not compatible",
+    "remedy": "Check and replace modules",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 55,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-121H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "121H",
+    "severity": "maintenance",
+    "name": "IO redundancy warning",
+    "description": "Unable to correctly communicate with the partner module",
+    "remedy": "● Check/replace right module ● Check/replace left module ● Check/replace terminal block See also system manual Distributed I/O System; ET 200SP HA\", section \"Replacing an I/O module for I/O redundancy\"",
+    "scope": "Module",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 55,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-141H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "141H",
+    "severity": "maintenance",
+    "name": "HART communication error",
+    "description": "● HART field device is not responding ● Timing error ● HART field device did not understand the command that was sent (1st status byte)",
+    "remedy": "● Check the process wiring ● Correct the parameter assignment ● Set current ≥4 mA ● Increase number of configured repetitions",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 56,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-142H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "142H",
+    "severity": "maintenance",
+    "name": "HART primary variable outside of limits",
+    "description": "● Incorrect parameters in the HART field device ● HART field device is set to \"Primary variable outside of limits\" in simulation mode ● Incorrect measuring point ● Parameter assignment of primary variable outside of limits",
+    "remedy": "● Check the parameter assignment of the HART device ● Correct the simulation ● Check whether the correct measuring transducer is connected",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 56,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-143H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "143H",
+    "severity": "maintenance",
+    "name": "HART analog output current of the field device is saturated",
+    "description": "● The output current of the HART field device is saturated: ● Incorrect parameters in the HART field device ● HART field device is set to a measured value that is too high in simulation mode ● Incorrect measuring point",
+    "remedy": "",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 56,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-144H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "144H",
+    "severity": "maintenance",
+    "name": "HART output current of the field device specified",
+    "description": "● The output current of the HART field device is fixed: ● Incorrect parameters in the HART field device ● HART field device is set to a measured value that is too high in simulation mode ● Incorrect measuring point",
+    "remedy": "",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 56,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-145H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "145H",
+    "severity": "maintenance",
+    "name": "HART additional status information available",
+    "description": "In the HART device status (in the 2nd status byte), the HART field device identifier for \"further status information available\" has been set",
+    "remedy": "Read out status with HART command 48 and clear error/ cause if necessary",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 56,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-146H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "146H",
+    "severity": "maintenance",
+    "name": "HART configuration changed1",
+    "description": "In the HART device status (in the 2nd status byte), the identifier for \"parameter reassignment\" of the HART field device has been set",
+    "remedy": "If no diagnostics interrupt is to be triggered by reconfiguration, the HART diagnostics must be disabled.",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 56,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-147H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "147H",
+    "severity": "maintenance",
+    "name": "HART malfunction in the field device",
+    "description": "In the HART device status (in the 2nd status byte) the field device reports a malfunction",
+    "remedy": "● Read out status with HART command 48 and clear error/cause if necessary ● Replace the field device",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 56,
+      "section": "Table A-2"
+    }
+  },
+  {
+    "id": "ET200SP-149H",
+    "device": "AI 16xI 2-wire HART HA",
+    "code": "149H",
+    "severity": "maintenance",
+    "name": "HART secondary variable outside the limits",
+    "description": "● Incorrect parameters in the HART field device ● HART field device is set to \"Non-primary variable outside limits\" in simulation mode ● Incorrect measuring point ● Parameter assignment of non-primary variable is outside the limits",
+    "remedy": "● Check the parameter assignment of the HART device ● Correct the simulation ● Check whether the correct measuring transducer is connected",
+    "scope": "Analog input",
+    "parameter": null,
+    "source": {
+      "file": "et200sp_ha_AI_16xI_2-wire_HART_HA_en-US_en-US.pdf",
+      "pdf_page": 57,
+      "section": "Table A-2"
+    }
+  }
+]

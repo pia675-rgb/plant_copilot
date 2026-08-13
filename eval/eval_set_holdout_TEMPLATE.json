@@ -1,0 +1,62 @@
+{
+ "meta": {
+  "author": "도남진 (검증 담당)",
+  "purpose": "검색 평가셋 확장 — 개발자가 만들지 않은 문항으로 일반화 확인",
+  "rules": [
+   "1. eval_set_v2.json 을 열어보지 말 것. 기존 문항의 표현을 따라가게 된다.",
+   "2. 벤더 매뉴얼 PDF 를 보고 문항을 만들 것. 시스템에 먼저 물어보지 말 것.",
+   "3. 현장 정비원이 실제로 쓸 법한 한국어로 쓸 것. 영문 용어를 떠올리지 말 것.",
+   "4. 만든 뒤 한 번만 채점하고, 그 결과를 보고 문항을 고치지 말 것.",
+   "5. 근거가 없는 문항(abstain)을 반드시 섞을 것. 지어내는지 보는 유일한 방법이다."
+  ],
+  "how_to_find_expected": [
+   "코드표 항목: python -c \"import json;[print(r['id'],r['title']) for r in map(json.loads,open('index/chunks.jsonl',encoding='utf-8')) if r['kind']=='error_code']\"",
+   "본문 섹션:  python -c \"import json;[print(r['id'],r['source']['section']) for r in map(json.loads,open('index/chunks.jsonl',encoding='utf-8')) if r['kind']=='manual_text']\"",
+   "계기 태그:  data/DEMO_INSTRUMENT_LIST.xlsx 의 TAG 열"
+  ],
+  "run": "python -m eval.run_eval_v2 --eval eval/eval_set_holdout.json --systems hybrid --md eval/scorecard_holdout.md"
+ },
+ "questions": [
+  {
+   "id": "H01",
+   "type": "syn",
+   "tag": "<계기 태그>",
+   "alarm": "<현장에서 쓸 법한 한국어 증상 서술>",
+   "expect_top3": ["<코드표 항목 id>"],
+   "note": "<어떤 용어 차이를 시험하는지>"
+  },
+  {
+   "id": "H02",
+   "type": "body",
+   "tag": "<계기 태그>",
+   "alarm": "<코드표에 없고 매뉴얼 본문에만 있는 질문>",
+   "expect_kind": "manual_text",
+   "expect_section_any": ["<섹션 제목 일부>"],
+   "expect_file": "<PDF 파일명>"
+  },
+  {
+   "id": "H03",
+   "type": "typo",
+   "tag": "<계기 태그>",
+   "alarm": "<오타를 넣은 한국어 서술>",
+   "expect_top3": ["<코드표 항목 id>"],
+   "note": "<무엇을 무엇으로 잘못 썼는지>"
+  },
+  {
+   "id": "H04",
+   "type": "wrongdev",
+   "tag": "<계기 A 태그>",
+   "alarm": "<계기 B 의 증상>",
+   "expect_no_device": ["<계기 B 의 기종>"],
+   "note": "다른 기종 문서를 근거로 올리면 안 됨"
+  },
+  {
+   "id": "H05",
+   "type": "abstain",
+   "tag": "<계기 태그>",
+   "alarm": "<매뉴얼에 없는 내용>",
+   "expect_abstain": true,
+   "note": "근거 없음 — 지어내면 안 됨"
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+# 프로젝트 자료 — 저장소에 올리지 않는다
+data/
+index/
+derived/
+
+# 데모 임베딩은 각자 만든다 (용량이 크고 재생성이 쉽다)
+demo_index/embeddings.npy
+demo_index/embeddings.meta.json
+
+# 의존성
+ui/react/node_modules/
+ui/react/dist/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 로컬 설정
+.env
+
+# 엑셀 임시 파일
+~$*

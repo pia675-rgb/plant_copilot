@@ -1,0 +1,10 @@
+# Plant Maintenance Copilot v2
+pymupdf>=1.24        # 매뉴얼 PDF 청킹
+openpyxl>=3.1        # 계기 리스트
+numpy>=1.26          # 벡터 검색 (임베딩은 사내 AOAI REST — 추가 SDK 불필요)
+langgraph>=0.2       # CRAG 루프
+streamlit>=1.36      # UI (미사용)
+sentence-transformers>=3.0   # cross-encoder 리랭커 (선택: COPILOT_RERANK=0 로 비활성화)
+fastapi>=0.111       # React UI용 API
+uvicorn>=0.30        # API 서버
+reportlab>=4.0        # 4D 트러블 리포트 PDF

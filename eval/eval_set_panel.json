@@ -1,0 +1,1965 @@
+{
+ "meta": {
+  "source": {
+   "instruments": "IO_LIST.xlsx",
+   "locations": "PANEL_LOCATIONS.csv",
+   "interlock": "interlock"
+  },
+  "counts": {
+   "locate": 100,
+   "place": 6,
+   "roster": 6,
+   "card": 36,
+   "cscope": 36,
+   "cdepend": 17,
+   "common": 1,
+   "absent": 10
+  },
+  "total": 212,
+  "note": "정답은 원천 레코드에서 직접 계산했으며 PanelIndex 출력을 쓰지 않았다. 변이 시험은 run_eval_panel.py --mutate 참조."
+ },
+ "questions": [
+  {
+   "id": "PN01",
+   "type": "locate",
+   "tag": "AIT-1001",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S8"
+  },
+  {
+   "id": "PN02",
+   "type": "locate",
+   "tag": "AIT-1005",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S4"
+  },
+  {
+   "id": "PN03",
+   "type": "locate",
+   "tag": "AIT-1009",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S5"
+  },
+  {
+   "id": "PN04",
+   "type": "locate",
+   "tag": "AIT-2001",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S4"
+  },
+  {
+   "id": "PN05",
+   "type": "locate",
+   "tag": "AIT-2002",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S8"
+  },
+  {
+   "id": "PN06",
+   "type": "locate",
+   "tag": "AIT-2006",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S7"
+  },
+  {
+   "id": "PN07",
+   "type": "locate",
+   "tag": "AIT-2007",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S5"
+  },
+  {
+   "id": "PN08",
+   "type": "locate",
+   "tag": "AIT-2011",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S1"
+  },
+  {
+   "id": "PN09",
+   "type": "locate",
+   "tag": "AIT-2012",
+   "expect_panel": "CUB-C",
+   "expect_card": "CUB-C/R2/S2"
+  },
+  {
+   "id": "PN10",
+   "type": "locate",
+   "tag": "AIT-3001",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S3"
+  },
+  {
+   "id": "PN11",
+   "type": "locate",
+   "tag": "AIT-3002",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S8"
+  },
+  {
+   "id": "PN12",
+   "type": "locate",
+   "tag": "AIT-3005",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S4"
+  },
+  {
+   "id": "PN13",
+   "type": "locate",
+   "tag": "AIT-3006",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S4"
+  },
+  {
+   "id": "PN14",
+   "type": "locate",
+   "tag": "AIT-3009",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S4"
+  },
+  {
+   "id": "PN15",
+   "type": "locate",
+   "tag": "AIT-4001",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S7"
+  },
+  {
+   "id": "PN16",
+   "type": "locate",
+   "tag": "AIT-4002",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S8"
+  },
+  {
+   "id": "PN17",
+   "type": "locate",
+   "tag": "AIT-4005",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S1"
+  },
+  {
+   "id": "PN18",
+   "type": "locate",
+   "tag": "AIT-4006",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S2"
+  },
+  {
+   "id": "PN19",
+   "type": "locate",
+   "tag": "AIT-5001",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S2"
+  },
+  {
+   "id": "PN20",
+   "type": "locate",
+   "tag": "AIT-5002",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S5"
+  },
+  {
+   "id": "PN21",
+   "type": "locate",
+   "tag": "AIT-5003",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S4"
+  },
+  {
+   "id": "PN22",
+   "type": "locate",
+   "tag": "AIT-5006",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S1"
+  },
+  {
+   "id": "PN23",
+   "type": "locate",
+   "tag": "AIT-5007",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S2"
+  },
+  {
+   "id": "PN24",
+   "type": "locate",
+   "tag": "AIT-5008",
+   "expect_panel": "CUB-C",
+   "expect_card": "CUB-C/R2/S6"
+  },
+  {
+   "id": "PN25",
+   "type": "locate",
+   "tag": "AIT-6001",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S5"
+  },
+  {
+   "id": "PN26",
+   "type": "locate",
+   "tag": "AIT-6002",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S6"
+  },
+  {
+   "id": "PN27",
+   "type": "locate",
+   "tag": "AIT-6006",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S8"
+  },
+  {
+   "id": "PN28",
+   "type": "locate",
+   "tag": "AIT-6007",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S2"
+  },
+  {
+   "id": "PN29",
+   "type": "locate",
+   "tag": "AIT-7001",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S3"
+  },
+  {
+   "id": "PN30",
+   "type": "locate",
+   "tag": "AIT-7002",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S4"
+  },
+  {
+   "id": "PN31",
+   "type": "locate",
+   "tag": "AIT-7005",
+   "expect_panel": "CUB-C",
+   "expect_card": "CUB-C/R2/S6"
+  },
+  {
+   "id": "PN32",
+   "type": "locate",
+   "tag": "AIT-7006",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S2"
+  },
+  {
+   "id": "PN33",
+   "type": "locate",
+   "tag": "FIT-1003",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S2"
+  },
+  {
+   "id": "PN34",
+   "type": "locate",
+   "tag": "FIT-1007",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S4"
+  },
+  {
+   "id": "PN35",
+   "type": "locate",
+   "tag": "FIT-1011",
+   "expect_panel": "CUB-C",
+   "expect_card": "CUB-C/R2/S4"
+  },
+  {
+   "id": "PN36",
+   "type": "locate",
+   "tag": "FIT-2004",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S8"
+  },
+  {
+   "id": "PN37",
+   "type": "locate",
+   "tag": "FIT-2009",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S8"
+  },
+  {
+   "id": "PN38",
+   "type": "locate",
+   "tag": "FIT-2014",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S5"
+  },
+  {
+   "id": "PN39",
+   "type": "locate",
+   "tag": "FIT-3004",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S3"
+  },
+  {
+   "id": "PN40",
+   "type": "locate",
+   "tag": "FIT-3008",
+   "expect_panel": "CUB-C",
+   "expect_card": "CUB-C/R2/S3"
+  },
+  {
+   "id": "PN41",
+   "type": "locate",
+   "tag": "FIT-5005",
+   "expect_panel": "CUB-C",
+   "expect_card": "CUB-C/R2/S5"
+  },
+  {
+   "id": "PN42",
+   "type": "locate",
+   "tag": "FIT-5010",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S2"
+  },
+  {
+   "id": "PN43",
+   "type": "locate",
+   "tag": "FIT-6004",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S6"
+  },
+  {
+   "id": "PN44",
+   "type": "locate",
+   "tag": "FIT-6009",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S6"
+  },
+  {
+   "id": "PN45",
+   "type": "locate",
+   "tag": "LCV-01",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S2"
+  },
+  {
+   "id": "PN46",
+   "type": "locate",
+   "tag": "LIT-01A",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S1"
+  },
+  {
+   "id": "PN47",
+   "type": "locate",
+   "tag": "LIT-01B",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S1"
+  },
+  {
+   "id": "PN48",
+   "type": "locate",
+   "tag": "LIT-02A",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S1"
+  },
+  {
+   "id": "PN49",
+   "type": "locate",
+   "tag": "LIT-02B",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S1"
+  },
+  {
+   "id": "PN50",
+   "type": "locate",
+   "tag": "LIT-2005",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S5"
+  },
+  {
+   "id": "PN51",
+   "type": "locate",
+   "tag": "LIT-2010",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S5"
+  },
+  {
+   "id": "PN52",
+   "type": "locate",
+   "tag": "LIT-2015",
+   "expect_panel": "CUB-C",
+   "expect_card": "CUB-C/R2/S5"
+  },
+  {
+   "id": "PN53",
+   "type": "locate",
+   "tag": "LIT-4003",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S6"
+  },
+  {
+   "id": "PN54",
+   "type": "locate",
+   "tag": "LIT-4007",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S4"
+  },
+  {
+   "id": "PN55",
+   "type": "locate",
+   "tag": "LIT-7004",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S3"
+  },
+  {
+   "id": "PN56",
+   "type": "locate",
+   "tag": "LIT-7008",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S7"
+  },
+  {
+   "id": "PN57",
+   "type": "locate",
+   "tag": "P-1101A",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN58",
+   "type": "locate",
+   "tag": "P-1101B",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN59",
+   "type": "locate",
+   "tag": "P-2101A",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN60",
+   "type": "locate",
+   "tag": "P-2101B",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN61",
+   "type": "locate",
+   "tag": "P-3101",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN62",
+   "type": "locate",
+   "tag": "P-5101A",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN63",
+   "type": "locate",
+   "tag": "P-5101B",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN64",
+   "type": "locate",
+   "tag": "P-6101A",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN65",
+   "type": "locate",
+   "tag": "P-7101",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN66",
+   "type": "locate",
+   "tag": "PIT-1002",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S7"
+  },
+  {
+   "id": "PN67",
+   "type": "locate",
+   "tag": "PIT-1006",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S8"
+  },
+  {
+   "id": "PN68",
+   "type": "locate",
+   "tag": "PIT-1010",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S4"
+  },
+  {
+   "id": "PN69",
+   "type": "locate",
+   "tag": "PIT-2003",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S3"
+  },
+  {
+   "id": "PN70",
+   "type": "locate",
+   "tag": "PIT-2008",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S6"
+  },
+  {
+   "id": "PN71",
+   "type": "locate",
+   "tag": "PIT-2013",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S7"
+  },
+  {
+   "id": "PN72",
+   "type": "locate",
+   "tag": "PIT-3003",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S6"
+  },
+  {
+   "id": "PN73",
+   "type": "locate",
+   "tag": "PIT-3007",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S1"
+  },
+  {
+   "id": "PN74",
+   "type": "locate",
+   "tag": "PIT-5004",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S5"
+  },
+  {
+   "id": "PN75",
+   "type": "locate",
+   "tag": "PIT-5009",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S1"
+  },
+  {
+   "id": "PN76",
+   "type": "locate",
+   "tag": "PIT-6003",
+   "expect_panel": "RIO-01",
+   "expect_card": "RIO-01/DP11/R0/S7"
+  },
+  {
+   "id": "PN77",
+   "type": "locate",
+   "tag": "PIT-6008",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S5"
+  },
+  {
+   "id": "PN78",
+   "type": "locate",
+   "tag": "PIT-7003",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S5"
+  },
+  {
+   "id": "PN79",
+   "type": "locate",
+   "tag": "PIT-7007",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S3"
+  },
+  {
+   "id": "PN80",
+   "type": "locate",
+   "tag": "R-3104",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN81",
+   "type": "locate",
+   "tag": "RWP-01",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S3"
+  },
+  {
+   "id": "PN82",
+   "type": "locate",
+   "tag": "TIT-1004",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S8"
+  },
+  {
+   "id": "PN83",
+   "type": "locate",
+   "tag": "TIT-1008",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S5"
+  },
+  {
+   "id": "PN84",
+   "type": "locate",
+   "tag": "TIT-1012",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S1"
+  },
+  {
+   "id": "PN85",
+   "type": "locate",
+   "tag": "TIT-4004",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S8"
+  },
+  {
+   "id": "PN86",
+   "type": "locate",
+   "tag": "TIT-4008",
+   "expect_panel": "CUB-B",
+   "expect_card": "CUB-B/R1/S8"
+  },
+  {
+   "id": "PN87",
+   "type": "locate",
+   "tag": "TIT-6005",
+   "expect_panel": "CUB-A",
+   "expect_card": "CUB-A/R0/S8"
+  },
+  {
+   "id": "PN88",
+   "type": "locate",
+   "tag": "TIT-6010",
+   "expect_panel": "RIO-02",
+   "expect_card": "RIO-02/DP12/R0/S2"
+  },
+  {
+   "id": "PN89",
+   "type": "locate",
+   "tag": "UV-5102",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN90",
+   "type": "locate",
+   "tag": "XV-1102",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN91",
+   "type": "locate",
+   "tag": "XV-1103",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN92",
+   "type": "locate",
+   "tag": "XV-2102",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN93",
+   "type": "locate",
+   "tag": "XV-2103",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN94",
+   "type": "locate",
+   "tag": "XV-2104",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN95",
+   "type": "locate",
+   "tag": "XV-3102",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN96",
+   "type": "locate",
+   "tag": "XV-3103",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN97",
+   "type": "locate",
+   "tag": "XV-4101",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN98",
+   "type": "locate",
+   "tag": "XV-4102",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN99",
+   "type": "locate",
+   "tag": "XV-5103",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN100",
+   "type": "locate",
+   "tag": "XV-6102",
+   "expect_panel": "CUB-D",
+   "expect_card": "CUB-D/R3/S1"
+  },
+  {
+   "id": "PN101",
+   "type": "place",
+   "panel": "CUB-A",
+   "expect_area": "ELECTRICAL ROOM",
+   "expect_grid": "A5",
+   "expect_indoor": true
+  },
+  {
+   "id": "PN102",
+   "type": "place",
+   "panel": "CUB-B",
+   "expect_area": "ELECTRICAL ROOM",
+   "expect_grid": "B5",
+   "expect_indoor": true
+  },
+  {
+   "id": "PN103",
+   "type": "place",
+   "panel": "CUB-C",
+   "expect_area": "ELECTRICAL ROOM",
+   "expect_grid": "C5",
+   "expect_indoor": true
+  },
+  {
+   "id": "PN104",
+   "type": "place",
+   "panel": "CUB-D",
+   "expect_area": "ELECTRICAL ROOM",
+   "expect_grid": "A4",
+   "expect_indoor": true
+  },
+  {
+   "id": "PN105",
+   "type": "place",
+   "panel": "RIO-01",
+   "expect_area": "PROCESS AREA - EAST",
+   "expect_grid": "F3",
+   "expect_indoor": false
+  },
+  {
+   "id": "PN106",
+   "type": "place",
+   "panel": "RIO-02",
+   "expect_area": "PROCESS AREA - WEST",
+   "expect_grid": "B2",
+   "expect_indoor": false
+  },
+  {
+   "id": "PN107",
+   "type": "roster",
+   "panel": "CUB-A",
+   "expect_points": 22,
+   "expect_tags": [
+    "AIT-2007",
+    "AIT-2011",
+    "AIT-3006",
+    "AIT-4005",
+    "AIT-5007",
+    "AIT-7006",
+    "FIT-5010",
+    "FIT-6009",
+    "LIT-01A",
+    "LIT-01B",
+    "LIT-02A",
+    "LIT-02B",
+    "LIT-2005",
+    "LIT-2010",
+    "LIT-4003",
+    "LIT-7008",
+    "PIT-1002",
+    "PIT-3007",
+    "TIT-1004",
+    "TIT-1008",
+    "TIT-1012",
+    "TIT-6005"
+   ],
+   "expect_tbs": [
+    "IW510+",
+    "IW512+",
+    "IW514+",
+    "IW516+",
+    "IW520+",
+    "IW522+",
+    "IW530+",
+    "IW532+",
+    "IW534+",
+    "IW552+",
+    "IW558+",
+    "IW564+",
+    "IW566+",
+    "IW570+",
+    "IW582+",
+    "IW586+",
+    "IW594+"
+   ]
+  },
+  {
+   "id": "PN108",
+   "type": "roster",
+   "panel": "CUB-B",
+   "expect_points": 21,
+   "expect_tags": [
+    "AIT-1001",
+    "AIT-1009",
+    "AIT-2006",
+    "AIT-3005",
+    "AIT-4001",
+    "AIT-4006",
+    "AIT-5001",
+    "AIT-5002",
+    "AIT-5003",
+    "AIT-6007",
+    "FIT-1007",
+    "LIT-7004",
+    "PIT-2003",
+    "PIT-2008",
+    "PIT-3003",
+    "PIT-5009",
+    "PIT-6008",
+    "PIT-7003",
+    "PIT-7007",
+    "TIT-4004",
+    "TIT-4008"
+   ],
+   "expect_tbs": [
+    "IW514+",
+    "IW520+",
+    "IW524+",
+    "IW526+",
+    "IW532+",
+    "IW534+",
+    "IW540+",
+    "IW550+",
+    "IW552+",
+    "IW554+",
+    "IW560+",
+    "IW562+",
+    "IW568+",
+    "IW570+",
+    "IW572+",
+    "IW582+",
+    "IW588+",
+    "IW592+"
+   ]
+  },
+  {
+   "id": "PN109",
+   "type": "roster",
+   "panel": "CUB-C",
+   "expect_points": 7,
+   "expect_tags": [
+    "AIT-2012",
+    "AIT-5008",
+    "AIT-7005",
+    "FIT-1011",
+    "FIT-3008",
+    "FIT-5005",
+    "LIT-2015"
+   ],
+   "expect_tbs": [
+    "IW530+",
+    "IW540+",
+    "IW544+",
+    "IW560+",
+    "IW564+",
+    "IW572+"
+   ]
+  },
+  {
+   "id": "PN110",
+   "type": "roster",
+   "panel": "CUB-D",
+   "expect_points": 24,
+   "expect_tags": [
+    "LCV-01",
+    "P-1101A",
+    "P-1101B",
+    "P-2101A",
+    "P-2101B",
+    "P-3101",
+    "P-5101A",
+    "P-5101B",
+    "P-6101A",
+    "P-7101",
+    "R-3104",
+    "RWP-01",
+    "UV-5102",
+    "XV-1102",
+    "XV-1103",
+    "XV-2102",
+    "XV-2103",
+    "XV-2104",
+    "XV-3102",
+    "XV-3103",
+    "XV-4101",
+    "XV-4102",
+    "XV-5103",
+    "XV-6102"
+   ],
+   "expect_tbs": [
+    "N011",
+    "N021",
+    "N031"
+   ]
+  },
+  {
+   "id": "PN111",
+   "type": "roster",
+   "panel": "RIO-01",
+   "expect_points": 15,
+   "expect_tags": [
+    "AIT-2002",
+    "AIT-3001",
+    "AIT-3002",
+    "AIT-3009",
+    "AIT-4002",
+    "AIT-5006",
+    "AIT-6002",
+    "AIT-7002",
+    "FIT-2004",
+    "FIT-2009",
+    "FIT-3004",
+    "LIT-4007",
+    "PIT-2013",
+    "PIT-5004",
+    "PIT-6003"
+   ],
+   "expect_tbs": [
+    "IW512+",
+    "IW532+",
+    "IW538+",
+    "IW548+",
+    "IW552+",
+    "IW560+",
+    "IW572+",
+    "IW580+",
+    "IW582+",
+    "IW584+",
+    "IW586+",
+    "IW588+",
+    "IW594+"
+   ]
+  },
+  {
+   "id": "PN112",
+   "type": "roster",
+   "panel": "RIO-02",
+   "expect_points": 11,
+   "expect_tags": [
+    "AIT-1005",
+    "AIT-2001",
+    "AIT-6001",
+    "AIT-6006",
+    "AIT-7001",
+    "FIT-1003",
+    "FIT-2014",
+    "FIT-6004",
+    "PIT-1006",
+    "PIT-1010",
+    "TIT-6010"
+   ],
+   "expect_tbs": [
+    "IW520+",
+    "IW528+",
+    "IW534+",
+    "IW542+",
+    "IW546+",
+    "IW554+",
+    "IW564+",
+    "IW570+",
+    "IW582+",
+    "IW588+"
+   ]
+  },
+  {
+   "id": "PN113",
+   "type": "card",
+   "card": "CUB-A/R0/S1",
+   "expect_points": 8,
+   "expect_tags": [
+    "AIT-2011",
+    "AIT-4005",
+    "LIT-01A",
+    "LIT-01B",
+    "LIT-02A",
+    "LIT-02B",
+    "PIT-3007",
+    "TIT-1012"
+   ],
+   "expect_panel": "CUB-A"
+  },
+  {
+   "id": "PN114",
+   "type": "card",
+   "card": "CUB-A/R0/S2",
+   "expect_points": 3,
+   "expect_tags": [
+    "AIT-5007",
+    "AIT-7006",
+    "FIT-5010"
+   ],
+   "expect_panel": "CUB-A"
+  },
+  {
+   "id": "PN115",
+   "type": "card",
+   "card": "CUB-A/R0/S4",
+   "expect_points": 1,
+   "expect_tags": [
+    "AIT-3006"
+   ],
+   "expect_panel": "CUB-A"
+  },
+  {
+   "id": "PN116",
+   "type": "card",
+   "card": "CUB-A/R0/S5",
+   "expect_points": 4,
+   "expect_tags": [
+    "AIT-2007",
+    "LIT-2005",
+    "LIT-2010",
+    "TIT-1008"
+   ],
+   "expect_panel": "CUB-A"
+  },
+  {
+   "id": "PN117",
+   "type": "card",
+   "card": "CUB-A/R0/S6",
+   "expect_points": 2,
+   "expect_tags": [
+    "FIT-6009",
+    "LIT-4003"
+   ],
+   "expect_panel": "CUB-A"
+  },
+  {
+   "id": "PN118",
+   "type": "card",
+   "card": "CUB-A/R0/S7",
+   "expect_points": 2,
+   "expect_tags": [
+    "LIT-7008",
+    "PIT-1002"
+   ],
+   "expect_panel": "CUB-A"
+  },
+  {
+   "id": "PN119",
+   "type": "card",
+   "card": "CUB-A/R0/S8",
+   "expect_points": 2,
+   "expect_tags": [
+    "TIT-1004",
+    "TIT-6005"
+   ],
+   "expect_panel": "CUB-A"
+  },
+  {
+   "id": "PN120",
+   "type": "card",
+   "card": "CUB-B/R1/S1",
+   "expect_points": 1,
+   "expect_tags": [
+    "PIT-5009"
+   ],
+   "expect_panel": "CUB-B"
+  },
+  {
+   "id": "PN121",
+   "type": "card",
+   "card": "CUB-B/R1/S2",
+   "expect_points": 3,
+   "expect_tags": [
+    "AIT-4006",
+    "AIT-5001",
+    "AIT-6007"
+   ],
+   "expect_panel": "CUB-B"
+  },
+  {
+   "id": "PN122",
+   "type": "card",
+   "card": "CUB-B/R1/S3",
+   "expect_points": 3,
+   "expect_tags": [
+    "LIT-7004",
+    "PIT-2003",
+    "PIT-7007"
+   ],
+   "expect_panel": "CUB-B"
+  },
+  {
+   "id": "PN123",
+   "type": "card",
+   "card": "CUB-B/R1/S4",
+   "expect_points": 3,
+   "expect_tags": [
+    "AIT-3005",
+    "AIT-5003",
+    "FIT-1007"
+   ],
+   "expect_panel": "CUB-B"
+  },
+  {
+   "id": "PN124",
+   "type": "card",
+   "card": "CUB-B/R1/S5",
+   "expect_points": 4,
+   "expect_tags": [
+    "AIT-1009",
+    "AIT-5002",
+    "PIT-6008",
+    "PIT-7003"
+   ],
+   "expect_panel": "CUB-B"
+  },
+  {
+   "id": "PN125",
+   "type": "card",
+   "card": "CUB-B/R1/S6",
+   "expect_points": 2,
+   "expect_tags": [
+    "PIT-2008",
+    "PIT-3003"
+   ],
+   "expect_panel": "CUB-B"
+  },
+  {
+   "id": "PN126",
+   "type": "card",
+   "card": "CUB-B/R1/S7",
+   "expect_points": 2,
+   "expect_tags": [
+    "AIT-2006",
+    "AIT-4001"
+   ],
+   "expect_panel": "CUB-B"
+  },
+  {
+   "id": "PN127",
+   "type": "card",
+   "card": "CUB-B/R1/S8",
+   "expect_points": 3,
+   "expect_tags": [
+    "AIT-1001",
+    "TIT-4004",
+    "TIT-4008"
+   ],
+   "expect_panel": "CUB-B"
+  },
+  {
+   "id": "PN128",
+   "type": "card",
+   "card": "CUB-C/R2/S2",
+   "expect_points": 1,
+   "expect_tags": [
+    "AIT-2012"
+   ],
+   "expect_panel": "CUB-C"
+  },
+  {
+   "id": "PN129",
+   "type": "card",
+   "card": "CUB-C/R2/S3",
+   "expect_points": 1,
+   "expect_tags": [
+    "FIT-3008"
+   ],
+   "expect_panel": "CUB-C"
+  },
+  {
+   "id": "PN130",
+   "type": "card",
+   "card": "CUB-C/R2/S4",
+   "expect_points": 1,
+   "expect_tags": [
+    "FIT-1011"
+   ],
+   "expect_panel": "CUB-C"
+  },
+  {
+   "id": "PN131",
+   "type": "card",
+   "card": "CUB-C/R2/S5",
+   "expect_points": 2,
+   "expect_tags": [
+    "FIT-5005",
+    "LIT-2015"
+   ],
+   "expect_panel": "CUB-C"
+  },
+  {
+   "id": "PN132",
+   "type": "card",
+   "card": "CUB-C/R2/S6",
+   "expect_points": 2,
+   "expect_tags": [
+    "AIT-5008",
+    "AIT-7005"
+   ],
+   "expect_panel": "CUB-C"
+  },
+  {
+   "id": "PN133",
+   "type": "card",
+   "card": "CUB-D/R3/S1",
+   "expect_points": 22,
+   "expect_tags": [
+    "P-1101A",
+    "P-1101B",
+    "P-2101A",
+    "P-2101B",
+    "P-3101",
+    "P-5101A",
+    "P-5101B",
+    "P-6101A",
+    "P-7101",
+    "R-3104",
+    "UV-5102",
+    "XV-1102",
+    "XV-1103",
+    "XV-2102",
+    "XV-2103",
+    "XV-2104",
+    "XV-3102",
+    "XV-3103",
+    "XV-4101",
+    "XV-4102",
+    "XV-5103",
+    "XV-6102"
+   ],
+   "expect_panel": "CUB-D"
+  },
+  {
+   "id": "PN134",
+   "type": "card",
+   "card": "CUB-D/R3/S2",
+   "expect_points": 1,
+   "expect_tags": [
+    "LCV-01"
+   ],
+   "expect_panel": "CUB-D"
+  },
+  {
+   "id": "PN135",
+   "type": "card",
+   "card": "CUB-D/R3/S3",
+   "expect_points": 1,
+   "expect_tags": [
+    "RWP-01"
+   ],
+   "expect_panel": "CUB-D"
+  },
+  {
+   "id": "PN136",
+   "type": "card",
+   "card": "RIO-01/DP11/R0/S1",
+   "expect_points": 1,
+   "expect_tags": [
+    "AIT-5006"
+   ],
+   "expect_panel": "RIO-01"
+  },
+  {
+   "id": "PN137",
+   "type": "card",
+   "card": "RIO-01/DP11/R0/S3",
+   "expect_points": 2,
+   "expect_tags": [
+    "AIT-3001",
+    "FIT-3004"
+   ],
+   "expect_panel": "RIO-01"
+  },
+  {
+   "id": "PN138",
+   "type": "card",
+   "card": "RIO-01/DP11/R0/S4",
+   "expect_points": 3,
+   "expect_tags": [
+    "AIT-3009",
+    "AIT-7002",
+    "LIT-4007"
+   ],
+   "expect_panel": "RIO-01"
+  },
+  {
+   "id": "PN139",
+   "type": "card",
+   "card": "RIO-01/DP11/R0/S5",
+   "expect_points": 1,
+   "expect_tags": [
+    "PIT-5004"
+   ],
+   "expect_panel": "RIO-01"
+  },
+  {
+   "id": "PN140",
+   "type": "card",
+   "card": "RIO-01/DP11/R0/S6",
+   "expect_points": 1,
+   "expect_tags": [
+    "AIT-6002"
+   ],
+   "expect_panel": "RIO-01"
+  },
+  {
+   "id": "PN141",
+   "type": "card",
+   "card": "RIO-01/DP11/R0/S7",
+   "expect_points": 2,
+   "expect_tags": [
+    "PIT-2013",
+    "PIT-6003"
+   ],
+   "expect_panel": "RIO-01"
+  },
+  {
+   "id": "PN142",
+   "type": "card",
+   "card": "RIO-01/DP11/R0/S8",
+   "expect_points": 5,
+   "expect_tags": [
+    "AIT-2002",
+    "AIT-3002",
+    "AIT-4002",
+    "FIT-2004",
+    "FIT-2009"
+   ],
+   "expect_panel": "RIO-01"
+  },
+  {
+   "id": "PN143",
+   "type": "card",
+   "card": "RIO-02/DP12/R0/S2",
+   "expect_points": 2,
+   "expect_tags": [
+    "FIT-1003",
+    "TIT-6010"
+   ],
+   "expect_panel": "RIO-02"
+  },
+  {
+   "id": "PN144",
+   "type": "card",
+   "card": "RIO-02/DP12/R0/S3",
+   "expect_points": 1,
+   "expect_tags": [
+    "AIT-7001"
+   ],
+   "expect_panel": "RIO-02"
+  },
+  {
+   "id": "PN145",
+   "type": "card",
+   "card": "RIO-02/DP12/R0/S4",
+   "expect_points": 3,
+   "expect_tags": [
+    "AIT-1005",
+    "AIT-2001",
+    "PIT-1010"
+   ],
+   "expect_panel": "RIO-02"
+  },
+  {
+   "id": "PN146",
+   "type": "card",
+   "card": "RIO-02/DP12/R0/S5",
+   "expect_points": 2,
+   "expect_tags": [
+    "AIT-6001",
+    "FIT-2014"
+   ],
+   "expect_panel": "RIO-02"
+  },
+  {
+   "id": "PN147",
+   "type": "card",
+   "card": "RIO-02/DP12/R0/S6",
+   "expect_points": 1,
+   "expect_tags": [
+    "FIT-6004"
+   ],
+   "expect_panel": "RIO-02"
+  },
+  {
+   "id": "PN148",
+   "type": "card",
+   "card": "RIO-02/DP12/R0/S8",
+   "expect_points": 2,
+   "expect_tags": [
+    "AIT-6006",
+    "PIT-1006"
+   ],
+   "expect_panel": "RIO-02"
+  },
+  {
+   "id": "PN149",
+   "type": "cscope",
+   "card": "CUB-A/R0/S1",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN150",
+   "type": "cscope",
+   "card": "CUB-A/R0/S2",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN151",
+   "type": "cscope",
+   "card": "CUB-A/R0/S4",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN152",
+   "type": "cscope",
+   "card": "CUB-A/R0/S5",
+   "expect_outputs": [
+    "P-3101",
+    "XV-2102",
+    "XV-3102"
+   ]
+  },
+  {
+   "id": "PN153",
+   "type": "cdepend",
+   "card": "CUB-A/R0/S5",
+   "expect_no_remaining": [
+    "IL-2102-02",
+    "IL-3101-02",
+    "IL-3102-02"
+   ],
+   "expect_partial": []
+  },
+  {
+   "id": "PN154",
+   "type": "cscope",
+   "card": "CUB-A/R0/S6",
+   "expect_outputs": [
+    "P-5101A",
+    "P-6101A",
+    "XV-4101",
+    "XV-4102",
+    "XV-5103"
+   ]
+  },
+  {
+   "id": "PN155",
+   "type": "cdepend",
+   "card": "CUB-A/R0/S6",
+   "expect_no_remaining": [
+    "IL-4101-02",
+    "IL-4101-03",
+    "IL-4102-02",
+    "IL-5101A-02",
+    "IL-5103-02"
+   ],
+   "expect_partial": [
+    "IL-4101-01",
+    "IL-4102-01",
+    "IL-5101A-01",
+    "IL-6101A-01"
+   ]
+  },
+  {
+   "id": "PN156",
+   "type": "cscope",
+   "card": "CUB-A/R0/S7",
+   "expect_outputs": [
+    "P-1101A"
+   ]
+  },
+  {
+   "id": "PN157",
+   "type": "cdepend",
+   "card": "CUB-A/R0/S7",
+   "expect_no_remaining": [
+    "IL-1101A-01"
+   ],
+   "expect_partial": []
+  },
+  {
+   "id": "PN158",
+   "type": "cscope",
+   "card": "CUB-A/R0/S8",
+   "expect_outputs": [
+    "R-3104",
+    "XV-1102"
+   ]
+  },
+  {
+   "id": "PN159",
+   "type": "cdepend",
+   "card": "CUB-A/R0/S8",
+   "expect_no_remaining": [],
+   "expect_partial": [
+    "IL-1102-01",
+    "IL-3104-01"
+   ]
+  },
+  {
+   "id": "PN160",
+   "type": "cscope",
+   "card": "CUB-B/R1/S1",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN161",
+   "type": "cscope",
+   "card": "CUB-B/R1/S2",
+   "expect_outputs": [
+    "XV-5103"
+   ]
+  },
+  {
+   "id": "PN162",
+   "type": "cdepend",
+   "card": "CUB-B/R1/S2",
+   "expect_no_remaining": [],
+   "expect_partial": [
+    "IL-5103-01"
+   ]
+  },
+  {
+   "id": "PN163",
+   "type": "cscope",
+   "card": "CUB-B/R1/S3",
+   "expect_outputs": [
+    "P-2101A",
+    "XV-2102",
+    "XV-2103"
+   ]
+  },
+  {
+   "id": "PN164",
+   "type": "cdepend",
+   "card": "CUB-B/R1/S3",
+   "expect_no_remaining": [
+    "IL-2101A-02",
+    "IL-2103-02"
+   ],
+   "expect_partial": [
+    "IL-2101A-01",
+    "IL-2102-01",
+    "IL-2103-01"
+   ]
+  },
+  {
+   "id": "PN165",
+   "type": "cscope",
+   "card": "CUB-B/R1/S4",
+   "expect_outputs": [
+    "XV-5103"
+   ]
+  },
+  {
+   "id": "PN166",
+   "type": "cdepend",
+   "card": "CUB-B/R1/S4",
+   "expect_no_remaining": [],
+   "expect_partial": [
+    "IL-5103-01"
+   ]
+  },
+  {
+   "id": "PN167",
+   "type": "cscope",
+   "card": "CUB-B/R1/S5",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN168",
+   "type": "cscope",
+   "card": "CUB-B/R1/S6",
+   "expect_outputs": [
+    "P-3101"
+   ]
+  },
+  {
+   "id": "PN169",
+   "type": "cdepend",
+   "card": "CUB-B/R1/S6",
+   "expect_no_remaining": [],
+   "expect_partial": [
+    "IL-3101-01"
+   ]
+  },
+  {
+   "id": "PN170",
+   "type": "cscope",
+   "card": "CUB-B/R1/S7",
+   "expect_outputs": [
+    "XV-4101",
+    "XV-5103"
+   ]
+  },
+  {
+   "id": "PN171",
+   "type": "cdepend",
+   "card": "CUB-B/R1/S7",
+   "expect_no_remaining": [
+    "IL-5103-02"
+   ],
+   "expect_partial": [
+    "IL-4101-01"
+   ]
+  },
+  {
+   "id": "PN172",
+   "type": "cscope",
+   "card": "CUB-B/R1/S8",
+   "expect_outputs": [
+    "XV-1102"
+   ]
+  },
+  {
+   "id": "PN173",
+   "type": "cdepend",
+   "card": "CUB-B/R1/S8",
+   "expect_no_remaining": [],
+   "expect_partial": [
+    "IL-1102-01"
+   ]
+  },
+  {
+   "id": "PN174",
+   "type": "cscope",
+   "card": "CUB-C/R2/S2",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN175",
+   "type": "cscope",
+   "card": "CUB-C/R2/S3",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN176",
+   "type": "cscope",
+   "card": "CUB-C/R2/S4",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN177",
+   "type": "cscope",
+   "card": "CUB-C/R2/S5",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN178",
+   "type": "cscope",
+   "card": "CUB-C/R2/S6",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN179",
+   "type": "cscope",
+   "card": "CUB-D/R3/S1",
+   "expect_outputs": [
+    "P-2101A",
+    "P-3101",
+    "P-5101A",
+    "R-3104",
+    "UV-5102",
+    "XV-2102",
+    "XV-2103",
+    "XV-4101",
+    "XV-4102",
+    "XV-6102"
+   ]
+  },
+  {
+   "id": "PN180",
+   "type": "cdepend",
+   "card": "CUB-D/R3/S1",
+   "expect_no_remaining": [
+    "IL-2101A-02",
+    "IL-2101A-03",
+    "IL-2102-02",
+    "IL-3101-02",
+    "IL-3104-02",
+    "IL-4101-02",
+    "IL-5101A-02",
+    "IL-5102-02",
+    "IL-6102-02"
+   ],
+   "expect_partial": [
+    "IL-2103-01",
+    "IL-3104-01",
+    "IL-4102-01",
+    "IL-5102-01"
+   ]
+  },
+  {
+   "id": "PN181",
+   "type": "cscope",
+   "card": "CUB-D/R3/S2",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN182",
+   "type": "cscope",
+   "card": "CUB-D/R3/S3",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN183",
+   "type": "cscope",
+   "card": "RIO-01/DP11/R0/S1",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN184",
+   "type": "cscope",
+   "card": "RIO-01/DP11/R0/S3",
+   "expect_outputs": [
+    "P-3101",
+    "R-3104",
+    "XV-4101"
+   ]
+  },
+  {
+   "id": "PN185",
+   "type": "cdepend",
+   "card": "RIO-01/DP11/R0/S3",
+   "expect_no_remaining": [
+    "IL-3104-02",
+    "IL-4101-02"
+   ],
+   "expect_partial": [
+    "IL-3101-01",
+    "IL-3104-01"
+   ]
+  },
+  {
+   "id": "PN186",
+   "type": "cscope",
+   "card": "RIO-01/DP11/R0/S4",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN187",
+   "type": "cscope",
+   "card": "RIO-01/DP11/R0/S5",
+   "expect_outputs": [
+    "P-5101A"
+   ]
+  },
+  {
+   "id": "PN188",
+   "type": "cdepend",
+   "card": "RIO-01/DP11/R0/S5",
+   "expect_no_remaining": [],
+   "expect_partial": [
+    "IL-5101A-01"
+   ]
+  },
+  {
+   "id": "PN189",
+   "type": "cscope",
+   "card": "RIO-01/DP11/R0/S6",
+   "expect_outputs": [
+    "XV-6102"
+   ]
+  },
+  {
+   "id": "PN190",
+   "type": "cdepend",
+   "card": "RIO-01/DP11/R0/S6",
+   "expect_no_remaining": [
+    "IL-6102-02"
+   ],
+   "expect_partial": [
+    "IL-6102-01"
+   ]
+  },
+  {
+   "id": "PN191",
+   "type": "cscope",
+   "card": "RIO-01/DP11/R0/S7",
+   "expect_outputs": [
+    "P-6101A",
+    "XV-6102"
+   ]
+  },
+  {
+   "id": "PN192",
+   "type": "cdepend",
+   "card": "RIO-01/DP11/R0/S7",
+   "expect_no_remaining": [
+    "IL-6102-02"
+   ],
+   "expect_partial": [
+    "IL-6101A-01"
+   ]
+  },
+  {
+   "id": "PN193",
+   "type": "cscope",
+   "card": "RIO-01/DP11/R0/S8",
+   "expect_outputs": [
+    "P-2101A",
+    "XV-2102",
+    "XV-2104",
+    "XV-3102",
+    "XV-4101"
+   ]
+  },
+  {
+   "id": "PN194",
+   "type": "cdepend",
+   "card": "RIO-01/DP11/R0/S8",
+   "expect_no_remaining": [
+    "IL-2104-02",
+    "IL-3102-01"
+   ],
+   "expect_partial": [
+    "IL-2101A-01",
+    "IL-2102-01",
+    "IL-2104-01",
+    "IL-4101-01"
+   ]
+  },
+  {
+   "id": "PN195",
+   "type": "cscope",
+   "card": "RIO-02/DP12/R0/S2",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN196",
+   "type": "cscope",
+   "card": "RIO-02/DP12/R0/S3",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN197",
+   "type": "cscope",
+   "card": "RIO-02/DP12/R0/S4",
+   "expect_outputs": [
+    "XV-2102",
+    "XV-2104",
+    "XV-3102"
+   ]
+  },
+  {
+   "id": "PN198",
+   "type": "cdepend",
+   "card": "RIO-02/DP12/R0/S4",
+   "expect_no_remaining": [
+    "IL-2102-02",
+    "IL-2104-02",
+    "IL-3102-02"
+   ],
+   "expect_partial": [
+    "IL-2104-01"
+   ]
+  },
+  {
+   "id": "PN199",
+   "type": "cscope",
+   "card": "RIO-02/DP12/R0/S5",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN200",
+   "type": "cscope",
+   "card": "RIO-02/DP12/R0/S6",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN201",
+   "type": "cscope",
+   "card": "RIO-02/DP12/R0/S8",
+   "expect_outputs": []
+  },
+  {
+   "id": "PN202",
+   "type": "common",
+   "expect_findings": [
+    "IL-2103-01",
+    "IL-3104-02",
+    "IL-4101-02",
+    "IL-4102-01",
+    "IL-5102-01",
+    "IL-5102-02"
+   ]
+  },
+  {
+   "id": "PN203",
+   "type": "absent",
+   "panel": "CUB-Z"
+  },
+  {
+   "id": "PN204",
+   "type": "absent",
+   "panel": "RIO-09"
+  },
+  {
+   "id": "PN205",
+   "type": "absent",
+   "panel": "MCC-01"
+  },
+  {
+   "id": "PN206",
+   "type": "absent",
+   "panel": "LCP-777"
+  },
+  {
+   "id": "PN207",
+   "type": "absent",
+   "tag": "AIT-9999"
+  },
+  {
+   "id": "PN208",
+   "type": "absent",
+   "tag": "PIT-9001"
+  },
+  {
+   "id": "PN209",
+   "type": "absent",
+   "tag": "ZZT-1234"
+  },
+  {
+   "id": "PN210",
+   "type": "absent",
+   "card": "CUB-Z/R0/S1"
+  },
+  {
+   "id": "PN211",
+   "type": "absent",
+   "card": "CUB-A/R9/S99"
+  },
+  {
+   "id": "PN212",
+   "type": "absent",
+   "card": "RIO-01/DP99/R0/S1"
+  }
+ ]
+}
