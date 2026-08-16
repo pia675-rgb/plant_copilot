@@ -51,6 +51,12 @@ class CopilotState(TypedDict, total=False):
     grade_parts: Dict[str, float]
     decision: str          # advise | abstain
     trace: List[str]
+    # 여태 가장 좋았던 시도. 재질의가 결과를 나쁘게 만든 경우 되돌린다.
+    best_grade: float
+    best_evidence: List[Dict[str, Any]]
+    best_query: str
+    best_reason: str
+    best_parts: Dict[str, float]
 
 
 # ── 노드 ────────────────────────────────────────────────────
@@ -141,6 +147,16 @@ def grade(state: CopilotState) -> CopilotState:
     """
     ev = state.get("evidence", [])
     if not ev:
+        # 재질의가 아무것도 못 찾아온 경우에도 이전 결과가 있으면 살린다.
+        if state.get("best_evidence"):
+            tr = list(state.get("trace", []))
+            tr.append("revert: 재질의가 결과를 찾지 못해 이전 결과로 되돌림")
+            return {"grade": state.get("best_grade", 0.0),
+                    "grade_reason": state.get("best_reason", ""),
+                    "grade_parts": state.get("best_parts", {}),
+                    "evidence": state.get("best_evidence"),
+                    "query": state.get("best_query", ""),
+                    "trace": tr}
         return {"grade": 0.0, "grade_reason": "검색 결과 없음", "grade_parts": {}}
 
     W = config.GRADE_W
@@ -222,8 +238,28 @@ def grade(state: CopilotState) -> CopilotState:
         add("device_same", W["device_same"], "상위 근거의 기기 일치")
 
     score = max(0.0, min(1.0, sum(parts.values())))
+
+    # 재질의는 결과를 좋게 만들 때만 의미가 있다. 실제로는 상투어를
+    # 붙이는 변형이 오히려 더 일반적인 문서를 끌어올려 1위를 망치는
+    # 경우가 있다. 그런 시도는 버리고 여태 가장 좋았던 결과로 되돌린다.
+    # 되돌린 사실은 trace 에 남겨 화면에서 확인할 수 있게 한다.
+    best = state.get("best_grade")
+    if best is not None and score < best:
+        tr = list(state.get("trace", []))
+        tr.append("revert: 재질의 결과가 더 나빠 이전 결과로 되돌림 "
+                  "(%.2f → %.2f)" % (score, best))
+        return {"grade": best,
+                "grade_reason": state.get("best_reason", ""),
+                "grade_parts": state.get("best_parts", {}),
+                "evidence": state.get("best_evidence", []),
+                "query": state.get("best_query", query),
+                "trace": tr}
+
     return {"grade": score, "grade_reason": ", ".join(reasons),
-            "grade_parts": parts}
+            "grade_parts": parts,
+            "best_grade": score, "best_evidence": ev,
+            "best_query": query, "best_reason": ", ".join(reasons),
+            "best_parts": parts}
 
 
 def rewrite(state: CopilotState) -> CopilotState:
