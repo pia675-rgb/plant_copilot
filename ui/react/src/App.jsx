@@ -1423,6 +1423,9 @@ function InterlockView({ tag, action, asInput, botPending, onBotHandled }) {
   const [sourceOpen, setSourceOpen] = useState(false)
   const [sourceLoading, setSourceLoading] = useState(false)
   const [sourceError, setSourceError] = useState(null)
+  // 공정 화면(작화 전사본)이 준비된 태그만. 없는 태그는 패널 자체를 띄우지 않는다.
+  const GRAPHIC_PAGES = { 'P-5101A': '/interlock_P-5101A.html?embed=1' }
+  const [graphicOpen, setGraphicOpen] = useState(false)  // 기본은 접힘
 
   useEffect(() => {
     if (!botPending) return
@@ -1541,6 +1544,26 @@ function InterlockView({ tag, action, asInput, botPending, onBotHandled }) {
               <div className="item"><span className="label">Type / Fail</span>
                 <span className="value">{[data.output.type, data.output.fail].filter(Boolean).join(' · ') || '—'}</span>
               </div>
+            </div>
+          )}
+          {GRAPHIC_PAGES[data.output?.tag] && (
+            <div className="panel">
+              <div className="panel-head" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                공정 화면
+                <span style={{ fontSize: '0.76rem', opacity: 0.6 }}>오프라인 시뮬레이션</span>
+                <button className="btn"
+                  style={{ width: 'auto', padding: '4px 12px', marginLeft: 'auto', fontSize: '0.8rem' }}
+                  onClick={() => setGraphicOpen(v => !v)}>
+                  {graphicOpen ? '접기' : '펼치기'}
+                </button>
+              </div>
+              {graphicOpen && (
+                <div className="panel-body" style={{ padding: 0 }}>
+                  <iframe src={GRAPHIC_PAGES[data.output.tag]}
+                    title={`${data.output.tag} 공정 화면`}
+                    style={{ width: '100%', height: 640, border: 0, display: 'block' }} />
+                </div>
+              )}
             </div>
           )}
           <div className="panel">
