@@ -2,10 +2,10 @@
  "meta": {
   "source": "DEMO_INTERLOCK_LIST.xlsx (합성)",
   "generated_from": "ingest.interlock.load_interlocks — 조회 엔진과 독립",
-  "interlock_rows": 33,
+  "interlock_rows": 37,
   "fairness_note": "정답은 원천 레코드에서 직접 계산했으며 조회 엔진의 출력을 쓰지 않았다. 인터락 조회는 검색이 아니라 조회이므로 만점이 기본값이며, 이 평가의 목적은 성능 측정이 아니라 층 분리 로직의 회귀 방지다.",
   "counts": {
-   "layer": 30,
+   "layer": 32,
    "reverse": 12,
    "absent": 5,
    "value": 10,
@@ -94,12 +94,38 @@
    "action": "STOP",
    "expect_blocking": [],
    "expect_enabling": [
-    "IL-5101A-01"
+    "IL-5101A-01",
+    "IL-5101A-03"
    ],
    "note": "P-5101A STOP 시 막는 조건과 허가 조건의 분리"
   },
   {
    "id": "IL08",
+   "type": "layer",
+   "tag": "P-5101B",
+   "action": "START",
+   "expect_blocking": [
+    "IL-5101B-01"
+   ],
+   "expect_enabling": [
+    "IL-5101B-02"
+   ],
+   "note": "P-5101B START 시 막는 조건과 허가 조건의 분리"
+  },
+  {
+   "id": "IL09",
+   "type": "layer",
+   "tag": "P-5101B",
+   "action": "STOP",
+   "expect_blocking": [],
+   "expect_enabling": [
+    "IL-5101B-01",
+    "IL-5101B-03"
+   ],
+   "note": "P-5101B STOP 시 막는 조건과 허가 조건의 분리"
+  },
+  {
+   "id": "IL10",
    "type": "layer",
    "tag": "P-6101A",
    "action": "STOP",
@@ -110,7 +136,7 @@
    "note": "P-6101A STOP 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL09",
+   "id": "IL11",
    "type": "layer",
    "tag": "P-7101",
    "action": "STOP",
@@ -121,7 +147,7 @@
    "note": "P-7101 STOP 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL10",
+   "id": "IL12",
    "type": "layer",
    "tag": "R-3104",
    "action": "OFF",
@@ -132,7 +158,7 @@
    "note": "R-3104 OFF 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL11",
+   "id": "IL13",
    "type": "layer",
    "tag": "R-3104",
    "action": "ON",
@@ -145,7 +171,7 @@
    "note": "R-3104 ON 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL12",
+   "id": "IL14",
    "type": "layer",
    "tag": "UV-5102",
    "action": "OFF",
@@ -156,7 +182,7 @@
    "note": "UV-5102 OFF 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL13",
+   "id": "IL15",
    "type": "layer",
    "tag": "UV-5102",
    "action": "ON",
@@ -169,7 +195,7 @@
    "note": "UV-5102 ON 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL14",
+   "id": "IL16",
    "type": "layer",
    "tag": "XV-1102",
    "action": "CLOSE",
@@ -180,7 +206,7 @@
    "note": "XV-1102 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL15",
+   "id": "IL17",
    "type": "layer",
    "tag": "XV-2102",
    "action": "CLOSE",
@@ -191,7 +217,7 @@
    "note": "XV-2102 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL16",
+   "id": "IL18",
    "type": "layer",
    "tag": "XV-2102",
    "action": "OPEN",
@@ -204,7 +230,7 @@
    "note": "XV-2102 OPEN 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL17",
+   "id": "IL19",
    "type": "layer",
    "tag": "XV-2103",
    "action": "CLOSE",
@@ -217,7 +243,7 @@
    "note": "XV-2103 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL18",
+   "id": "IL20",
    "type": "layer",
    "tag": "XV-2103",
    "action": "OPEN",
@@ -228,7 +254,7 @@
    "note": "XV-2103 OPEN 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL19",
+   "id": "IL21",
    "type": "layer",
    "tag": "XV-2104",
    "action": "CLOSE",
@@ -239,7 +265,7 @@
    "note": "XV-2104 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL20",
+   "id": "IL22",
    "type": "layer",
    "tag": "XV-2104",
    "action": "OPEN",
@@ -252,7 +278,7 @@
    "note": "XV-2104 OPEN 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL21",
+   "id": "IL23",
    "type": "layer",
    "tag": "XV-3102",
    "action": "CLOSE",
@@ -263,7 +289,7 @@
    "note": "XV-3102 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL22",
+   "id": "IL24",
    "type": "layer",
    "tag": "XV-3102",
    "action": "OPEN",
@@ -276,7 +302,7 @@
    "note": "XV-3102 OPEN 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL23",
+   "id": "IL25",
    "type": "layer",
    "tag": "XV-4101",
    "action": "CLOSE",
@@ -287,7 +313,7 @@
    "note": "XV-4101 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL24",
+   "id": "IL26",
    "type": "layer",
    "tag": "XV-4101",
    "action": "OPEN",
@@ -302,7 +328,7 @@
    "note": "XV-4101 OPEN 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL25",
+   "id": "IL27",
    "type": "layer",
    "tag": "XV-4102",
    "action": "CLOSE",
@@ -313,7 +339,7 @@
    "note": "XV-4102 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL26",
+   "id": "IL28",
    "type": "layer",
    "tag": "XV-4102",
    "action": "OPEN",
@@ -326,7 +352,7 @@
    "note": "XV-4102 OPEN 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL27",
+   "id": "IL29",
    "type": "layer",
    "tag": "XV-5103",
    "action": "CLOSE",
@@ -337,7 +363,7 @@
    "note": "XV-5103 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL28",
+   "id": "IL30",
    "type": "layer",
    "tag": "XV-5103",
    "action": "OPEN",
@@ -350,7 +376,7 @@
    "note": "XV-5103 OPEN 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL29",
+   "id": "IL31",
    "type": "layer",
    "tag": "XV-6102",
    "action": "CLOSE",
@@ -361,7 +387,7 @@
    "note": "XV-6102 CLOSE 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL30",
+   "id": "IL32",
    "type": "layer",
    "tag": "XV-6102",
    "action": "OPEN",
@@ -374,20 +400,21 @@
    "note": "XV-6102 OPEN 시 막는 조건과 허가 조건의 분리"
   },
   {
-   "id": "IL31",
+   "id": "IL33",
    "type": "reverse",
    "tag": "LIT-4003",
    "expect_outputs": [
     "P-5101A",
+    "P-5101B",
     "P-6101A",
     "XV-4101",
     "XV-4102",
     "XV-5103"
    ],
-   "note": "LIT-4003 가 걸린 출력 5개"
+   "note": "LIT-4003 가 걸린 출력 6개"
   },
   {
-   "id": "IL32",
+   "id": "IL34",
    "type": "reverse",
    "tag": "AIT-2001",
    "expect_outputs": [
@@ -398,7 +425,7 @@
    "note": "AIT-2001 가 걸린 출력 3개"
   },
   {
-   "id": "IL33",
+   "id": "IL35",
    "type": "reverse",
    "tag": "LIT-2005",
    "expect_outputs": [
@@ -409,7 +436,18 @@
    "note": "LIT-2005 가 걸린 출력 3개"
   },
   {
-   "id": "IL34",
+   "id": "IL36",
+   "type": "reverse",
+   "tag": "P-5101A",
+   "expect_outputs": [
+    "P-5101B",
+    "UV-5102",
+    "XV-4102"
+   ],
+   "note": "P-5101A 가 걸린 출력 3개"
+  },
+  {
+   "id": "IL37",
    "type": "reverse",
    "tag": "PIT-2003",
    "expect_outputs": [
@@ -420,7 +458,7 @@
    "note": "PIT-2003 가 걸린 출력 3개"
   },
   {
-   "id": "IL35",
+   "id": "IL38",
    "type": "reverse",
    "tag": "AIT-2002",
    "expect_outputs": [
@@ -430,7 +468,7 @@
    "note": "AIT-2002 가 걸린 출력 2개"
   },
   {
-   "id": "IL36",
+   "id": "IL39",
    "type": "reverse",
    "tag": "AIT-4001",
    "expect_outputs": [
@@ -440,7 +478,7 @@
    "note": "AIT-4001 가 걸린 출력 2개"
   },
   {
-   "id": "IL37",
+   "id": "IL40",
    "type": "reverse",
    "tag": "FIT-2004",
    "expect_outputs": [
@@ -450,7 +488,7 @@
    "note": "FIT-2004 가 걸린 출력 2개"
   },
   {
-   "id": "IL38",
+   "id": "IL41",
    "type": "reverse",
    "tag": "FIT-3004",
    "expect_outputs": [
@@ -460,7 +498,7 @@
    "note": "FIT-3004 가 걸린 출력 2개"
   },
   {
-   "id": "IL39",
+   "id": "IL42",
    "type": "reverse",
    "tag": "P-2101B",
    "expect_outputs": [
@@ -470,7 +508,7 @@
    "note": "P-2101B 가 걸린 출력 2개"
   },
   {
-   "id": "IL40",
+   "id": "IL43",
    "type": "reverse",
    "tag": "P-3101",
    "expect_outputs": [
@@ -480,17 +518,7 @@
    "note": "P-3101 가 걸린 출력 2개"
   },
   {
-   "id": "IL41",
-   "type": "reverse",
-   "tag": "P-5101A",
-   "expect_outputs": [
-    "UV-5102",
-    "XV-4102"
-   ],
-   "note": "P-5101A 가 걸린 출력 2개"
-  },
-  {
-   "id": "IL42",
+   "id": "IL44",
    "type": "reverse",
    "tag": "P-5101B",
    "expect_outputs": [
@@ -500,42 +528,42 @@
    "note": "P-5101B 가 걸린 출력 2개"
   },
   {
-   "id": "IL43",
+   "id": "IL45",
    "type": "absent",
    "tag": "XV-9999",
    "expect_found": false,
    "note": "리스트에 없는 태그 — 지어내면 안 됨"
   },
   {
-   "id": "IL44",
+   "id": "IL46",
    "type": "absent",
    "tag": "P-9101A",
    "expect_found": false,
    "note": "리스트에 없는 태그 — 지어내면 안 됨"
   },
   {
-   "id": "IL45",
+   "id": "IL47",
    "type": "absent",
    "tag": "LCV-99",
    "expect_found": false,
    "note": "리스트에 없는 태그 — 지어내면 안 됨"
   },
   {
-   "id": "IL46",
+   "id": "IL48",
    "type": "absent",
    "tag": "UV-9999",
    "expect_found": false,
    "note": "리스트에 없는 태그 — 지어내면 안 됨"
   },
   {
-   "id": "IL47",
+   "id": "IL49",
    "type": "absent",
    "tag": "R-9999",
    "expect_found": false,
    "note": "리스트에 없는 태그 — 지어내면 안 됨"
   },
   {
-   "id": "IL48",
+   "id": "IL50",
    "type": "value",
    "tag": "XV-4101",
    "il_no": "IL-4101-01",
@@ -549,7 +577,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL49",
+   "id": "IL51",
    "type": "value",
    "tag": "XV-4101",
    "il_no": "IL-4101-02",
@@ -563,7 +591,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL50",
+   "id": "IL52",
    "type": "value",
    "tag": "XV-4101",
    "il_no": "IL-4101-03",
@@ -577,7 +605,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL51",
+   "id": "IL53",
    "type": "value",
    "tag": "XV-4102",
    "il_no": "IL-4102-01",
@@ -591,7 +619,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL52",
+   "id": "IL54",
    "type": "value",
    "tag": "XV-4102",
    "il_no": "IL-4102-02",
@@ -605,7 +633,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL53",
+   "id": "IL55",
    "type": "value",
    "tag": "P-2101A",
    "il_no": "IL-2101A-01",
@@ -619,7 +647,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL54",
+   "id": "IL56",
    "type": "value",
    "tag": "P-2101A",
    "il_no": "IL-2101A-02",
@@ -633,7 +661,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL55",
+   "id": "IL57",
    "type": "value",
    "tag": "XV-2102",
    "il_no": "IL-2102-01",
@@ -647,7 +675,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL56",
+   "id": "IL58",
    "type": "value",
    "tag": "XV-2102",
    "il_no": "IL-2102-02",
@@ -661,7 +689,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL57",
+   "id": "IL59",
    "type": "value",
    "tag": "XV-2103",
    "il_no": "IL-2103-01",
@@ -675,7 +703,7 @@
    "note": "설정치·단위·지연이 원문과 일치하는가"
   },
   {
-   "id": "IL58",
+   "id": "IL60",
    "type": "unparsed",
    "tag": "XV-2102",
    "il_no": "IL-2102-02",
@@ -683,7 +711,7 @@
    "note": "못 읽은 조건은 추측하지 않고 원문을 남겨야 함"
   },
   {
-   "id": "IL59",
+   "id": "IL61",
    "type": "attr",
    "tag": "XV-4101",
    "il_no": "IL-4101-01",
@@ -696,7 +724,7 @@
    "note": "바이패스 가부와 리셋 방식은 안전 판단에 직결됨"
   },
   {
-   "id": "IL60",
+   "id": "IL62",
    "type": "attr",
    "tag": "XV-4101",
    "il_no": "IL-4101-02",
@@ -709,7 +737,7 @@
    "note": "바이패스 가부와 리셋 방식은 안전 판단에 직결됨"
   },
   {
-   "id": "IL61",
+   "id": "IL63",
    "type": "attr",
    "tag": "XV-4101",
    "il_no": "IL-4101-03",
@@ -722,7 +750,7 @@
    "note": "바이패스 가부와 리셋 방식은 안전 판단에 직결됨"
   },
   {
-   "id": "IL62",
+   "id": "IL64",
    "type": "attr",
    "tag": "XV-4101",
    "il_no": "IL-4101-04",
@@ -735,7 +763,7 @@
    "note": "바이패스 가부와 리셋 방식은 안전 판단에 직결됨"
   },
   {
-   "id": "IL63",
+   "id": "IL65",
    "type": "attr",
    "tag": "XV-4102",
    "il_no": "IL-4102-02",
@@ -748,7 +776,7 @@
    "note": "바이패스 가부와 리셋 방식은 안전 판단에 직결됨"
   },
   {
-   "id": "IL64",
+   "id": "IL66",
    "type": "attr",
    "tag": "XV-2103",
    "il_no": "IL-2103-01",
@@ -761,7 +789,7 @@
    "note": "바이패스 가부와 리셋 방식은 안전 판단에 직결됨"
   },
   {
-   "id": "IL65",
+   "id": "IL67",
    "type": "attr",
    "tag": "XV-6102",
    "il_no": "IL-6102-02",
