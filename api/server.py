@@ -41,6 +41,25 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+def _prewarm_llm():
+    """모델을 미리 올려둔다. 첫 조회가 로딩 시간을 물지 않게 한다.
+
+    별도 스레드로 돌린다 — 예열이 끝날 때까지 서버 기동을 붙잡으면
+    화면이 늦게 뜬다. COPILOT_PREWARM=0 으로 끌 수 있다.
+    """
+    if os.environ.get("COPILOT_PREWARM", "1").strip() == "0":
+        return
+    import threading
+    from graph import advisor
+
+    def run():
+        ok, msg = advisor.prewarm()
+        print("[prewarm] %s" % msg)
+
+    threading.Thread(target=run, daemon=True).start()
+
 # ── 싱글톤 ──────────────────────────────────────────────────
 _retrievers: Dict[str, Retriever] = {}
 _copilots: Dict[str, Copilot2] = {}

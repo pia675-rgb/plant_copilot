@@ -34,6 +34,7 @@ off 이면 LLM 없이 템플릿만 쓴다. 임베딩 제공자와 별개로 설�
 
 import json
 import os
+import time
 import re
 import sys
 import urllib.error
@@ -64,8 +65,14 @@ SYSTEM = """당신은 플랜트 계장제어 정비를 지원합니다.
 - 쉬운 것부터, 안전한 것부터, 확인이 빠른 것부터 배치하십시오.
 - 비슷한 근거가 여러 건이면 하나의 단계로 묶으십시오.
 - 한국어로 쓰고, 각 단계는 정비원에게 말하듯 한두 문장으로 쓰십시오.
-- 근거가 조치를 지시하지 않고 증상만 설명하면, 확인 방법을 지어내지 말고
-  무엇을 확인해야 하는지만 쓰십시오.
+- 근거가 조치를 지시하지 않고 원인만 설명하는 경우가 많습니다. 이때는
+  근거에 적힌 원인을 그대로 확인 항목으로 옮기십시오. 원인이 여러 개면
+  모두 쓰십시오. 예를 들어 근거가 "셀 건조(측정액 없음) 또는 배선 단선"
+  이라고 하면, 측정액 유무 확인과 배선 단선 확인을 각각 쓰십시오.
+  근거에 없는 확인 방법을 새로 지어내지는 마십시오.
+- 코드나 알람 이름만 되풀이하는 단계는 쓸모가 없습니다. "X 확인 — X 인지
+  확인합니다" 같은 문장은 쓰지 마십시오. 제목과 본문에는 근거에 적힌
+  구체적인 원인과 부위, 조건을 쓰십시오.
 
 JSON만 출력하십시오. 설명이나 코드펜스를 붙이지 마십시오.
 {"summary": "현장 증상을 다시 말하는 한 문장", "steps": [{"title": "짧은 제목",
@@ -87,6 +94,61 @@ def _post(url, payload, headers, timeout=120):
         return json.loads(r.read().decode("utf-8"))
 
 
+def _get(url, timeout):
+    req = urllib.request.Request(url, method="GET")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+# ── 모델 자동 해석 ──────────────────────────────────────────
+# COPILOT_MODEL 에 적힌 모델이 그 노트북에 없으면 404 가 난다. 사람마다
+# 받아둔 모델이 달라서 배치 파일에 이름을 박아두면 매번 깨진다. 설치된
+# 목록을 보고 선호 순서대로 하나를 고른다. 고른 결과는 콘솔에 남긴다.
+#
+# 평가는 재현성이 있어야 하므로 COPILOT_MODEL_STRICT=1 을 주면 대체하지
+# 않고 그대로 실패시킨다.
+_PREFER = ("qwen2.5:7b-instruct", "qwen2.5:7b", "qwen2.5", "llama3.1", "llama3.2")
+_resolved = None
+
+
+def _installed_models(timeout=5):
+    try:
+        d = _get(config.OLLAMA_URL.rstrip("/") + "/api/tags", timeout)
+        return [m.get("name", "") for m in (d.get("models") or [])]
+    except Exception:                                       # noqa: BLE001
+        return []
+
+
+def _resolve_model():
+    global _resolved
+    if _resolved:
+        return _resolved
+    want = config.LLM_MODEL
+    if os.environ.get("COPILOT_MODEL_STRICT", "").strip() == "1":
+        _resolved = want
+        return _resolved
+    names = _installed_models()
+    if not names or want in names:
+        _resolved = want
+        return _resolved
+    pick = next((p for p in _PREFER if p in names), None)
+    # 선호 목록에 없으면 임베딩 모델을 빼고 남는 첫 번째를 쓴다.
+    pick = pick or next((n for n in names if "bge" not in n and "embed" not in n), None)
+    if pick:
+        print("[advisor] 모델 %s 없음 → %s 로 대체 (설치됨: %s)"
+              % (want, pick, ", ".join(names)))
+        _resolved = pick
+    else:
+        _resolved = want
+    return _resolved
+
+
+# ollama 는 기본 5분이 지나면 모델을 메모리에서 내린다. 시연 중 설명하는
+# 사이에 내려가면 다음 조회에서 다시 올리느라 수십 초가 그대로 대기가 된다.
+# COPILOT_KEEP_ALIVE 로 상주 시간을 바꾼다 (예: 30m, -1 은 무기한).
+KEEP_ALIVE = os.environ.get("COPILOT_KEEP_ALIVE", "30m").strip() or "30m"
+
+
 def _chat_ollama(messages, timeout, model=None, num_predict=None):
     opts = {"temperature": 0}
     if num_predict:
@@ -94,10 +156,31 @@ def _chat_ollama(messages, timeout, model=None, num_predict=None):
         # 늘어놓으면 그만큼 그대로 대기 시간이 된다.
         opts["num_predict"] = int(num_predict)
     d = _post(config.OLLAMA_URL.rstrip("/") + "/api/chat",
-              {"model": model or config.LLM_MODEL, "messages": messages,
-               "stream": False, "options": opts},
+              {"model": model or _resolve_model(), "messages": messages,
+               "stream": False, "options": opts, "keep_alive": KEEP_ALIVE},
               {"Content-Type": "application/json"}, timeout)
     return d["message"]["content"]
+
+
+def prewarm(timeout=180):
+    """모델을 미리 올려둔다. 첫 조회에서 로딩 시간을 물지 않기 위함이다.
+
+    반환: (성공 여부, 메시지). 실패해도 예외를 올리지 않는다 — 예열은
+    편의 기능이라 서버 기동을 막으면 안 된다.
+    """
+    if config.LLM_PROVIDER != "ollama":
+        return False, "ollama 가 아니라 예열하지 않습니다 (%s)" % config.LLM_PROVIDER
+    model = _resolve_model()
+    t0 = time.time()
+    try:
+        _post(config.OLLAMA_URL.rstrip("/") + "/api/chat",
+              {"model": model, "messages": [{"role": "user", "content": "ping"}],
+               "stream": False, "options": {"num_predict": 1},
+               "keep_alive": KEEP_ALIVE},
+              {"Content-Type": "application/json"}, timeout)
+        return True, "%s 예열 완료 (%.1f초, 상주 %s)" % (model, time.time() - t0, KEEP_ALIVE)
+    except Exception as e:                                  # noqa: BLE001
+        return False, "%s 예열 실패 — %s: %s" % (model, type(e).__name__, str(e)[:120])
 
 
 def _chat_azure(messages, timeout):
@@ -135,7 +218,8 @@ def available():
         return False, "알 수 없는 제공자: %s" % config.LLM_PROVIDER
     try:
         fn([{"role": "user", "content": "ping"}], timeout=20)
-        return True, "%s/%s" % (config.LLM_PROVIDER, config.LLM_MODEL)
+        model = _resolve_model() if config.LLM_PROVIDER == "ollama" else config.LLM_MODEL
+        return True, "%s/%s" % (config.LLM_PROVIDER, model)
     except Exception as e:                                  # noqa: BLE001
         return False, "%s: %s" % (type(e).__name__, str(e)[:120])
 
