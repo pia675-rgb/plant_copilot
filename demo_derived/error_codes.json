@@ -1,5 +1,3915 @@
 [
   {
+    "id": "M9E-300",
+    "device": "M9e",
+    "code": "300",
+    "severity": "warning",
+    "name": "Acid container",
+    "description": "The estimated volume of acid is less than 10%. Confirm the low acid volume and order a new acid container.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-301",
+    "device": "M9e",
+    "code": "301",
+    "severity": "warning",
+    "name": "Acid container",
+    "description": "The acid expiration date is within 15 days. Order new acid container.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-302",
+    "device": "M9e",
+    "code": "302",
+    "severity": "warning",
+    "name": "Acid container",
+    "description": "Acid volume is 0%. Order a new acid container.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-303",
+    "device": "M9e",
+    "code": "303",
+    "severity": "warning",
+    "name": "Acid container",
+    "description": "The acid reagent has expired. Order a new acid container.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-304",
+    "device": "M9e",
+    "code": "304",
+    "severity": "warning",
+    "name": "Acid container",
+    "description": "The acid reagent container is not detected. Please ensure that a Veolia reagent product is installed.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-400",
+    "device": "M9e",
+    "code": "400",
+    "severity": "warning",
+    "name": "Oxidizer container",
+    "description": "The estimated volume of oxidizer is less than 10%. Confirm the low oxidizer volume and order a new oxidizer container.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-401",
+    "device": "M9e",
+    "code": "401",
+    "severity": "warning",
+    "name": "Oxidizer container",
+    "description": "The oxidizer expiration date is within 15 days. Order a new oxidizer container.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-402",
+    "device": "M9e",
+    "code": "402",
+    "severity": "warning",
+    "name": "Oxidizer container",
+    "description": "The oxidizer volume is 0%. Order a new oxidizer container.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-403",
+    "device": "M9e",
+    "code": "403",
+    "severity": "warning",
+    "name": "Oxidizer container",
+    "description": "The oxidizer reagent has expired. Order a new oxidizer container.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-404",
+    "device": "M9e",
+    "code": "404",
+    "severity": "warning",
+    "name": "Oxidizer container",
+    "description": "The oxidizer reagent container is not detected. Please ensure that a Veolia reagent product is installed.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-500",
+    "device": "M9e",
+    "code": "500",
+    "severity": "warning",
+    "name": "UV lamp",
+    "description": "The estimated remaining lamp life is less than 15 days. Order a new UV lamp.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-502",
+    "device": "M9e",
+    "code": "502",
+    "severity": "warning",
+    "name": "UV lamp",
+    "description": "UV lamp has expired. Order and install a new UV lamp.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-600",
+    "device": "M9e",
+    "code": "600",
+    "severity": "warning",
+    "name": "IC Sample Pump",
+    "description": "The estimated remaining IC sample pump tube life is less than 15 days. Order new pump tubing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-601",
+    "device": "M9e",
+    "code": "601",
+    "severity": "warning",
+    "name": "IC Sample Pump",
+    "description": "The IC sample pump tube life has expired. Install new pump tubing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-602",
+    "device": "M9e",
+    "code": "602",
+    "severity": "warning",
+    "name": "TC Sample Pump",
+    "description": "The estimated remaining TC sample pump tube life is less than 15 days. Order new pump tubing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-700",
+    "device": "M9e",
+    "code": "700",
+    "severity": "warning",
+    "name": "Resin bed",
+    "description": "The estimated remaining resin bed life is less than 15 days. Order a new resin bed.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 400,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-701",
+    "device": "M9e",
+    "code": "701",
+    "severity": "warning",
+    "name": "Resin bed",
+    "description": "The resin bed has expired. Install a new resin bed.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-800",
+    "device": "M9e",
+    "code": "800",
+    "severity": "warning",
+    "name": "Sample Cell",
+    "description": "The sample conductivity analog reading is out of range.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-801",
+    "device": "M9e",
+    "code": "801",
+    "severity": "warning",
+    "name": "Sample Cell",
+    "description": "The sample conductivity temperature is out of range.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-1201",
+    "device": "M9e",
+    "code": "1201",
+    "severity": "error",
+    "name": "IC analog",
+    "description": "The IC analog reading is out of range - High.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-1202",
+    "device": "M9e",
+    "code": "1202",
+    "severity": "warning",
+    "name": "IC analog",
+    "description": "The IC analog reading is out of range - Low.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-1203",
+    "device": "M9e",
+    "code": "1203",
+    "severity": "error",
+    "name": "IC analog",
+    "description": "The IC temperature analog reading is out of range.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-1204",
+    "device": "M9e",
+    "code": "1204",
+    "severity": "error",
+    "name": "IC analog",
+    "description": "The IC conductivity analog reading is out of range.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-2300",
+    "device": "M9e",
+    "code": "2300",
+    "severity": "warning",
+    "name": "Measurement",
+    "description": "The TOC Autozero failed because TOC measurements are not stable enough to calculate an accurate TOC offset. Check the incoming sample stream for stability and perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-2301",
+    "device": "M9e",
+    "code": "2301",
+    "severity": "warning",
+    "name": "Measurement",
+    "description": "The Turbo TOC Autozero failed because TOC measurements are not stable enough to calculate an accurate Turbo TOC offset. Check the incoming sample stream for stability and perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-2400",
+    "device": "M9e",
+    "code": "2400",
+    "severity": "warning",
+    "name": "ICR module",
+    "description": "Insufficient ICR vacuum detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-2401",
+    "device": "M9e",
+    "code": "2401",
+    "severity": "warning",
+    "name": "ICR chemical trap",
+    "description": "The estimated life of the ICR chemical trap is less than 15 days. Order a new ICR chemical trap.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-2402",
+    "device": "M9e",
+    "code": "2402",
+    "severity": "warning",
+    "name": "ICR chemical trap",
+    "description": "The ICR chemical trap has expired. Install a new ICR chemical trap.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-2403",
+    "device": "M9e",
+    "code": "2403",
+    "severity": "warning",
+    "name": "Acid Syringe",
+    "description": "Bubble detected in acid syringe. If problem persists check the acid level and flush the syringe.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-2500",
+    "device": "M9e",
+    "code": "2500",
+    "severity": "error",
+    "name": "Flash Memory",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-3100",
+    "device": "M9e",
+    "code": "3100",
+    "severity": "warning",
+    "name": "DI loop",
+    "description": "Low DI water reservoir level1 detected. Fill the DI water reservoir.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-3101",
+    "device": "M9e",
+    "code": "3101",
+    "severity": "error",
+    "name": "DI flow - IC",
+    "description": "Restricted IC channel DI water flow detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-3102",
+    "device": "M9e",
+    "code": "3102",
+    "severity": "warning",
+    "name": "DI flow - IC",
+    "description": "IC channel DI water flow is not detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-3103",
+    "device": "M9e",
+    "code": "3103",
+    "severity": "error",
+    "name": "DI flow - TC",
+    "description": "Restricted TC channel DI water flow detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-3104",
+    "device": "M9e",
+    "code": "3104",
+    "severity": "warning",
+    "name": "DI flow - TC",
+    "description": "TC channel DI water flow is not detected. Perform diagnostics. The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-3105",
+    "device": "M9e",
+    "code": "3105",
+    "severity": "error",
+    "name": "DI flow - IC",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 401,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4000",
+    "device": "M9e",
+    "code": "4000",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4001",
+    "device": "M9e",
+    "code": "4001",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4002",
+    "device": "M9e",
+    "code": "4002",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4003",
+    "device": "M9e",
+    "code": "4003",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4004",
+    "device": "M9e",
+    "code": "4004",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4005",
+    "device": "M9e",
+    "code": "4005",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4006",
+    "device": "M9e",
+    "code": "4006",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4007",
+    "device": "M9e",
+    "code": "4007",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4008",
+    "device": "M9e",
+    "code": "4008",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4100",
+    "device": "M9e",
+    "code": "4100",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4101",
+    "device": "M9e",
+    "code": "4101",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4102",
+    "device": "M9e",
+    "code": "4102",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4103",
+    "device": "M9e",
+    "code": "4103",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4104",
+    "device": "M9e",
+    "code": "4104",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4105",
+    "device": "M9e",
+    "code": "4105",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4106",
+    "device": "M9e",
+    "code": "4106",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4107",
+    "device": "M9e",
+    "code": "4107",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4108",
+    "device": "M9e",
+    "code": "4108",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4109",
+    "device": "M9e",
+    "code": "4109",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4110",
+    "device": "M9e",
+    "code": "4110",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4111",
+    "device": "M9e",
+    "code": "4111",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4112",
+    "device": "M9e",
+    "code": "4112",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4113",
+    "device": "M9e",
+    "code": "4113",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4114",
+    "device": "M9e",
+    "code": "4114",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4115",
+    "device": "M9e",
+    "code": "4115",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4200",
+    "device": "M9e",
+    "code": "4200",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4201",
+    "device": "M9e",
+    "code": "4201",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4202",
+    "device": "M9e",
+    "code": "4202",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4203",
+    "device": "M9e",
+    "code": "4203",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4204",
+    "device": "M9e",
+    "code": "4204",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4205",
+    "device": "M9e",
+    "code": "4205",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4206",
+    "device": "M9e",
+    "code": "4206",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4207",
+    "device": "M9e",
+    "code": "4207",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4208",
+    "device": "M9e",
+    "code": "4208",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 403,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4300",
+    "device": "M9e",
+    "code": "4300",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-4400",
+    "device": "M9e",
+    "code": "4400",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument has encountered a system error. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5000",
+    "device": "M9e",
+    "code": "5000",
+    "severity": "error",
+    "name": "System Error",
+    "description": "The instrument is unable to calibrate. Please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5500",
+    "device": "M9e",
+    "code": "5500",
+    "severity": "warning",
+    "name": "ICR Pump",
+    "description": "Low current in the ICR vacuum pump detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5501",
+    "device": "M9e",
+    "code": "5501",
+    "severity": "warning",
+    "name": "ICR Inlet Valve",
+    "description": "Low current in the ICR inlet valve detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5502",
+    "device": "M9e",
+    "code": "5502",
+    "severity": "warning",
+    "name": "ICR Bypass Valve",
+    "description": "Low current in the ICR by-pass valve detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5503",
+    "device": "M9e",
+    "code": "5503",
+    "severity": "warning",
+    "name": "Sample Valve",
+    "description": "Low current in the sample valve detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5504",
+    "device": "M9e",
+    "code": "5504",
+    "severity": "error",
+    "name": "ICR Inlet Valve",
+    "description": "The ICR inlet valve current is out of range. Unable to perform system protocol.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5505",
+    "device": "M9e",
+    "code": "5505",
+    "severity": "error",
+    "name": "ICR Bypass Valve",
+    "description": "The ICR by-pass valve current is out of range. Unable to perform system protocol.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5506",
+    "device": "M9e",
+    "code": "5506",
+    "severity": "warning",
+    "name": "ICR Pump",
+    "description": "High current in the ICR vacuum pump detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5507",
+    "device": "M9e",
+    "code": "5507",
+    "severity": "warning",
+    "name": "ICR Inlet Valve",
+    "description": "High current in the ICR inlet valve detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5508",
+    "device": "M9e",
+    "code": "5508",
+    "severity": "warning",
+    "name": "ICR Bypass Valve",
+    "description": "High current in the ICR by-pass valve detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5509",
+    "device": "M9e",
+    "code": "5509",
+    "severity": "warning",
+    "name": "Sample Valve",
+    "description": "High current in the sample valve detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5600",
+    "device": "M9e",
+    "code": "5600",
+    "severity": "error",
+    "name": "Acid syringe",
+    "description": "Unexpected empty position is detected on the acid syringe. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5601",
+    "device": "M9e",
+    "code": "5601",
+    "severity": "error",
+    "name": "Acid syringe",
+    "description": "Acid syringe empty position is not detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5602",
+    "device": "M9e",
+    "code": "5602",
+    "severity": "error",
+    "name": "Acid syringe",
+    "description": "Acid syringe movement is not detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5603",
+    "device": "M9e",
+    "code": "5603",
+    "severity": "error",
+    "name": "Acid motor",
+    "description": "Low current in the acid syringe pump motor is detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5604",
+    "device": "M9e",
+    "code": "5604",
+    "severity": "error",
+    "name": "Acid Valve",
+    "description": "Low current in the acid valve is detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5605",
+    "device": "M9e",
+    "code": "5605",
+    "severity": "error",
+    "name": "Acid Valve",
+    "description": "High current in the acid valve is detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5606",
+    "device": "M9e",
+    "code": "5606",
+    "severity": "error",
+    "name": "Acid Motor",
+    "description": "Low current in the acid motor is detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5607",
+    "device": "M9e",
+    "code": "5607",
+    "severity": "error",
+    "name": "Acid Motor",
+    "description": "High current in the acid motor is detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5608",
+    "device": "M9e",
+    "code": "5608",
+    "severity": "error",
+    "name": "Acid Detector Drive",
+    "description": "Low current in the acid detector drive is detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5609",
+    "device": "M9e",
+    "code": "5609",
+    "severity": "error",
+    "name": "Acid Detector Drive",
+    "description": "High current in the acid detector drive is detected.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5700",
+    "device": "M9e",
+    "code": "5700",
+    "severity": "error",
+    "name": "Oxidizer syringe",
+    "description": "Unexpected empty position is detected on the oxidizer syringe. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5701",
+    "device": "M9e",
+    "code": "5701",
+    "severity": "error",
+    "name": "Oxidizer syringe",
+    "description": "Oxidizer syringe empty position is not detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-5702",
+    "device": "M9e",
+    "code": "5702",
+    "severity": "error",
+    "name": "Oxidizer syringe",
+    "description": "Oxidizer syringe movement is not detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 405,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-7200",
+    "device": "M9e",
+    "code": "7200",
+    "severity": "warning",
+    "name": "TC Sample Flow",
+    "description": "Air detected in the TC sample flow path. Check for sufficient sample, verify protocol settings, and perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-7201",
+    "device": "M9e",
+    "code": "7201",
+    "severity": "warning",
+    "name": "TC Sample Flow",
+    "description": "Low TC sample flow detected. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-7300",
+    "device": "M9e",
+    "code": "7300",
+    "severity": "warning",
+    "name": "Measurement",
+    "description": "Conductivity Autozero failed. Perform diagnostics.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-7501",
+    "device": "M9e",
+    "code": "7501",
+    "severity": "warning",
+    "name": "Fluidics",
+    "description": "Fluidics Module Stopped Responding.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-7502",
+    "device": "M9e",
+    "code": "7502",
+    "severity": "warning",
+    "name": "Dual Conductivity",
+    "description": "Dual conductivity Module Stopped Responding.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-7503",
+    "device": "M9e",
+    "code": "7503",
+    "severity": "warning",
+    "name": "Sample Conductivity",
+    "description": "Sample Conductivity Module Stopped Responding.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-7505",
+    "device": "M9e",
+    "code": "7505",
+    "severity": "warning",
+    "name": "I/O Module",
+    "description": "I/O Module Stopped Responding/",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10001",
+    "device": "M9e",
+    "code": "10001",
+    "severity": "warning",
+    "name": "USB Key",
+    "description": "USB Key is not detected. Please insert a USB key and try again.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10002",
+    "device": "M9e",
+    "code": "10002",
+    "severity": "warning",
+    "name": "USB Key",
+    "description": "Unable to create directory Sievers on the USB key for export.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10003",
+    "device": "M9e",
+    "code": "10003",
+    "severity": "warning",
+    "name": "USB Key",
+    "description": "Unable to open a file on USB key. Make sure the USB key is not locked.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10004",
+    "device": "M9e",
+    "code": "10004",
+    "severity": "warning",
+    "name": "USB Key",
+    "description": "File does not exist on the USB key. Ensure the correct USB key is inserted and try again.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10005",
+    "device": "M9e",
+    "code": "10005",
+    "severity": "error",
+    "name": "Flash Memory",
+    "description": "Unable to open a file on flash memory. Flash memory may be corrupted. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10006",
+    "device": "M9e",
+    "code": "10006",
+    "severity": "error",
+    "name": "Flash Memory",
+    "description": "Unable to open a file on flash memory. Flash memory may be corrupted. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10007",
+    "device": "M9e",
+    "code": "10007",
+    "severity": "error",
+    "name": "Flash Memory",
+    "description": "There is no log directory on the data card. Flash memory may be corrupted. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10008",
+    "device": "M9e",
+    "code": "10008",
+    "severity": "warning",
+    "name": "USB Key",
+    "description": "Unable to open a file on USB key. Ensure the correct USB key is inserted and try again.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10009",
+    "device": "M9e",
+    "code": "10009",
+    "severity": "error",
+    "name": "RAM Disk",
+    "description": "Unable to write to a file on the RAM disk. The RAM disk may be corrupted. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10010",
+    "device": "M9e",
+    "code": "10010",
+    "severity": "warning",
+    "name": "",
+    "description": "The option selected is not valid.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10011",
+    "device": "M9e",
+    "code": "10011",
+    "severity": "error",
+    "name": "Flash Memory",
+    "description": "The directory does not exist on flash memory. Flash memory may be corrupted. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10012",
+    "device": "M9e",
+    "code": "10012",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10013",
+    "device": "M9e",
+    "code": "10013",
+    "severity": "warning",
+    "name": "",
+    "description": "Command issued by DataPro contains protocol type specified not supported or invalid.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 407,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10045",
+    "device": "M9e",
+    "code": "10045",
+    "severity": "error",
+    "name": "Flash Memory",
+    "description": "The secondary micro SD card slot is not recognized or partitions are not corrected mapped. Flash memory may be corrupted. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10046",
+    "device": "M9e",
+    "code": "10046",
+    "severity": "warning",
+    "name": "",
+    "description": "There is no item selected. Please select at least one item.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10047",
+    "device": "M9e",
+    "code": "10047",
+    "severity": "warning",
+    "name": "",
+    "description": "It has been 8 hours since the last time the oxidizer was used during an analysis or the reagent flush has been performed. Please perform the reagent flush.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10048",
+    "device": "M9e",
+    "code": "10048",
+    "severity": "warning",
+    "name": "",
+    "description": "It has been 8 hours since the last time the oxidizer was used during an analysis or the reagent flush has been performed. Press Yes to perform the reagent flush now or No to continue.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10049",
+    "device": "M9e",
+    "code": "10049",
+    "severity": "warning",
+    "name": "",
+    "description": "No activation records for the instrument are present in the USB key. Ensure the correct USB key is inserted and try again.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10050",
+    "device": "M9e",
+    "code": "10050",
+    "severity": "warning",
+    "name": "",
+    "description": "No count based activation records are present in the USB key. Ensure the correct USB key is inserted and try again.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10051",
+    "device": "M9e",
+    "code": "10051",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10052",
+    "device": "M9e",
+    "code": "10052",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10053",
+    "device": "M9e",
+    "code": "10053",
+    "severity": "warning",
+    "name": "",
+    "description": "Insufficient space remains on the USB key. Please use a different USB key.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10054",
+    "device": "M9e",
+    "code": "10054",
+    "severity": "warning",
+    "name": "",
+    "description": "There are no database backup files on the USB key. Ensure the correct USB key is inserted and try again.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10055",
+    "device": "M9e",
+    "code": "10055",
+    "severity": "error",
+    "name": "",
+    "description": "The system cannot recover. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10056",
+    "device": "M9e",
+    "code": "10056",
+    "severity": "error",
+    "name": "",
+    "description": "Calibration result is not available. Please check the connection to the instrument controller.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10057",
+    "device": "M9e",
+    "code": "10057",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10058",
+    "device": "M9e",
+    "code": "10058",
+    "severity": "warning",
+    "name": "",
+    "description": "Unable to complete the request from either DataPro or via the diagnostics port. The instrument is currently running an analysis.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10059",
+    "device": "M9e",
+    "code": "10059",
+    "severity": "warning",
+    "name": "",
+    "description": "Unable to complete the request. The instrument is currently measuring the last vial.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 409,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10075",
+    "device": "M9e",
+    "code": "10075",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10076",
+    "device": "M9e",
+    "code": "10076",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10077",
+    "device": "M9e",
+    "code": "10077",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10078",
+    "device": "M9e",
+    "code": "10078",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10079",
+    "device": "M9e",
+    "code": "10079",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10080",
+    "device": "M9e",
+    "code": "10080",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10081",
+    "device": "M9e",
+    "code": "10081",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10082",
+    "device": "M9e",
+    "code": "10082",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10083",
+    "device": "M9e",
+    "code": "10083",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10084",
+    "device": "M9e",
+    "code": "10084",
+    "severity": "error",
+    "name": "IOS Flow Sensor",
+    "description": "No sample flow detected in iOS Flow Sensor for Stream 1. Analysis is stopped.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10085",
+    "device": "M9e",
+    "code": "10085",
+    "severity": "error",
+    "name": "IOS Flow Sensor",
+    "description": "No sample flow detected in iOS Flow Sensor for Stream 2. Analysis is stopped.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10086",
+    "device": "M9e",
+    "code": "10086",
+    "severity": "warning",
+    "name": "IOS Flow Sensor",
+    "description": "Sample flow detected in iOS Flow Sensor for Stream 1. Analysis is resumed.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10087",
+    "device": "M9e",
+    "code": "10087",
+    "severity": "warning",
+    "name": "IOS Flow Sensor",
+    "description": "Sample flow detected in iOS Flow Sensor for Stream 2. Analysis is resumed.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10088",
+    "device": "M9e",
+    "code": "10088",
+    "severity": "warning",
+    "name": "",
+    "description": "There may be one or more missing measurements due to system error.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10089",
+    "device": "M9e",
+    "code": "10089",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10090",
+    "device": "M9e",
+    "code": "10090",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error. Please power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10091",
+    "device": "M9e",
+    "code": "10091",
+    "severity": "error",
+    "name": "IOS Flow Sensor",
+    "description": "Stream 1 is disabled. Please enable the stream before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10092",
+    "device": "M9e",
+    "code": "10092",
+    "severity": "error",
+    "name": "IOS Flow Sensor",
+    "description": "Stream 2 is disabled. Please enable the stream before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10093",
+    "device": "M9e",
+    "code": "10093",
+    "severity": "error",
+    "name": "IOS Flow Sensor",
+    "description": "In order to perform TOC Removal Online measurements, both streams must be enabled. Please enable both streams before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10094",
+    "device": "M9e",
+    "code": "10094",
+    "severity": "error",
+    "name": "IOS Flow Sensor",
+    "description": "Both iOS flow sensors detected no flow. Analysis is stopped.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10095",
+    "device": "M9e",
+    "code": "10095",
+    "severity": "error",
+    "name": "IOS Flow Sensor",
+    "description": "Either stream 1 is disabled or the flow sensor detected no flow. Please check stream 1.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10096",
+    "device": "M9e",
+    "code": "10096",
+    "severity": "error",
+    "name": "IOS Flow Sensor",
+    "description": "Either stream 2 is disabled or the flow sensor detected no flow. Please check stream 2.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10097",
+    "device": "M9e",
+    "code": "10097",
+    "severity": "warning",
+    "name": "",
+    "description": "A new acid reagent cartridge is installed. The lot number is %1.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10098",
+    "device": "M9e",
+    "code": "10098",
+    "severity": "warning",
+    "name": "",
+    "description": "A new oxidizer reagent cartridge is installed. The lot number is %1.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 411,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10122",
+    "device": "M9e",
+    "code": "10122",
+    "severity": "warning",
+    "name": "Sample Flow",
+    "description": "No sample flow detected in iOS Flow Sensor for Stream 2. Analysis will continue on Stream 1.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 413,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10123",
+    "device": "M9e",
+    "code": "10123",
+    "severity": "warning",
+    "name": "TOC Reading",
+    "description": "The RW or Blank TOC reading is unexpectedly high.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 413,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10124",
+    "device": "M9e",
+    "code": "10124",
+    "severity": "warning",
+    "name": "TOC Reading",
+    "description": "The RW or Blank TOC reading is unexpectedly high.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 413,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10125",
+    "device": "M9e",
+    "code": "10125",
+    "severity": "warning",
+    "name": "iOS Flow Sensor",
+    "description": "No sample flow detected in IOS Flow Sensor for the Stream. Analysis will stop after a delay. Note: When this warning is issued, the measurement continues for the delay specified. When the timer expires, if the flow does not return and the analysis needs to be stopped, the 4-20 mA alarm output will go into Standby mode.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 413,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10201",
+    "device": "M9e",
+    "code": "10201",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The content of database has been modified.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 413,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10240",
+    "device": "M9e",
+    "code": "10240",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The instrument has encountered a system error while accessing the database. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10241",
+    "device": "M9e",
+    "code": "10241",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The instrument has encountered a system error while accessing the database. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10242",
+    "device": "M9e",
+    "code": "10242",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The current instrument firmware requires a previous version of the database. Upgrade the instrument firmware to the latest version before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10243",
+    "device": "M9e",
+    "code": "10243",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The instrument has encountered a system error while accessing the database. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10244",
+    "device": "M9e",
+    "code": "10244",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The instrument has encountered a system error while accessing the database. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10247",
+    "device": "M9e",
+    "code": "10247",
+    "severity": "warning",
+    "name": "Database",
+    "description": "Number of methods allowed for this type reached the maximum. Please delete infrequently used methods.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10248",
+    "device": "M9e",
+    "code": "10248",
+    "severity": "error",
+    "name": "Database",
+    "description": "The result database table is full. Archive the database before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10249",
+    "device": "M9e",
+    "code": "10249",
+    "severity": "error",
+    "name": "Database",
+    "description": "The error history database table is full. Archive the database before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10250",
+    "device": "M9e",
+    "code": "10250",
+    "severity": "error",
+    "name": "Database",
+    "description": "The user database table is full. Archive the database before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10251",
+    "device": "M9e",
+    "code": "10251",
+    "severity": "error",
+    "name": "Database",
+    "description": "The audit trail database table is full. Archive the database before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10252",
+    "device": "M9e",
+    "code": "10252",
+    "severity": "error",
+    "name": "Database",
+    "description": "The service database table is full. Archive the database before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10253",
+    "device": "M9e",
+    "code": "10253",
+    "severity": "error",
+    "name": "Database",
+    "description": "The protocol database table is full. Archive the database before continuing.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10254",
+    "device": "M9e",
+    "code": "10254",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The database table is at 75% capacity. Archive the database at earliest convenience.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10255",
+    "device": "M9e",
+    "code": "10255",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The database table is at 90% capacity. Archive the database as soon as possible.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10256",
+    "device": "M9e",
+    "code": "10256",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The database table is at 95% capacity. When the database reaches 100% capacity, the oldest record will be removed. Archive the database.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 415,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10276",
+    "device": "M9e",
+    "code": "10276",
+    "severity": "warning",
+    "name": "Database",
+    "description": "The instrument has encountered a system error while accessing the database. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10277",
+    "device": "M9e",
+    "code": "10277",
+    "severity": "warning",
+    "name": "Database",
+    "description": "Version information is missing for Error Occurrence database table.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10278",
+    "device": "M9e",
+    "code": "10278",
+    "severity": "error",
+    "name": "Database",
+    "description": "The primary database file is corrupted and unreadable. Upon restart, the system will try to recover from backup database. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10279",
+    "device": "M9e",
+    "code": "10279",
+    "severity": "error",
+    "name": "Database",
+    "description": "The secondary database file is corrupted and unreadable. Upon restart, the system will try to recover from primary database. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10301",
+    "device": "M9e",
+    "code": "10301",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10302",
+    "device": "M9e",
+    "code": "10302",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10303",
+    "device": "M9e",
+    "code": "10303",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10304",
+    "device": "M9e",
+    "code": "10304",
+    "severity": "warning",
+    "name": "",
+    "description": "The upgrade USB key is not detected. Please insert the upgrade USB key and try again.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10307",
+    "device": "M9e",
+    "code": "10307",
+    "severity": "warning",
+    "name": "",
+    "description": "Failed to upgrade firmware.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10309",
+    "device": "M9e",
+    "code": "10309",
+    "severity": "warning",
+    "name": "",
+    "description": "The instrument has encountered a system error during firmware upgrade. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10310",
+    "device": "M9e",
+    "code": "10310",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a system error during firmware upgrade. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10311",
+    "device": "M9e",
+    "code": "10311",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10312",
+    "device": "M9e",
+    "code": "10312",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10313",
+    "device": "M9e",
+    "code": "10313",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10314",
+    "device": "M9e",
+    "code": "10314",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10315",
+    "device": "M9e",
+    "code": "10315",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10316",
+    "device": "M9e",
+    "code": "10316",
+    "severity": "error",
+    "name": "",
+    "description": "The instrument has encountered a USB communication error to the instrument controller. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10317",
+    "device": "M9e",
+    "code": "10317",
+    "severity": "error",
+    "name": "",
+    "description": "During the firmware upgrade, the connection to Fluidics Module was not found. Please export diagnostics and contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 417,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10337",
+    "device": "M9e",
+    "code": "10337",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10338",
+    "device": "M9e",
+    "code": "10338",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10339",
+    "device": "M9e",
+    "code": "10339",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10340",
+    "device": "M9e",
+    "code": "10340",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10341",
+    "device": "M9e",
+    "code": "10341",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10342",
+    "device": "M9e",
+    "code": "10342",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10343",
+    "device": "M9e",
+    "code": "10343",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10344",
+    "device": "M9e",
+    "code": "10344",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10345",
+    "device": "M9e",
+    "code": "10345",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10346",
+    "device": "M9e",
+    "code": "10346",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10347",
+    "device": "M9e",
+    "code": "10347",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10348",
+    "device": "M9e",
+    "code": "10348",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10349",
+    "device": "M9e",
+    "code": "10349",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10350",
+    "device": "M9e",
+    "code": "10350",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10351",
+    "device": "M9e",
+    "code": "10351",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10352",
+    "device": "M9e",
+    "code": "10352",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10353",
+    "device": "M9e",
+    "code": "10353",
+    "severity": "warning",
+    "name": "System Check",
+    "description": "The instrument has encountered an error during system check. Please follow the shutdown procedure and power cycle the instrument. If the problem persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10502",
+    "device": "M9e",
+    "code": "10502",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10503",
+    "device": "M9e",
+    "code": "10503",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10504",
+    "device": "M9e",
+    "code": "10504",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10505",
+    "device": "M9e",
+    "code": "10505",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10506",
+    "device": "M9e",
+    "code": "10506",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10507",
+    "device": "M9e",
+    "code": "10507",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10508",
+    "device": "M9e",
+    "code": "10508",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The Autosampler is unable to lower the needle. Please check for any blockage.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10509",
+    "device": "M9e",
+    "code": "10509",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10510",
+    "device": "M9e",
+    "code": "10510",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10511",
+    "device": "M9e",
+    "code": "10511",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10512",
+    "device": "M9e",
+    "code": "10512",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10513",
+    "device": "M9e",
+    "code": "10513",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "The instrument has encountered an Autosampler error. Please follow the shutdown procedure and power cycle the instrument and the Autosampler. If problem the persists, please contact Technical Support or your local service provider.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": true,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10516",
+    "device": "M9e",
+    "code": "10516",
+    "severity": "error",
+    "name": "Autosampler",
+    "description": "Autosampler returned error INVALID_COMMAND_ERROR",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 419,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10810",
+    "device": "M9e",
+    "code": "10810",
+    "severity": "warning",
+    "name": "DataGuard",
+    "description": "The password must include at least one numeric characters.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 421,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10811",
+    "device": "M9e",
+    "code": "10811",
+    "severity": "warning",
+    "name": "DataGuard",
+    "description": "The password must include at least one uppercase letters.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 421,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10812",
+    "device": "M9e",
+    "code": "10812",
+    "severity": "warning",
+    "name": "DataGuard",
+    "description": "Please re-enter the password.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 421,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10813",
+    "device": "M9e",
+    "code": "10813",
+    "severity": "warning",
+    "name": "DataGuard",
+    "description": "The password must include at least one special character (_ or -).",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 421,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10814",
+    "device": "M9e",
+    "code": "10814",
+    "severity": "warning",
+    "name": "DataGuard",
+    "description": "First Name or Last Name must be less than 30 characters.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 421,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10815",
+    "device": "M9e",
+    "code": "10815",
+    "severity": "warning",
+    "name": "DataGuard",
+    "description": "The User ID entered already exist.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 421,
+      "section": "Appendix F"
+    }
+  },
+  {
+    "id": "M9E-10816",
+    "device": "M9e",
+    "code": "10816",
+    "severity": "warning",
+    "name": "DataGuard",
+    "description": "The first and last names entered already exist. The name must be unique.",
+    "remedy": "",
+    "scope": null,
+    "parameter": null,
+    "shared_description": false,
+    "source": {
+      "file": "im_e_sievers-m9-manual_dlm_77020-02.pdf",
+      "pdf_page": 421,
+      "section": "Appendix F"
+    }
+  },
+  {
     "id": "M300-Warning-pH-slope-102",
     "device": "M300",
     "code": null,

@@ -1,10 +1,27 @@
 # Plant Maintenance Copilot v2
-pymupdf>=1.24        # 매뉴얼 PDF 청킹
-openpyxl>=3.1        # 계기 리스트
-numpy>=1.26          # 벡터 검색 (임베딩은 사내 AOAI REST — 추가 SDK 불필요)
-langgraph>=0.2       # CRAG 루프
-streamlit>=1.36      # UI (미사용)
-sentence-transformers>=3.0   # cross-encoder 리랭커 (선택: COPILOT_RERANK=0 로 비활성화)
-fastapi>=0.111       # React UI용 API
-uvicorn>=0.30        # API 서버
-reportlab>=4.0        # 4D 트러블 리포트 PDF
+#
+# 상한을 박아 둔다. 심사 기간에 상위 버전이 나와서 클론한 쪽만
+# 다르게 도는 상황을 막기 위함이다.
+
+# --- 문서 파싱 ---
+pymupdf>=1.24,<2.0          # 매뉴얼 PDF 청킹 (import 명은 fitz)
+pdfplumber>=0.11,<0.12      # 도면 텍스트·좌표 추출
+openpyxl>=3.1,<4.0          # 계기 리스트 · IO List
+
+# --- 검색 ---
+numpy>=1.26,<3.0            # 벡터 검색
+langgraph>=0.2,<0.4         # CRAG 루프
+
+# --- API 서버 ---
+fastapi>=0.111,<0.120
+uvicorn>=0.30,<0.40
+pydantic>=2.7,<3.0
+typing-extensions>=4.10
+
+# --- 리포트 ---
+reportlab>=4.0,<5.0         # 4D 트러블 리포트 PDF
+
+# --- 선택: cross-encoder 리랭커 ---
+# torch 를 함께 끌고 오므로 설치 용량이 2GB 를 넘는다.
+# 컨테이너 배포에서는 COPILOT_RERANK=0 으로 끄고 이 줄을 주석 처리한다.
+sentence-transformers>=3.0,<6.0
