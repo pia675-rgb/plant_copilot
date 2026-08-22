@@ -17,8 +17,10 @@ import re
 import sys
 from typing import Any, Dict, List, Optional
 
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import Response
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from openpyxl import load_workbook
 from pydantic import BaseModel, Field
@@ -1104,59 +1106,6 @@ def panel_of_tag(tag: str):
     return d
 
 
-@app.get("/api/cards")
-def list_cards(panel: Optional[str] = None):
-    """
-    IO 카드 목록.
-
-    이중화(S7-400H/410H) 구성에서는 CPU·전원·통신이 이중화되고 카드만
-    단일이다. 그래서 실제 단일 고장 단위는 판넬이 아니라 카드다.
-    """
-    px = _need_panel()
-    cards = px.cards()
-    if panel:
-        cards = [c for c in cards if c["panel"] == panel]
-    return {"cards": cards, "count": len(cards)}
-
-
-@app.get("/api/card")
-def card_detail(id: str = Query(..., description="예: CUB-B/R0/S8"),
-                impact: int = Query(0, ge=0, le=1)):
-    # 카드 ID 에 '/' 가 들어가므로 경로가 아니라 질의 인자로 받는다.
-    px = _need_panel()
-    d = px.impact(id) if impact else px.by_card(id)
-    if not d:
-        raise HTTPException(404, "계기 리스트에 %s 카드가 없습니다." % id)
-    return d
-
-
-@app.get("/api/tag-consistency")
-def tag_consistency():
-    """
-    IO List · 계기 리스트 · 인터락 리스트의 태그 교차 대조.
-
-    어느 쪽이 맞는지는 판정하지 않는다 — 두 문서가 다르다는 사실까지만
-    말한다. 실물 문서로 갈아 끼울 때 제일 먼저 걸리는 지점이다.
-    """
-    from ingest.tag_registry import cross_check
-    return cross_check()
-
-
-@app.get("/api/common-cause")
-def common_cause():
-    """한 인터락의 조건 태그가 같은 카드에 몰려 있는지 — 설계 검토 항목."""
-    px = _need_panel()
-    return px.common_cause()
-
-
-@app.get("/api/panel-of/{tag}")
-def panel_of_tag(tag: str):
-    px = _need_panel()
-    d = px.by_tag(tag)
-    if not d:
-        raise HTTPException(404, "계기 리스트에 %s 가 없습니다." % tag)
-    return d
-
 
 def known_tags():
     """계기 리스트 + 인터락 출력 태그의 합집합. 대문자 기준."""
@@ -2054,3 +2003,13 @@ def drawing_page(
         "X-Has-Crop": "1" if cropped else "0",
     })
 
+
+# ── 정적 파일 (빌드된 React UI) ─────────────────────────────
+# 반드시 모든 /api 라우트 뒤에 와야 한다. 앞에 두면 "/" 아래를
+# 정적 파일이 전부 가로채서 API 가 404 로 죽는다.
+_UI_DIST = Path(__file__).resolve().parent.parent / "ui" / "react" / "dist"
+if _UI_DIST.is_dir():
+    app.mount("/", StaticFiles(directory=str(_UI_DIST), html=True), name="ui")
+else:
+    print(f"[warn] UI 빌드본이 없습니다: {_UI_DIST}")
+    print("       ui/react 에서 npm run build 를 먼저 실행하십시오.")
