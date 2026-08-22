@@ -1,6 +1,13 @@
-# 생성물 — 커밋하지 않는다
-index/embeddings.npy
-index/embeddings.meta.json
+# 프로젝트 자료 — 저장소에 올리지 않는다
+data/
+index/
+derived/
+
+# 벤더 매뉴얼 원본과 그 본문 색인 — 재배포하지 않는다.
+# 제조사 공개 자료라도 저작권은 제조사에 있다.
+# 클론한 사람은 demo_data/manuals/README.md 를 보고 직접 내려받아 채운다.
+
+# 생성물
 eval/grades_dump.json
 
 # 의존성
@@ -13,3 +20,6 @@ venv/
 
 # 로컬 설정
 .env
+
+# 엑셀 임시 파일
+~$*
