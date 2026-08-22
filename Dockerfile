@@ -14,6 +14,12 @@
 #   export OPENAI_API_KEY=...
 #   python -m retrieval.dense
 #
+# 미해결 — 임베딩 제공자 재검토 필요
+#   OpenAI 임베딩은 한글 질의로 영문 매뉴얼을 찾는 유형(syn)에서
+#   bge-m3 대비 8/14 → 3/14 로 무너진다(2026-08-22 측정).
+#   아래 EMBED_PROVIDER 설정은 잠정값이며 그대로 배포하면
+#   핵심 기능이 동작하지 않는 것처럼 보인다.
+#
 # 빌드
 #   docker build -t plant-copilot .
 # 실행
@@ -64,6 +70,8 @@ ENV COPILOT_DATA_DIR=/app/demo_data \
     COPILOT_DERIVED_DIR=/app/demo_derived \
     COPILOT_RERANK=0 \
     COPILOT_EMBED_PROVIDER=openai \
+    COPILOT_EMBED_MODEL=text-embedding-3-large \
+    COPILOT_EMBED_BATCH=16 \
     COPILOT_UI_MODE=hybrid \
     PORT=8000
 
