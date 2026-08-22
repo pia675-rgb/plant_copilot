@@ -1,0 +1,25 @@
+# 실물 프로젝트 자료 — 이미지에 절대 들어가면 안 된다
+data/
+index/
+derived/
+
+# 의존성·빌드 산출물 (1단계에서 새로 만든다)
+ui/react/node_modules/
+ui/react/dist/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 버전 관리·문서
+.git/
+.gitignore
+docs/
+eval/
+scripts/
+*.md
+*.bat
+
+# 로컬 설정
+.env

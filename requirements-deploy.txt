@@ -1,0 +1,19 @@
+# Plant Maintenance Copilot v2 — 배포용
+#
+# 로컬 개발용 requirements.txt 와 다른 점은 하나다.
+# sentence-transformers(cross-encoder 리랭커)를 넣지 않는다.
+#
+# 근거: 데모 색인 45문항 평가에서 리랭커 on/off 가 28/45 로 동일했다.
+#       유형별 수치도 전부 같았다. torch 2GB 를 싣고 갈 이유가 없다.
+#       (eval/sc_demo_rerank_on.md, eval/sc_demo_rerank_off.md)
+
+pymupdf>=1.24,<2.0
+pdfplumber>=0.11,<0.12
+openpyxl>=3.1,<4.0
+numpy>=1.26,<3.0
+langgraph>=0.2,<0.4
+fastapi>=0.111,<0.120
+uvicorn>=0.30,<0.40
+pydantic>=2.7,<3.0
+typing-extensions>=4.10
+reportlab>=4.0,<5.0
