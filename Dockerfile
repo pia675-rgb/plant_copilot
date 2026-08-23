@@ -63,7 +63,7 @@ COPY demo_index_bgeapi/ ./demo_index/
 COPY demo_derived/ ./demo_derived/
 
 # 1단계에서 빌드한 UI
-COPY --from=ui /ui/dist ./ui/react/dist
+COPY ui/react/dist/ ./ui/react/dist/
 
 # 배포 구성
 ENV COPILOT_DATA_DIR=/app/demo_data \
