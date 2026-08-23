@@ -55,7 +55,6 @@ COPY graph/ ./graph/
 COPY ingest/ ./ingest/
 COPY retrieval/ ./retrieval/
 COPY tools/ ./tools/
-COPY utils/ ./utils/
 
 # 데모 자료와 색인 (실물 자료는 넣지 않는다)
 COPY demo_data/ ./demo_data/
