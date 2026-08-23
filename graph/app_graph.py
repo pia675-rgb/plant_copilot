@@ -3,7 +3,7 @@
 """
 app_graph.py — CRAG 그래프 조립
 
-    retrieve → grade ─┬─ advise  → END
+    retrieve → score ─┬─ advise  → END
                       ├─ rewrite → retrieve   (최대 MAX_REWRITES 회)
                       └─ abstain → END
 
@@ -29,14 +29,14 @@ from retrieval.pipeline import Retriever  # noqa: E402
 def build_graph(retriever, advisor_fn=None):
     g = StateGraph(nodes.CopilotState)
     g.add_node("retrieve", nodes.make_retrieve(retriever))
-    g.add_node("grade", nodes.grade)
+    g.add_node("score", nodes.grade)          # grade → score (상태 키 충돌 방지)
     g.add_node("rewrite", nodes.rewrite)
     g.add_node("advise", nodes.make_advise(advisor_fn))
     g.add_node("abstain", nodes.abstain)
 
     g.set_entry_point("retrieve")
-    g.add_edge("retrieve", "grade")
-    g.add_conditional_edges("grade", nodes.route_after_grade,
+    g.add_edge("retrieve", "score")
+    g.add_conditional_edges("score", nodes.route_after_grade,
                             {"advise": "advise", "rewrite": "rewrite",
                              "abstain": "abstain"})
     g.add_conditional_edges("rewrite", nodes.route_after_rewrite,
