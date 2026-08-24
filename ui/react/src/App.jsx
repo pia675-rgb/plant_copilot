@@ -466,6 +466,14 @@ function AlarmView({ tag, alarm, code, mode, botPending, onBotHandled, onAlarmCh
           final_action: rep.final_action.trim(),
           parts: rep.parts.trim() || '-',
           duration_min: rep.duration_min === '' ? null : Number(rep.duration_min),
+          // 화면에 떠 있는 조치 순서를 그대로 넘긴다. 리포트가 서버에서
+          // 조치를 다시 만들면 화면과 다른 문장이 나올 수 있고, LLM 을
+          // 한 번 더 부르느라 즉시 나오지도 않는다. 이력 카드는 근거이지
+          // 조치 단계가 아니므로 뺀다 — D3 에 따로 실린다.
+          steps: (advice?.steps || [])
+            .filter(s => s.kind !== 'history')
+            .map(s => s.title)
+            .filter(Boolean),
         }),
       })
       if (!res.ok) {

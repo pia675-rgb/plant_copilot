@@ -216,8 +216,8 @@ def build_4d_pdf(payload: dict) -> bytes:
     if payload.get("code"):
         d1_lines.append("• 계기 화면 코드: %s" % payload["code"])
     d1_lines.append(
-        "• 동일 태그 과거 이력 %d건 확인" % len(history)
-        if history else "• 동일 태그 과거 이력 없음")
+        "• 관련 현장 이력 %d건 확인" % len(history)
+        if history else "• 관련 현장 이력 없음")
 
     if steps:
         d2_lines = ["[v] %d. %s" % (i + 1, s) for i, s in enumerate(steps[:5])]

@@ -341,6 +341,10 @@ class ReportRequest(BaseModel):
     final_action: str = ""
     parts: str = "-"
     duration_min: Optional[int] = None
+    # 화면이 이미 만든 조치 순서. 넘어오면 그대로 쓴다 — 리포트는 즉시
+    # 나와야 하므로 여기서 LLM 을 다시 부르지 않는다. 안 넘어오면
+    # 아래에서 규칙으로 만든다.
+    steps: Optional[List[str]] = None
 
 
 class AdviceRequest(BaseModel):
@@ -924,21 +928,66 @@ def report_4d(req: ReportRequest):
                 "cite_short": cite,
             })
 
+        # 현장 이력 — 화면의 이력 카드와 **같은 규칙**으로 고른다.
+        # 태그로만 거른 목록을 앞에서 자르면, 화면은 불일치 건을 맨 위에
+        # 올려 놓고 PDF 는 날짜순 아무 건이나 싣는 상태가 된다. 같은
+        # 조회인데 두 산출물이 다른 근거를 말하면 어느 쪽도 못 믿는다.
+        try:
+            from retrieval.history_index import match as _hmatch
+            _inst_row = load_instruments().get(req.tag) or {}
+            hist_rows = _hmatch(
+                load_history(), req.tag,
+                symptom_query=req.alarm or "",
+                device=[_inst_row.get("MODEL"),
+                        getattr(config, "CARD_DEVICE", None)],
+                related_tags=list(_inst_row.get("io_tags") or []),
+            )
+        except Exception:                                   # noqa: BLE001
+            hist_rows = []
+        # 규칙이 한 건도 못 걸면 태그 목록으로 되돌린다. 리포트가 비는
+        # 것보다 낫고, 이력 조회가 죽어도 문서는 나와야 한다.
+        if not hist_rows:
+            hist_rows = history_raw[:5]
+
         history = []
-        for h in history_raw[:5]:
+        for h in hist_rows[:5]:
+            mark = h.get("manual_match") or h.get("match") or ""
+            layer = h.get("_layer") or ""
             history.append({
                 "root_cause": h.get("root_cause") or "",
                 "action": h.get("action_taken") or h.get("action") or "",
                 "wo_no": h.get("wo_no") or "",
-                "match": h.get("manual_match") or h.get("match") or "",
+                # 매칭 근거를 같은 줄에 붙인다 — 줄 수를 늘리지 않으면서
+                # L3(다른 태그) 가 왜 실렸는지 보인다.
+                "match": ("%s · %s" % (mark, layer)) if layer else mark,
                 "duration_min": h.get("duration_min"),
                 "date": h.get("date") or "",
             })
 
-        # 조치 순서 — 검색 상위 근거 제목을 단계로 사용
+        # 조치 순서
+        #
+        # 화면이 만든 순서가 넘어오면 그대로 쓴다. 안 넘어오면 규칙으로
+        # 만든다 — 리포트는 버튼을 누른 자리에서 바로 나와야 하므로
+        # 여기서 LLM 을 다시 부르지 않는다.
+        #
+        # 예전에는 검색 상위 청크의 제목을 그대로 단계로 썼다. 영문 목차
+        # 제목("Standards Required for Single-Point Calibration")에 체크박스가
+        # 붙어 "즉시 조치"로 나갔다. 조치가 아닌 것을 조치라고 부르는
+        # 문서였다. 매뉴얼 제목은 확인 항목으로 이름을 바로잡고, 불일치
+        # 이력이 있으면 그것을 첫 항목에 올린다.
         steps = []
-        for rec, score, trace in hits[:5]:
-            steps.append(rec.get("title") or rec.get("id") or "점검 항목")
+        if req.steps:
+            steps = [str(s).strip() for s in req.steps if str(s).strip()][:5]
+        else:
+            for h in hist_rows:
+                if h.get("manual_match") == "불일치":
+                    steps.append("현장 이력 확인 — %s (%s)" % (
+                        (h.get("root_cause") or "")[:44],
+                        h.get("wo_no") or "-"))
+                    break
+            for rec, score, trace in hits[:5 - len(steps)]:
+                steps.append("매뉴얼 근거 확인: %s"
+                             % (rec.get("title") or rec.get("id") or "점검 항목"))
 
         import datetime as _dt
         now = _dt.datetime.now()
