@@ -873,6 +873,164 @@ def c_advice_path_runs():
     return True, "태그 %d건 완주 (LLM 없이)" % len(tags)
 
 
+# ── 6-3. 현장 이력 ──────────────────────────────────────────
+def _probe_history():
+    """
+    이력 카드가 반드시 떠야 하는 질의 한 건을 이력 자료에서 고른다.
+
+    태그와 증상을 코드에 박아 두면 자료를 바꿔 끼웠을 때 그 태그가
+    사라지고, 검사는 '카드가 안 뜬다'가 아니라 '태그가 없다'로 실패한다.
+    자료에서 뽑으면 어느 세트로 돌려도 같은 뜻의 검사가 된다.
+    """
+    import json
+    path = getattr(config, "HISTORY", None)
+    if not path or not os.path.isfile(path):
+        return None, None
+    with open(path, encoding="utf-8") as f:
+        rows = json.load(f)
+    for r in rows:
+        if r.get("tag") and r.get("symptom"):
+            return r, rows
+    return None, rows
+
+
+def c_history_missing_file():
+    """
+    [주입] 이력 파일이 없어도 조치 생성이 계속되는가.
+
+    이력은 있으면 좋은 자료지 필수 자료가 아니다. 자기 자료로 바꿔 끼운
+    사람에게는 애초에 없는 것이 정상이다. 그런데 카드 삽입이 조치 배열을
+    다시 쓰는 자리에 있어서, 이력 조회가 터지면 조치 화면이 통째로 빈다.
+
+    파일을 치워 놓고 두 가지를 함께 본다.
+
+      1) 없을 때  — 예외 없이 완주하고, 카드는 안 뜨고, 조치는 그대로 나온다
+      2) 있을 때  — 같은 질의에 카드가 실제로 뜬다
+
+    2를 같이 보지 않으면 이 검사는 아무것도 지키지 못한다. 이력 기능이
+    통째로 죽어 있어도 '카드가 안 뜬다'는 항상 참이기 때문이다.
+    """
+    import api.server as S
+    probe, _ = _probe_history()
+    if not probe:
+        return False, "이력 자료를 읽지 못했습니다: %s" % getattr(
+            config, "HISTORY", "(경로 없음)")
+
+    req = S.AdviceRequest(tag=probe["tag"], alarm=probe["symptom"],
+                          mode="lexical", mock=True)
+    prev_llm = config.LLM_PROVIDER
+    orig_path, orig_cache = config.HISTORY, S._history
+    try:
+        config.LLM_PROVIDER = "off"
+
+        # (2) 정상 상태 — 카드가 떠야 한다
+        S._history = None
+        ok_out = S.advice(req)
+        if not ok_out.get("history_card"):
+            return False, ("이력이 있는 태그(%s)인데도 카드가 뜨지 않습니다 — "
+                           "이력 경로가 죽어 있으면 아래 부재 검사는 "
+                           "무조건 통과합니다" % probe["tag"])
+
+        # (1) 고장 주입 — 파일을 치운다
+        config.HISTORY = os.path.join(
+            os.path.dirname(orig_path) or ".", "__selfcheck_missing__.json")
+        S._history = None
+        try:
+            out = S.advice(req)
+        except Exception as e:                              # noqa: BLE001
+            return False, ("이력 파일이 없다고 조치 생성이 터집니다 — %s: %s"
+                           % (type(e).__name__, str(e)[:90]))
+        if out.get("history_card") or out.get("history_matched"):
+            return False, "이력 파일이 없는데 카드가 남아 있습니다 (캐시 잔존)"
+        if not out.get("steps"):
+            return False, "이력 파일이 없자 조치가 통째로 비었습니다"
+        if any(s.get("kind") == "history" for s in out["steps"]):
+            return False, "조치 배열에 이력 단계가 남아 있습니다"
+    finally:
+        config.LLM_PROVIDER = prev_llm
+        config.HISTORY, S._history = orig_path, orig_cache
+
+    return True, "있을 때 카드 표시 / 없을 때 %d단계로 완주" % len(out["steps"])
+
+
+def c_history_wo_forged():
+    """
+    [주입] 이력 평가셋이 '몇 건 나왔나'가 아니라 '무엇이 나왔나'를 보는가.
+
+    이력 문항은 카드에 특정 wo_no 가 들어 있는지로 채점한다. 그런데
+    채점이 건수만 세고 있으면, 규칙이 엉뚱한 이력을 골라도 만점이 나온다.
+    실제로 인터락 평가에서 같은 실수를 했었다 — 개수만 맞으면 통과라
+    파서를 망가뜨려도 점수가 그대로였다.
+
+    그래서 이력 하나의 wo_no 를 존재하지 않는 값으로 바꿔치기하고,
+    **그 이력을 지목한 문항만** 무너지는지 본다. 아무 문항도 안 무너지면
+    채점이 신원을 안 보는 것이고, 무관한 문항까지 무너지면 문항이 서로
+    엉켜 있어 어느 규칙이 깨졌는지 가려낼 수 없다.
+    """
+    import json
+    from collections import Counter
+    from eval.make_eval_history import grade
+
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                     "eval_set_history.json")
+    if not os.path.isfile(p):
+        return False, "평가셋 없음 — python -m eval.make_eval_history"
+    _, hist = _probe_history()
+    if not hist:
+        return False, "이력 자료를 읽지 못했습니다"
+    qs = json.load(open(p, encoding="utf-8"))
+    if isinstance(qs, dict):
+        qs = qs.get("questions", [])
+
+    # 기준 채점부터 통과해야 한다. 여기서 이미 실패라면 평가셋이 자료와
+    # 어긋난 것이고, 아래 위조 검사는 뜻을 잃는다.
+    _, base_fails = grade(hist, qs)
+    if base_fails:
+        return False, ("기준 채점에서 %d문항 실패: %s — 평가셋을 다시 만드십시오"
+                       % (len(base_fails),
+                          ",".join(f[0] for f in base_fails[:5])))
+
+    # 가장 많은 문항이 지목하는 이력을 고른다. 한 문항짜리를 고르면
+    # 검사의 분해능이 1건뿐이라 우연히 통과하기 쉽다.
+    # 합성 픽스처 문항은 제외한다. 이력 자료가 아니라 코드 안의 가짜
+    # 레코드를 보므로, 자료를 위조해도 반응하지 않는다.
+    real_qs = [q for q in qs
+               if not (q.get("synthetic") or q.get("synthetic_device"))]
+    cnt = Counter()
+    for q in real_qs:
+        for w in (q.get("expect_contains") or []) + (q.get("expect_first_in") or []):
+            cnt[w] += 1
+    if not cnt:
+        return False, "wo_no 를 지목하는 문항이 없습니다 — 채점이 신원을 안 봅니다"
+    target, _n = cnt.most_common(1)[0]
+    expect_break = {q["id"] for q in real_qs
+                    if target in ((q.get("expect_contains") or [])
+                                  + (q.get("expect_first_in") or []))}
+
+    forged = [dict(h, wo_no="WO-FORGED-0000") if h.get("wo_no") == target else h
+              for h in hist]
+    if forged == hist:
+        return False, "위조 대상 %s 가 이력 자료에 없습니다" % target
+
+    _, fails = grade(forged, qs)
+    got = {f[0] for f in fails}
+    if not got:
+        return False, ("wo_no 를 %s 로 위조했는데 %d문항이 그대로 만점입니다 — "
+                       "채점이 건수만 세고 있습니다" % (target, len(qs)))
+    if not expect_break <= got:
+        return False, ("%s 를 지목한 문항 %d개 중 %d개만 반응했습니다 — "
+                       "채점이 일부 문항에서 신원을 안 봅니다"
+                       % (target, len(expect_break), len(expect_break & got)))
+    stray = got - expect_break
+    if stray:
+        return False, ("무관한 문항까지 무너졌습니다 (%s) — 문항이 서로 엉켜 "
+                       "있어 원인을 가려낼 수 없습니다"
+                       % ",".join(sorted(stray)[:4]))
+
+    return True, "%d문항 통과 / %s 위조 시 지목 문항 %d개만 검출" % (
+        len(qs), target, len(expect_break))
+
+
 def c_attr_source_real():
     """
     [주입] TYPE·FAIL POSITION 이 실물 문서에서 오는가.
@@ -1270,6 +1428,8 @@ def main():
     run("사양 출처 실물 문서 [주입]", c_attr_source_real)
     run("P&ID 규칙 매핑 [주입]", c_pid_rule_mapping)
     run("조치 생성 경로 [주입]", c_advice_path_runs)
+    run("이력 파일 부재 [주입]", c_history_missing_file)
+    run("이력 번호 위조 [주입]", c_history_wo_forged)
     run("부속 데이터 폐지 [주입]", c_no_attr_file)
     run("TB 리스트 대조 [주입]", c_tb_list)
     run("스테이션·랙 유일성", c_rack_unique)

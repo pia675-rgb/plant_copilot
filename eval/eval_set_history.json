@@ -1,0 +1,931 @@
+[
+ {
+  "id": "l1_WO-2025-021",
+  "type": "l1_hit",
+  "tag": "PIT-7007",
+  "symptom": "센서 전원 단락·과부하 진단",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_contains": [
+   "WO-2025-021"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-016",
+  "type": "l1_hit",
+  "tag": "AIT-4006",
+  "symptom": "DI 저수조 레벨 저하",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-016"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-007",
+  "type": "l1_hit",
+  "tag": "AIT-5003",
+  "symptom": "산화제 시린지 위치 이상",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-007"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-023",
+  "type": "l1_hit",
+  "tag": "AIT-1001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-023"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-022",
+  "type": "l1_hit",
+  "tag": "AIT-4002",
+  "symptom": "TC 시료 펌프 튜브 잔여 수명 15일 미만",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-022"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-002",
+  "type": "l1_hit",
+  "tag": "AIT-3005",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-002"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-014",
+  "type": "l1_hit",
+  "tag": "PIT-1010",
+  "symptom": "채널 단선 진단 (Wire break)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_contains": [
+   "WO-2025-014"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-008",
+  "type": "l1_hit",
+  "tag": "AIT-6007",
+  "symptom": "시료 전도도 아날로그 판독값 범위 초과",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-008"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-024",
+  "type": "l1_hit",
+  "tag": "AIT-2001",
+  "symptom": "Watchdog time-out 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-024"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-026",
+  "type": "l1_hit",
+  "tag": "AIT-7001",
+  "symptom": "Cond Cell shorted 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-026"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-019",
+  "type": "l1_hit",
+  "tag": "AIT-5001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-019"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-028",
+  "type": "l1_hit",
+  "tag": "AIT-6007",
+  "symptom": "산 잔량 10% 미만 경고",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-028"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-029",
+  "type": "l1_hit",
+  "tag": "AIT-7005",
+  "symptom": "하한 위반 진단 (Low limit violated)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_contains": [
+   "WO-2025-029"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-018",
+  "type": "l1_hit",
+  "tag": "LIT-2005",
+  "symptom": "공급 전압 상실 진단",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_contains": [
+   "WO-2025-018"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-011",
+  "type": "l1_hit",
+  "tag": "AIT-7006",
+  "symptom": "채널 단선 진단 (Wire break)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_contains": [
+   "WO-2025-011"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-025",
+  "type": "l1_hit",
+  "tag": "AIT-4002",
+  "symptom": "IC 채널 DI 유량 제한 감지",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-025"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-012",
+  "type": "l1_hit",
+  "tag": "AIT-4002",
+  "symptom": "8시간 이상 산화제 미사용 알림",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-012"
+  ]
+ },
+ {
+  "id": "l1_WO-2025-005",
+  "type": "l1_hit",
+  "tag": "AIT-6007",
+  "symptom": "TC 시료 유로 공기 혼입",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-005"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-003",
+  "type": "l1_hit",
+  "tag": "AIT-5008",
+  "symptom": "iOS 유량센서 시료 유량 미검출",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-003"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-027",
+  "type": "l1_hit",
+  "tag": "PIT-6008",
+  "symptom": "상한 위반 진단 (High limit violated)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_contains": [
+   "WO-2026-027"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-020",
+  "type": "l1_hit",
+  "tag": "AIT-5003",
+  "symptom": "UV 램프 잔여 수명 15일 미만 경고",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-020"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-030",
+  "type": "l1_hit",
+  "tag": "AIT-5002",
+  "symptom": "Cond Cell shorted 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2026-030"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-017",
+  "type": "l1_hit",
+  "tag": "AIT-5008",
+  "symptom": "시료 밸브 전류 저하",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-017"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-015",
+  "type": "l1_hit",
+  "tag": "AIT-6002",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-015"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-009",
+  "type": "l1_hit",
+  "tag": "AIT-5007",
+  "symptom": "Watchdog time-out 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2026-009"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-006",
+  "type": "l1_hit",
+  "tag": "AIT-5008",
+  "symptom": "산 시린지 기포 감지",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-006"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-001",
+  "type": "l1_hit",
+  "tag": "AIT-4006",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-001"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-010",
+  "type": "l1_hit",
+  "tag": "AIT-4002",
+  "symptom": "IC 온도 아날로그 판독값 범위 초과",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-010"
+  ]
+ },
+ {
+  "id": "l1_WO-2026-004",
+  "type": "l1_hit",
+  "tag": "AIT-4002",
+  "symptom": "산 잔량 10% 미만 경고",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-004"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-014_WO-2025-011",
+  "type": "l3_cross",
+  "tag": "PIT-1010",
+  "symptom": "채널 단선 진단 (Wire break)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_contains": [
+   "WO-2025-011"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-011_WO-2025-014",
+  "type": "l3_cross",
+  "tag": "AIT-7006",
+  "symptom": "채널 단선 진단 (Wire break)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_contains": [
+   "WO-2025-014"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-008_WO-2026-010",
+  "type": "l3_cross",
+  "tag": "AIT-6007",
+  "symptom": "시료 전도도 아날로그 판독값 범위 초과",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-010"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-028_WO-2026-004",
+  "type": "l3_cross",
+  "tag": "AIT-6007",
+  "symptom": "산 잔량 10% 미만 경고",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-004"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-003_WO-2026-015",
+  "type": "l3_cross",
+  "tag": "AIT-5008",
+  "symptom": "iOS 유량센서 시료 유량 미검출",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-015"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-003_WO-2026-001",
+  "type": "l3_cross",
+  "tag": "AIT-5008",
+  "symptom": "iOS 유량센서 시료 유량 미검출",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-001"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-015_WO-2026-003",
+  "type": "l3_cross",
+  "tag": "AIT-6002",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-003"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-015_WO-2026-001",
+  "type": "l3_cross",
+  "tag": "AIT-6002",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-001"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-001_WO-2026-003",
+  "type": "l3_cross",
+  "tag": "AIT-4006",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-003"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-001_WO-2026-015",
+  "type": "l3_cross",
+  "tag": "AIT-4006",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2026-015"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-010_WO-2025-008",
+  "type": "l3_cross",
+  "tag": "AIT-4002",
+  "symptom": "IC 온도 아날로그 판독값 범위 초과",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-008"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-004_WO-2025-028",
+  "type": "l3_cross",
+  "tag": "AIT-4002",
+  "symptom": "산 잔량 10% 미만 경고",
+  "device": "M9e",
+  "expect_contains": [
+   "WO-2025-028"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-023_WO-2025-002",
+  "type": "l3_cross",
+  "tag": "AIT-1001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-002"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-023_WO-2025-019",
+  "type": "l3_cross",
+  "tag": "AIT-1001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-019"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-002_WO-2025-023",
+  "type": "l3_cross",
+  "tag": "AIT-3005",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-023"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-002_WO-2025-019",
+  "type": "l3_cross",
+  "tag": "AIT-3005",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-019"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-024_WO-2026-009",
+  "type": "l3_cross",
+  "tag": "AIT-2001",
+  "symptom": "Watchdog time-out 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2026-009"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-026_WO-2026-030",
+  "type": "l3_cross",
+  "tag": "AIT-7001",
+  "symptom": "Cond Cell shorted 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2026-030"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-019_WO-2025-023",
+  "type": "l3_cross",
+  "tag": "AIT-5001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-023"
+  ]
+ },
+ {
+  "id": "l3_WO-2025-019_WO-2025-002",
+  "type": "l3_cross",
+  "tag": "AIT-5001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-002"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-030_WO-2025-026",
+  "type": "l3_cross",
+  "tag": "AIT-5002",
+  "symptom": "Cond Cell shorted 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-026"
+  ]
+ },
+ {
+  "id": "l3_WO-2026-009_WO-2025-024",
+  "type": "l3_cross",
+  "tag": "AIT-5007",
+  "symptom": "Watchdog time-out 알람",
+  "device": "M300",
+  "expect_contains": [
+   "WO-2025-024"
+  ]
+ },
+ {
+  "id": "sr_synth",
+  "type": "sort_rule",
+  "synthetic": true,
+  "expect_first_in": [
+   "SYN-BAD"
+  ]
+ },
+ {
+  "id": "gr_WO-2025-021",
+  "type": "grade",
+  "tag": "PIT-7007",
+  "symptom": "센서 전원 단락·과부하 진단",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_grade": "참고"
+ },
+ {
+  "id": "gr_WO-2025-016",
+  "type": "grade",
+  "tag": "AIT-4006",
+  "symptom": "DI 저수조 레벨 저하",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-007",
+  "type": "grade",
+  "tag": "AIT-5003",
+  "symptom": "산화제 시린지 위치 이상",
+  "device": "M9e",
+  "expect_grade": "참고"
+ },
+ {
+  "id": "gr_WO-2025-023",
+  "type": "grade",
+  "tag": "AIT-1001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-022",
+  "type": "grade",
+  "tag": "AIT-4002",
+  "symptom": "TC 시료 펌프 튜브 잔여 수명 15일 미만",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-002",
+  "type": "grade",
+  "tag": "AIT-3005",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-014",
+  "type": "grade",
+  "tag": "PIT-1010",
+  "symptom": "채널 단선 진단 (Wire break)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-008",
+  "type": "grade",
+  "tag": "AIT-6007",
+  "symptom": "시료 전도도 아날로그 판독값 범위 초과",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-024",
+  "type": "grade",
+  "tag": "AIT-2001",
+  "symptom": "Watchdog time-out 알람",
+  "device": "M300",
+  "expect_grade": "참고"
+ },
+ {
+  "id": "gr_WO-2025-026",
+  "type": "grade",
+  "tag": "AIT-7001",
+  "symptom": "Cond Cell shorted 알람",
+  "device": "M300",
+  "expect_grade": "참고"
+ },
+ {
+  "id": "gr_WO-2025-019",
+  "type": "grade",
+  "tag": "AIT-5001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-028",
+  "type": "grade",
+  "tag": "AIT-6007",
+  "symptom": "산 잔량 10% 미만 경고",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-029",
+  "type": "grade",
+  "tag": "AIT-7005",
+  "symptom": "하한 위반 진단 (Low limit violated)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-018",
+  "type": "grade",
+  "tag": "LIT-2005",
+  "symptom": "공급 전압 상실 진단",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_grade": "참고"
+ },
+ {
+  "id": "gr_WO-2025-011",
+  "type": "grade",
+  "tag": "AIT-7006",
+  "symptom": "채널 단선 진단 (Wire break)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-025",
+  "type": "grade",
+  "tag": "AIT-4002",
+  "symptom": "IC 채널 DI 유량 제한 감지",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-012",
+  "type": "grade",
+  "tag": "AIT-4002",
+  "symptom": "8시간 이상 산화제 미사용 알림",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2025-005",
+  "type": "grade",
+  "tag": "AIT-6007",
+  "symptom": "TC 시료 유로 공기 혼입",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2026-003",
+  "type": "grade",
+  "tag": "AIT-5008",
+  "symptom": "iOS 유량센서 시료 유량 미검출",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2026-027",
+  "type": "grade",
+  "tag": "PIT-6008",
+  "symptom": "상한 위반 진단 (High limit violated)",
+  "device": "AI 16xI 2-wire HART HA",
+  "expect_grade": "확인"
+ },
+ {
+  "id": "gr_WO-2026-020",
+  "type": "grade",
+  "tag": "AIT-5003",
+  "symptom": "UV 램프 잔여 수명 15일 미만 경고",
+  "device": "M9e",
+  "expect_grade": "참고"
+ },
+ {
+  "id": "gr_WO-2026-030",
+  "type": "grade",
+  "tag": "AIT-5002",
+  "symptom": "Cond Cell shorted 알람",
+  "device": "M300",
+  "expect_grade": "참고"
+ },
+ {
+  "id": "gr_WO-2026-017",
+  "type": "grade",
+  "tag": "AIT-5008",
+  "symptom": "시료 밸브 전류 저하",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2026-015",
+  "type": "grade",
+  "tag": "AIT-6002",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2026-009",
+  "type": "grade",
+  "tag": "AIT-5007",
+  "symptom": "Watchdog time-out 알람",
+  "device": "M300",
+  "expect_grade": "참고"
+ },
+ {
+  "id": "gr_WO-2026-006",
+  "type": "grade",
+  "tag": "AIT-5008",
+  "symptom": "산 시린지 기포 감지",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2026-001",
+  "type": "grade",
+  "tag": "AIT-4006",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2026-010",
+  "type": "grade",
+  "tag": "AIT-4002",
+  "symptom": "IC 온도 아날로그 판독값 범위 초과",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "gr_WO-2026-004",
+  "type": "grade",
+  "tag": "AIT-4002",
+  "symptom": "산 잔량 10% 미만 경고",
+  "device": "M9e",
+  "expect_grade": "경고"
+ },
+ {
+  "id": "nl_ZZT-9999_WO-2025-021",
+  "type": "no_leak",
+  "tag": "ZZT-9999",
+  "symptom": "센서 전원 단락·과부하 진단",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_ZZT-9999_WO-2025-016",
+  "type": "no_leak",
+  "tag": "ZZT-9999",
+  "symptom": "DI 저수조 레벨 저하",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_FIT-0001_WO-2025-021",
+  "type": "no_leak",
+  "tag": "FIT-0001",
+  "symptom": "센서 전원 단락·과부하 진단",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_FIT-0001_WO-2025-016",
+  "type": "no_leak",
+  "tag": "FIT-0001",
+  "symptom": "DI 저수조 레벨 저하",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_XV-9911_WO-2025-021",
+  "type": "no_leak",
+  "tag": "XV-9911",
+  "symptom": "센서 전원 단락·과부하 진단",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_XV-9911_WO-2025-016",
+  "type": "no_leak",
+  "tag": "XV-9911",
+  "symptom": "DI 저수조 레벨 저하",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_PT-8888_WO-2025-021",
+  "type": "no_leak",
+  "tag": "PT-8888",
+  "symptom": "센서 전원 단락·과부하 진단",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_PT-8888_WO-2025-016",
+  "type": "no_leak",
+  "tag": "PT-8888",
+  "symptom": "DI 저수조 레벨 저하",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_LT-7777_WO-2025-021",
+  "type": "no_leak",
+  "tag": "LT-7777",
+  "symptom": "센서 전원 단락·과부하 진단",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "nl_LT-7777_WO-2025-016",
+  "type": "no_leak",
+  "tag": "LT-7777",
+  "symptom": "DI 저수조 레벨 저하",
+  "device": "",
+  "expect_empty": true
+ },
+ {
+  "id": "dg_synth",
+  "type": "device_guard",
+  "synthetic_device": true,
+  "expect_contains": [
+   "GD-SAME"
+  ],
+  "expect_absent": [
+   "GD-OTHER"
+  ]
+ },
+ {
+  "id": "ns_WO-2025-014",
+  "type": "no_search",
+  "tag": "PIT-1010",
+  "symptom": "채널 단선 진단 (Wire break)",
+  "device": "AI 16xI 2-wire HART HA",
+  "no_code": true,
+  "expect_contains": [
+   "WO-2025-014"
+  ]
+ },
+ {
+  "id": "ns_WO-2025-008",
+  "type": "no_search",
+  "tag": "AIT-6007",
+  "symptom": "시료 전도도 아날로그 판독값 범위 초과",
+  "device": "M9e",
+  "no_code": true,
+  "expect_contains": [
+   "WO-2025-008"
+  ]
+ },
+ {
+  "id": "ns_WO-2025-019",
+  "type": "no_search",
+  "tag": "AIT-5001",
+  "symptom": "Cond Cell open 알람",
+  "device": "M300",
+  "no_code": true,
+  "expect_contains": [
+   "WO-2025-019"
+  ]
+ },
+ {
+  "id": "ns_WO-2025-029",
+  "type": "no_search",
+  "tag": "AIT-7005",
+  "symptom": "하한 위반 진단 (Low limit violated)",
+  "device": "AI 16xI 2-wire HART HA",
+  "no_code": true,
+  "expect_contains": [
+   "WO-2025-029"
+  ]
+ },
+ {
+  "id": "ns_WO-2026-017",
+  "type": "no_search",
+  "tag": "AIT-5008",
+  "symptom": "시료 밸브 전류 저하",
+  "device": "M9e",
+  "no_code": true,
+  "expect_contains": [
+   "WO-2026-017"
+  ]
+ },
+ {
+  "id": "ns_WO-2026-006",
+  "type": "no_search",
+  "tag": "AIT-5008",
+  "symptom": "산 시린지 기포 감지",
+  "device": "M9e",
+  "no_code": true,
+  "expect_contains": [
+   "WO-2026-006"
+  ]
+ },
+ {
+  "id": "ns_WO-2026-001",
+  "type": "no_search",
+  "tag": "AIT-4006",
+  "symptom": "시료 유량 미검출, 분석 정지",
+  "device": "M9e",
+  "no_code": true,
+  "expect_contains": [
+   "WO-2026-001"
+  ]
+ },
+ {
+  "id": "ns_WO-2026-004",
+  "type": "no_search",
+  "tag": "AIT-4002",
+  "symptom": "산 잔량 10% 미만 경고",
+  "device": "M9e",
+  "no_code": true,
+  "expect_contains": [
+   "WO-2026-004"
+  ]
+ }
+]

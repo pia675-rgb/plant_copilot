@@ -11,11 +11,11 @@
    "roster": 6,
    "card": 36,
    "cscope": 36,
-   "cdepend": 17,
+   "cdepend": 16,
    "common": 1,
    "absent": 10
   },
-  "total": 212,
+  "total": 211,
   "note": "정답은 원천 레코드에서 직접 계산했으며 PanelIndex 출력을 쓰지 않았다. 변이 시험은 run_eval_panel.py --mutate 참조."
  },
  "questions": [
@@ -1463,6 +1463,7 @@
    "card": "CUB-A/R0/S6",
    "expect_outputs": [
     "P-5101A",
+    "P-5101B",
     "P-6101A",
     "XV-4101",
     "XV-4102",
@@ -1478,12 +1479,14 @@
     "IL-4101-03",
     "IL-4102-02",
     "IL-5101A-02",
+    "IL-5101B-02",
     "IL-5103-02"
    ],
    "expect_partial": [
     "IL-4101-01",
     "IL-4102-01",
-    "IL-5101A-01",
+    "IL-5101A-03",
+    "IL-5101B-03",
     "IL-6101A-01"
    ]
   },
@@ -1685,6 +1688,7 @@
     "P-2101A",
     "P-3101",
     "P-5101A",
+    "P-5101B",
     "R-3104",
     "UV-5102",
     "XV-2102",
@@ -1706,6 +1710,7 @@
     "IL-3104-02",
     "IL-4101-02",
     "IL-5101A-02",
+    "IL-5101B-02",
     "IL-5102-02",
     "IL-6102-02"
    ],
@@ -1713,6 +1718,8 @@
     "IL-2103-01",
     "IL-3104-01",
     "IL-4102-01",
+    "IL-5101A-03",
+    "IL-5101B-03",
     "IL-5102-01"
    ]
   },
@@ -1767,21 +1774,10 @@
    "id": "PN187",
    "type": "cscope",
    "card": "RIO-01/DP11/R0/S5",
-   "expect_outputs": [
-    "P-5101A"
-   ]
+   "expect_outputs": []
   },
   {
    "id": "PN188",
-   "type": "cdepend",
-   "card": "RIO-01/DP11/R0/S5",
-   "expect_no_remaining": [],
-   "expect_partial": [
-    "IL-5101A-01"
-   ]
-  },
-  {
-   "id": "PN189",
    "type": "cscope",
    "card": "RIO-01/DP11/R0/S6",
    "expect_outputs": [
@@ -1789,7 +1785,7 @@
    ]
   },
   {
-   "id": "PN190",
+   "id": "PN189",
    "type": "cdepend",
    "card": "RIO-01/DP11/R0/S6",
    "expect_no_remaining": [
@@ -1800,7 +1796,7 @@
    ]
   },
   {
-   "id": "PN191",
+   "id": "PN190",
    "type": "cscope",
    "card": "RIO-01/DP11/R0/S7",
    "expect_outputs": [
@@ -1809,7 +1805,7 @@
    ]
   },
   {
-   "id": "PN192",
+   "id": "PN191",
    "type": "cdepend",
    "card": "RIO-01/DP11/R0/S7",
    "expect_no_remaining": [
@@ -1820,7 +1816,7 @@
    ]
   },
   {
-   "id": "PN193",
+   "id": "PN192",
    "type": "cscope",
    "card": "RIO-01/DP11/R0/S8",
    "expect_outputs": [
@@ -1832,7 +1828,7 @@
    ]
   },
   {
-   "id": "PN194",
+   "id": "PN193",
    "type": "cdepend",
    "card": "RIO-01/DP11/R0/S8",
    "expect_no_remaining": [
@@ -1847,19 +1843,19 @@
    ]
   },
   {
-   "id": "PN195",
+   "id": "PN194",
    "type": "cscope",
    "card": "RIO-02/DP12/R0/S2",
    "expect_outputs": []
   },
   {
-   "id": "PN196",
+   "id": "PN195",
    "type": "cscope",
    "card": "RIO-02/DP12/R0/S3",
    "expect_outputs": []
   },
   {
-   "id": "PN197",
+   "id": "PN196",
    "type": "cscope",
    "card": "RIO-02/DP12/R0/S4",
    "expect_outputs": [
@@ -1869,7 +1865,7 @@
    ]
   },
   {
-   "id": "PN198",
+   "id": "PN197",
    "type": "cdepend",
    "card": "RIO-02/DP12/R0/S4",
    "expect_no_remaining": [
@@ -1882,82 +1878,83 @@
    ]
   },
   {
-   "id": "PN199",
+   "id": "PN198",
    "type": "cscope",
    "card": "RIO-02/DP12/R0/S5",
    "expect_outputs": []
   },
   {
-   "id": "PN200",
+   "id": "PN199",
    "type": "cscope",
    "card": "RIO-02/DP12/R0/S6",
    "expect_outputs": []
   },
   {
-   "id": "PN201",
+   "id": "PN200",
    "type": "cscope",
    "card": "RIO-02/DP12/R0/S8",
    "expect_outputs": []
   },
   {
-   "id": "PN202",
+   "id": "PN201",
    "type": "common",
    "expect_findings": [
     "IL-2103-01",
     "IL-3104-02",
     "IL-4101-02",
     "IL-4102-01",
+    "IL-5101B-02",
     "IL-5102-01",
     "IL-5102-02"
    ]
   },
   {
-   "id": "PN203",
+   "id": "PN202",
    "type": "absent",
    "panel": "CUB-Z"
   },
   {
-   "id": "PN204",
+   "id": "PN203",
    "type": "absent",
    "panel": "RIO-09"
   },
   {
-   "id": "PN205",
+   "id": "PN204",
    "type": "absent",
    "panel": "MCC-01"
   },
   {
-   "id": "PN206",
+   "id": "PN205",
    "type": "absent",
    "panel": "LCP-777"
   },
   {
-   "id": "PN207",
+   "id": "PN206",
    "type": "absent",
    "tag": "AIT-9999"
   },
   {
-   "id": "PN208",
+   "id": "PN207",
    "type": "absent",
    "tag": "PIT-9001"
   },
   {
-   "id": "PN209",
+   "id": "PN208",
    "type": "absent",
    "tag": "ZZT-1234"
   },
   {
-   "id": "PN210",
+   "id": "PN209",
    "type": "absent",
    "card": "CUB-Z/R0/S1"
   },
   {
-   "id": "PN211",
+   "id": "PN210",
    "type": "absent",
    "card": "CUB-A/R9/S99"
   },
   {
-   "id": "PN212",
+   "id": "PN211",
    "type": "absent",
    "card": "RIO-01/DP99/R0/S1"
   }

@@ -28,6 +28,12 @@ from retrieval import history_index as HX                        # noqa: E402
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                    "eval_set_history.json")
 
+# device_guard 합성 픽스처. 실이력의 문구를 쓰지 않는다 — 자료가 바뀌면
+# 같이 흔들려서, 규칙이 깨진 것인지 문구가 바뀐 것인지 가릴 수 없다.
+_SYN_SYMPTOM = "시료 유량 미검출"
+_SYN_DEV_OK = "SYN-DEV-A"
+_SYN_DEV_NG = "SYN-DEV-B"
+
 
 def load_hist():
     with open(config.HISTORY, encoding="utf-8") as f:
@@ -145,6 +151,22 @@ def build(hist):
                 "expect_absent": [b["wo_no"]],
             })
 
+    # 교차 기종 쌍이 하나도 안 걸리면 합성 픽스처로 규칙을 시험한다.
+    #
+    # 현재 자료에서 실제로 그렇다. 다른 기종 쌍 500개의 최대 유사도가
+    # 0.125 로 임계(0.35) 근처에도 못 온다 — 기종이 다르면 증상 문구도
+    # 아예 다르게 적혀 있다. 그래서 device 조건을 통째로 지워도 실데이터
+    # 문항은 한 개도 안 무너진다. **규칙을 안 재고 있는 상태다.**
+    #
+    # sort_rule 과 같은 처리를 한다. 자료에 상황이 없다는 것이 규칙을
+    # 안 재도 된다는 뜻은 아니다.
+    if not any(x["type"] == "device_guard" for x in q):
+        q.append({
+            "id": "dg_synth", "type": "device_guard", "synthetic_device": True,
+            "expect_contains": ["GD-SAME"],
+            "expect_absent": ["GD-OTHER"],
+        })
+
     # no_search — 검색이 통째로 실패해도(code_ref 없음) 카드는 나와야 한다
     for h in hist:
         if h.get("manual_match") != "불일치":
@@ -182,6 +204,30 @@ def grade(hist, questions, opts=None):
             if not ok:
                 fails.append((q["id"], q["type"], [r["wo_no"] for r in got]))
             continue
+        if q.get("synthetic_device"):
+            # 같은 증상 문구를 기종만 달리해서 둘 놓는다. 기종이 맞는
+            # 쪽은 걸리고 다른 쪽은 안 걸려야 한다.
+            #
+            # 두 가지를 한 문항에서 함께 본다. 배제만 재면 L3 를 통째로
+            # 지워도 만점이 나오고, 수집만 재면 device 조건을 지워도
+            # 만점이 나온다. 한쪽만으로는 규칙을 못 가둔다.
+            fx = [
+                dict(wo_no="GD-SAME", tag="TAG-B", device=_SYN_DEV_OK,
+                     symptom=_SYN_SYMPTOM, manual_match="일치",
+                     date="2026-01-01"),
+                dict(wo_no="GD-OTHER", tag="TAG-C", device=_SYN_DEV_NG,
+                     symptom=_SYN_SYMPTOM, manual_match="일치",
+                     date="2026-01-02"),
+            ]
+            rows = HX.match(fx, "TAG-A", _SYN_SYMPTOM, _SYN_DEV_OK)
+            wos = [r.get("wo_no") for r in rows]
+            ok = (all(w in wos for w in q["expect_contains"])
+                  and all(w not in wos for w in q["expect_absent"]))
+            res[q["type"] + ("_ok" if ok else "_ng")] += 1
+            if not ok:
+                fails.append((q["id"], q["type"], wos))
+            continue
+
         rows = HX.match(
             hist, q["tag"], q.get("symptom", ""), q.get("device") or None,
             code_ref=None if q.get("no_code") else q.get("code_ref"),

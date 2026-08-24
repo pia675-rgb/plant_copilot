@@ -225,7 +225,41 @@ def available():
 
 
 # ── 생성 ────────────────────────────────────────────────────
-def _prompt(tag, alarm, evidence):
+# 이력이 있을 때만 덧붙이는 규칙.
+#
+# 매뉴얼은 일반적인 경우를 쓰고, 현장은 그 배관 그 판넬의 사정이 있다.
+# "매뉴얼대로 했는데 아니었다" 가 기록된 건은 매뉴얼 근거보다 먼저
+# 확인해야 한다. 그렇지 않으면 이미 한 번 헛수고한 경로를 다시 밟는다.
+HISTORY_RULES = """
+현장 이력 사용 규칙:
+- "매뉴얼 대조: 불일치" 인 이력이 있으면, 매뉴얼 근거가 지시하는 조치를
+  첫 단계로 쓰지 마십시오. 그 이력의 실제 원인을 먼저 확인 항목으로
+  올리십시오. 매뉴얼대로 해서 이미 실패한 기록이기 때문입니다.
+- 이력을 근거로 쓴 단계는 [H1] 처럼 이력 번호를 표기하십시오.
+- 이력에 적힌 것만 쓰십시오. 이력에 없는 원인이나 조치를 이력인 것처럼
+  쓰지 마십시오.
+- 다른 태그의 이력이라도 같은 기종에서 같은 증상이 있었다면 유용합니다.
+  다만 어느 태그의 기록인지 단계 본문에 밝히십시오."""
+
+
+def _history_block(history):
+    """LLM 에 넘길 이력 절. 근거 번호와 겹치지 않게 H 접두를 쓴다."""
+    if not history:
+        return ""
+    out = ["", "현장 이력 (같은 태그·같은 기종의 유사 증상):"]
+    for i, h in enumerate(history, 1):
+        out.append("[H%d] %s · %s · %s | 매뉴얼 대조: %s" % (
+            i, h.get("date", ""), h.get("tag", ""),
+            h.get("symptom", ""), h.get("manual_match", "")))
+        for label, key in (("처음 조치", "first_action"),
+                           ("실제 원인", "root_cause"),
+                           ("최종 조치", "action_taken")):
+            if h.get(key):
+                out.append("     %s: %s" % (label, h[key]))
+    return "\n".join(out)
+
+
+def _prompt(tag, alarm, evidence, history=None):
     lines = ["설비 태그: %s" % (tag or "-"),
              "현장 증상: %s" % (alarm or "-"), "",
              "근거 (관련도 순, 1번이 가장 가까움):"]
@@ -233,6 +267,10 @@ def _prompt(tag, alarm, evidence):
         lines.append("[%d] %s — %s" % (
             i, e.get("title", ""),
             re.sub(r"\s+", " ", e.get("text", ""))[:MAX_CHARS]))
+    blk = _history_block(history)
+    if blk:
+        lines.append(blk)
+        lines.append(HISTORY_RULES)
     return "\n".join(lines)
 
 
@@ -245,7 +283,7 @@ def _parse(raw):
     return json.loads(t[i:j + 1])
 
 
-def generate(tag, alarm, evidence, timeout=120):
+def generate(tag, alarm, evidence, timeout=120, history=None):
     """
     반환: {"summary", "steps":[{title, detail, evidence_ids}], "dropped": n}
 
@@ -259,7 +297,8 @@ def generate(tag, alarm, evidence, timeout=120):
         raise AdvisorError("근거가 없습니다.")
 
     raw = fn([{"role": "system", "content": SYSTEM},
-              {"role": "user", "content": _prompt(tag, alarm, evidence)}],
+              {"role": "user",
+               "content": _prompt(tag, alarm, evidence, history)}],
              timeout)
     data = _parse(raw)
 
@@ -269,6 +308,15 @@ def generate(tag, alarm, evidence, timeout=120):
     by_title = {(e.get("title") or "").strip().lower(): e["id"]
                 for e in used if e.get("title")}
     cite = {e["id"]: e.get("cite", "") for e in used}
+
+    # 이력 인용(H1, H2…). 근거 목록과 같은 원칙이다 — 실재하는 것만
+    # 통과시킨다. 없는 이력 번호를 쓴 단계는 근거와 똑같이 버려진다.
+    hist_used = list(history or [])[:MAX_EVIDENCE]
+    by_hist = {}
+    for i, h in enumerate(hist_used, 1):
+        hid = "H:%s" % (h.get("wo_no") or i)
+        by_hist["h%d" % i] = hid
+        cite[hid] = "현장 이력 %s (%s)" % (h.get("wo_no", ""), h.get("date", ""))
 
     def resolve(v):
         """
@@ -282,6 +330,8 @@ def generate(tag, alarm, evidence, timeout=120):
         if v is None:
             return None
         t = str(v).strip().strip("[]").strip()
+        if t.lower() in by_hist:
+            return by_hist[t.lower()]
         if t in by_num:
             return by_num[t]
         if t in by_id:

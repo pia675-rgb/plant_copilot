@@ -129,6 +129,7 @@ set COPILOT_DERIVED_DIR=%CD%\my_derived
 ```bash
 python -m eval.make_eval_interlock
 python -m eval.make_eval_panel
+python -m eval.make_eval_history
 python -m eval.selfcheck
 ```
 
@@ -136,8 +137,9 @@ python -m eval.selfcheck
 
 | 항목 | 결과 |
 |---|---|
-| 인터락 조회 (층 분리·역방향·부재 판정·원문 보존) | 65/65 |
-| 판넬 조회 (위치·카드·채널·상실 영향) | 212/212 |
+| 인터락 조회 (층 분리·역방향·부재 판정·원문 보존) | 67/67 |
+| 판넬 조회 (위치·카드·채널·상실 영향) | 211/211 |
+| 이력 우선 (3단 매칭·정렬·기종 가드) | 100/100 |
 | 매뉴얼 색인 | 198청크 |
 
 `selfcheck` 는 단순 통과 검사가 아니라 **고장 주입** 검사입니다.

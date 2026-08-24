@@ -735,30 +735,13 @@ def advice(req: AdviceRequest):
 
         steps, mock, note, dropped = None, True, "", 0
 
-        # 거절 판정에서는 조치를 만들지 않는다. 근거가 부족하다고
-        # 판정한 뒤에 조치를 생성하면 판정이 의미가 없어진다.
-        if decision == "advise" and evidence and not req.mock:
-            try:
-                from graph.advisor import generate
-                res = generate(req.tag, req.alarm, evidence)
-                steps = [dict(s, n=i, kind="llm")
-                         for i, s in enumerate(res["steps"], 1)]
-                mock, dropped = False, res.get("dropped", 0)
-                note = res.get("summary", "")
-                if dropped:
-                    note += " (근거 검증에서 %d개 단계 제외)" % dropped
-            except Exception as e:                          # noqa: BLE001
-                note = "조치 생성 미사용 — %s" % str(e)[:120]
-
-        if steps is None:
-            steps = _template_steps(evidence)
-
-        # ── 이력 우선 카드 ───────────────────────
-        # 조치 순서 맨 앞에 꽂는다. LLM 이 만든 단계보다 앞선다.
-        # 규칙으로 결정하므로 LLM 이 실패해도, 검색이 실패해도 남는다.
-        hist_rows, hist_card = [], None
+        # ── 현장 이력 매칭 ──────────────────────────────────
+        # LLM 호출보다 먼저 한다. 조치 문장을 만들 때 이력을 함께
+        # 넘겨야 "매뉴얼대로 했는데 아니었다" 는 기록이 반영된다.
+        # 규칙으로 결정되므로 LLM 이 실패해도, 검색이 실패해도 남는다.
+        hist_rows = []
         try:
-            from retrieval.history_index import match as _hmatch, build_card
+            from retrieval.history_index import match as _hmatch
             _inst = load_instruments().get(req.tag) or {}
             _code = None
             for e in evidence:
@@ -772,6 +755,33 @@ def advice(req: AdviceRequest):
                 code_ref=_code,
                 related_tags=list(_inst.get("io_tags") or []),
             )
+        except Exception:                                   # noqa: BLE001
+            hist_rows = []
+
+        # 거절 판정에서는 조치를 만들지 않는다. 근거가 부족하다고
+        # 판정한 뒤에 조치를 생성하면 판정이 의미가 없어진다.
+        if decision == "advise" and evidence and not req.mock:
+            try:
+                from graph.advisor import generate
+                res = generate(req.tag, req.alarm, evidence,
+                               history=hist_rows)
+                steps = [dict(s, n=i, kind="llm")
+                         for i, s in enumerate(res["steps"], 1)]
+                mock, dropped = False, res.get("dropped", 0)
+                note = res.get("summary", "")
+                if dropped:
+                    note += " (근거 검증에서 %d개 단계 제외)" % dropped
+            except Exception as e:                          # noqa: BLE001
+                note = "조치 생성 미사용 — %s" % str(e)[:120]
+
+        if steps is None:
+            steps = _template_steps(evidence)
+
+        # 이력 카드는 조치 순서 맨 앞에 꽂는다. LLM 이 이력을 반영해
+        # 문장을 만들었더라도, 기록 원문을 그대로 보여주는 것은 별개다.
+        hist_card = None
+        try:
+            from retrieval.history_index import build_card
             hist_card = build_card(hist_rows)
         except Exception:                                   # noqa: BLE001
             hist_card = None
