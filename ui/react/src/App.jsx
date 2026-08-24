@@ -762,14 +762,18 @@ function AlarmView({ tag, alarm, code, mode, botPending, onBotHandled, onAlarmCh
               {advice.summary}
             </div>
             {advice.steps?.map(s => (
-              <div className="step-item" key={s.n}>
-                <div className="step-n">{s.n}</div>
-                <div>
-                  <div className="step-title">{s.title}</div>
-                  <div className="step-detail">{s.detail}</div>
-                  <div className="ev-cite">근거 {s.source} · {s.kind}</div>
-                </div>
-              </div>
+              s.kind === 'history'
+                ? <HistoryCard key="hist" card={s} />
+                : (
+                  <div className="step-item" key={s.n}>
+                    <div className="step-n">{s.n}</div>
+                    <div>
+                      <div className="step-title">{s.title}</div>
+                      <div className="step-detail">{s.detail}</div>
+                      <div className="ev-cite">근거 {s.source} · {s.kind}</div>
+                    </div>
+                  </div>
+                )
             ))}
           </div>
         </div>
@@ -2026,3 +2030,68 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen }) {
   )
 }
 
+/* 현장 이력 카드 — 조치 순서 맨 앞에 꽂힌다.
+   매뉴얼 근거와 달리 "우리가 겪은 일"이므로 시각적으로 구분한다.
+   특히 매뉴얼과 원인이 다른 건(불일치)은 이 도구의 존재 이유라
+   가장 눈에 띄어야 한다. */
+const HIST_TONE = {
+  경고: { bd: 'var(--warn, #b45309)', bg: 'rgba(180,83,9,0.08)' },
+  참고: { bd: 'var(--ink-3, #64748b)', bg: 'rgba(100,116,139,0.06)' },
+  확인: { bd: 'var(--ink-3, #64748b)', bg: 'transparent' },
+}
+
+function HistoryCard({ card }) {
+  const [open, setOpen] = useState(true)
+  const tone = HIST_TONE[card.grade] || HIST_TONE.확인
+  return (
+    <div style={{
+      border: `1px solid ${tone.bd}`, background: tone.bg,
+      borderRadius: 6, padding: '10px 12px', marginBottom: 12,
+    }}>
+      <div
+        style={{ cursor: 'pointer', display: 'flex', gap: 8, alignItems: 'baseline' }}
+        onClick={() => setOpen(!open)}
+      >
+        <span style={{
+          fontSize: '0.72rem', fontWeight: 700, color: tone.bd,
+          border: `1px solid ${tone.bd}`, borderRadius: 3, padding: '1px 5px',
+        }}>{card.grade}</span>
+        <span style={{ fontWeight: 600, flex: 1 }}>{card.title}</span>
+        <span style={{ color: 'var(--ink-3)' }}>{open ? '▾' : '▸'}</span>
+      </div>
+
+      {open && (card.items || []).map(it => (
+        <div key={it.ref} style={{
+          marginTop: 10, paddingTop: 10,
+          borderTop: '1px solid var(--line, rgba(128,128,128,0.25))',
+          fontSize: '0.86rem',
+        }}>
+          <div style={{ color: 'var(--ink-2)', marginBottom: 4 }}>
+            <code>{it.ref}</code> {it.date} · {it.tag} · {it.symptom}
+          </div>
+          <HistRow label="매뉴얼 대조" value={it.manual_match}
+                   strong={it.manual_match === '불일치'} />
+          <HistRow label="처음 조치" value={it.first_action} />
+          <HistRow label="실제 원인" value={it.root_cause}
+                   strong={it.manual_match === '불일치'} />
+          <HistRow label="최종 조치" value={it.action_taken} />
+          <div className="ev-cite" style={{ marginTop: 4 }}>
+            {it.wo_no} · {it.why}
+            {it.duration_min ? ` · ${it.duration_min}분` : ''}
+            {it.tech ? ` · ${it.tech}` : ''}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function HistRow({ label, value, strong }) {
+  if (!value) return null
+  return (
+    <div style={{ display: 'flex', gap: 8, lineHeight: 1.5 }}>
+      <span style={{ color: 'var(--ink-3)', minWidth: 68, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontWeight: strong ? 600 : 400 }}>{value}</span>
+    </div>
+  )
+}

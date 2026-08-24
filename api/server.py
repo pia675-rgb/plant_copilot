@@ -753,6 +753,33 @@ def advice(req: AdviceRequest):
         if steps is None:
             steps = _template_steps(evidence)
 
+        # ── 이력 우선 카드 ───────────────────────
+        # 조치 순서 맨 앞에 꽂는다. LLM 이 만든 단계보다 앞선다.
+        # 규칙으로 결정하므로 LLM 이 실패해도, 검색이 실패해도 남는다.
+        hist_rows, hist_card = [], None
+        try:
+            from retrieval.history_index import match as _hmatch, build_card
+            _inst = load_instruments().get(req.tag) or {}
+            _code = None
+            for e in evidence:
+                if e.get("kind") == "error_code" and e.get("code"):
+                    _code = e["code"]
+                    break
+            hist_rows = _hmatch(
+                load_history(), req.tag,
+                symptom_query=req.alarm or "",
+                device=[_inst.get("MODEL"), getattr(config, "CARD_DEVICE", None)],
+                code_ref=_code,
+                related_tags=list(_inst.get("io_tags") or []),
+            )
+            hist_card = build_card(hist_rows)
+        except Exception:                                   # noqa: BLE001
+            hist_card = None
+
+        if hist_card:
+            steps = [hist_card] + [dict(x, n=i + 1)
+                                   for i, x in enumerate(steps)]
+
         if not steps:
             steps = [{
                 "n": 1,
@@ -776,6 +803,8 @@ def advice(req: AdviceRequest):
             "grade": diag.get("grade"),
             "trace": diag.get("trace", []),
             "evidence": evidence[: config.FINAL_TOP_K],
+            "history_card": hist_card,
+            "history_matched": len(hist_rows),
         }
     except Exception as e:
         raise HTTPException(500, str(e))
