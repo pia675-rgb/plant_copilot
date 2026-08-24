@@ -61,6 +61,7 @@ class Retriever:
         self.bm25 = BM25(self.records)
         self.instruments = load_instruments()
         self.dense = None
+        self._shared = None         # 본문이 같은 코드 묶음 (지연 계산)
         self.degraded = []          # 요청했지만 못 쓴 구성요소
         # 왜 못 썼는지도 남긴다. 사유가 콘솔에만 찍히면 화면에서는
         # "거절만 계속 나온다" 로 보이고 원인을 짚을 수 없다.
@@ -245,7 +246,71 @@ class Retriever:
         out = [(r, 999.0, {"exact_code": 1, "found_by": 1}) for r in exact]
         out += [(r, s, w) for r, s, w in hits if r["id"] not in seen]
         out = self._cap_card(out, device)
+        out = self._fold_shared(out)
         return self._diversify(out, top_k, device)
+
+    def _shared_family(self):
+        """
+        본문이 글자 그대로 같은 코드 묶음. 코퍼스 전체에서 한 번만 센다.
+
+        M9e 매뉴얼 p.403 은 코드 4000~5000 서른일곱 개에 같은 설명 한 줄을
+        붙여 놓았다("System Error — ... power cycle the instrument"). 코드는
+        다르지만 읽을 내용이 하나뿐이다.
+
+        추출기가 이미 이 상황을 알아채고 shared_description 을 남겨 두었으나,
+        검색은 그것을 안 보고 서른일곱 건을 각각 후보로 다뤘다. 어휘도
+        벡터도 같은 본문이니 점수도 같고, 결과 다섯 자리가 같은 문장으로
+        채워진다. 근거가 다섯 건인 줄 알았는데 실제로는 한 건이다.
+        """
+        if self._shared is not None:
+            return self._shared
+        fam = {}
+        for r in self.records:
+            if r.get("kind") != "error_code":
+                continue
+            key = (str(r.get("device") or ""), (r.get("text") or "").strip())
+            if not key[1]:
+                continue
+            fam.setdefault(key, []).append(r)
+        self._shared = {k: v for k, v in fam.items() if len(v) > 1}
+        return self._shared
+
+    def _fold_shared(self, ranked):
+        """
+        본문이 같은 코드 묶음을 한 자리로 접는다.
+
+        접되 **숨기지는 않는다.** 남긴 항목의 제목에 묶인 코드 범위와 개수를
+        적고, trace 에 코드 목록을 넣는다. 서른일곱 개 중 하나만 보여주면서
+        그 사실을 말하지 않으면, 근거가 하나뿐인 것처럼 읽힌다.
+
+        코드 완전일치(exact_code)는 접지 않는다. 사용자가 4001 을 직접 쳤는데
+        4000 으로 바꿔 보여주면 조회가 아니라 추측이 된다.
+        """
+        fam = self._shared_family()
+        if not fam:
+            return ranked
+
+        out, seen = [], set()
+        for rec, score, trace in ranked:
+            key = (str(rec.get("device") or ""), (rec.get("text") or "").strip())
+            if trace.get("exact_code") or key not in fam:
+                out.append((rec, score, trace))
+                continue
+            if key in seen:
+                continue                      # 같은 본문 — 이미 한 자리 썼다
+            seen.add(key)
+
+            codes = sorted(str(r.get("code") or r.get("id") or "")
+                           for r in fam[key])
+            rec = dict(rec)                   # 색인 원본은 건드리지 않는다
+            rec["title"] = "%s (코드 %s~%s · %d종 공통 설명)" % (
+                rec.get("title") or rec.get("id"),
+                codes[0], codes[-1], len(codes))
+            trace = dict(trace)
+            trace["folded"] = len(codes)
+            trace["folded_codes"] = codes
+            out.append((rec, score, trace))
+        return out
 
     def _cap_card(self, ranked, device):
         """카드(ET200SP) 근거가 상위를 독식하지 않게 한 자리로 제한한다.
