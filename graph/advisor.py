@@ -502,7 +502,7 @@ def guess(tag, alarm, device="", service="", timeout=None):
     return {
         "kind": "guess",
         "basis": "model_only",
-        "label": "매뉴얼 근거 없음 · 모델 추측",
+        "label": "모델 추측 · 문서 근거 아님",
         "warning": "이 내용은 문서 근거가 없습니다. 조치 근거로 쓰지 마십시오.",
         "causes": causes,
         "checks": checks,

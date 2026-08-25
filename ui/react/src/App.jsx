@@ -46,6 +46,9 @@ export default function App() {
   const [panelSel, setPanelSel] = useState(null)
   const [cardSel, setCardSel] = useState(null)
   const [asInput, setAsInput] = useState(false)
+  // 자유 모드. 새로고침하면 근거 모드로 돌아간다 — 일부러 저장하지
+  // 않는다. 모르는 채 자유 모드 화면을 보는 것이 가장 위험하다.
+  const [freeMode, setFreeMode] = useState(false)
   // 챗봇 → 화면 제어
   const [botPending, setBotPending] = useState(null) // { type, ... }
   // 사이드바 접기 — 도면·인터락 표를 넓게 보여줘야 할 때가 있다
@@ -129,6 +132,20 @@ export default function App() {
           <button className="nav-toggle" onClick={() => setNavOpen(false)}
             title="사이드바 숨기기 (Ctrl+B)" aria-label="사이드바 숨기기">‹</button>
         </div>
+
+        <button
+          onClick={() => setFreeMode(f => !f)}
+          title="자유 모드: 근거를 찾은 조회에도 모델 추측을 함께 표시하고, 도우미가 자유 대화에 답합니다. 추측은 조치 순서와 4D 리포트에는 어느 모드에서도 들어가지 않습니다."
+          style={{
+            margin: '4px 12px 10px', padding: '5px 10px', width: 'calc(100% - 24px)',
+            borderRadius: 6, cursor: 'pointer', fontSize: '0.78rem',
+            border: freeMode ? '1px solid #d9a441' : '1px solid var(--line-strong)',
+            background: freeMode ? 'rgba(217,164,65,0.12)' : 'transparent',
+            color: freeMode ? '#d9a441' : 'var(--faint)',
+          }}
+        >
+          {freeMode ? '자유 모드 — 근거 없는 내용 포함' : '근거 모드 (기본)'}
+        </button>
 
         <nav className="nav-tabs">
           <button className={`nav-tab ${tab === 'alarm' ? 'active' : ''}`} onClick={() => setTab('alarm')}>
@@ -267,10 +284,21 @@ export default function App() {
           </div>
         )}
 
+        {freeMode && (
+          <div style={{
+            margin: '0 0 12px', padding: '7px 12px', borderRadius: 6,
+            border: '1px solid #d9a441', background: 'rgba(217,164,65,0.10)',
+            color: '#d9a441', fontSize: '0.8rem',
+          }}>
+            자유 모드입니다 — 근거 없는 모델 추측이 함께 표시됩니다.
+            조치 순서와 4D 리포트에는 들어가지 않습니다.
+          </div>
+        )}
+
         {tab === 'alarm' && (
           <AlarmView
             key={`alarm-${tag}`}
-            tag={tag} alarm={alarm} code={code} mode={mode}
+            tag={tag} alarm={alarm} code={code} mode={mode} free={freeMode}
             onResult={setScreen}
             botPending={botPending}
             onBotHandled={() => setBotPending(null)}
@@ -292,6 +320,7 @@ export default function App() {
 
       <HelpBot
         screen={screen}
+        free={freeMode}
         tags={tags}
         currentTag={tag}
         currentTab={tab}
@@ -317,7 +346,7 @@ export default function App() {
 /* ══════════════════════════════════════════════════════════
    알람 조회 (v1 메인 화면)
    ══════════════════════════════════════════════════════════ */
-function AlarmView({ tag, alarm, code, mode, botPending, onBotHandled, onAlarmChange, onResult }) {
+function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onAlarmChange, onResult }) {
   const [inst, setInst] = useState(null)
   const [diag, setDiag] = useState(null)
   const [advice, setAdvice] = useState(null)
@@ -423,7 +452,7 @@ function AlarmView({ tag, alarm, code, mode, botPending, onBotHandled, onAlarmCh
       open()
     } else if (cmd.type === 'advice') {
       setAdvLoading(true)
-      post('/advice', { tag, alarm, code, mode })
+      post('/advice', { tag, alarm, code, mode, free })
         .then(setAdvice)
         .catch(e => setError(e.message))
         .finally(() => { setAdvLoading(false); onBotHandled && onBotHandled() })
@@ -453,7 +482,7 @@ function AlarmView({ tag, alarm, code, mode, botPending, onBotHandled, onAlarmCh
     setAdvLoading(true)
     setError(null)
     try {
-      setAdvice(await post('/advice', { tag, alarm, code, mode }))
+      setAdvice(await post('/advice', { tag, alarm, code, mode, free }))
     } catch (e) {
       setError(e.message)
     } finally {
@@ -1913,7 +1942,7 @@ function helpReply() {
   )
 }
 
-function HelpBot({ tags, currentTag, currentTab, onCommand, screen }) {
+function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [msgs, setMsgs] = useState([
@@ -1950,6 +1979,7 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen }) {
         tag: currentTag || '',
         tab: currentTab || 'alarm',
         use_llm: true,
+        free: !!free,
         // 화면에 떠 있는 결과. 후속 질문은 이것을 근거로 답한다.
         context: screen || null,
       })
@@ -1962,7 +1992,13 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen }) {
     }
     if (!intent) return
     if (intent.type === 'help' && !intent.reply) intent.reply = helpReply()
-    if (intent.reply) push('bot', intent.reply, intent.citations)
+    if (intent.reply) {
+      // 자유 모드의 근거 없는 답변에는 라벨을 붙인다. 근거 기반
+      // 답변(조회·후속·QA)과 같은 말풍선 모양으로 나오면 구분이 안 된다.
+      const label = intent.free && intent.grounded === false
+        ? '〔모델 답변 · 문서 근거 아님〕\n' : ''
+      push('bot', label + intent.reply, intent.citations)
+    }
     if (intent.type && intent.type !== 'chat' && intent.type !== 'help') {
       onCommand && onCommand(intent)
     }

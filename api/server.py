@@ -327,6 +327,9 @@ class ChatRequest(BaseModel):
     tag: str = ""
     tab: str = "alarm"
     use_llm: bool = True
+    # 자유 모드. 규칙·근거 경로가 처리하지 못한 입력에 한해 모델이
+    # 자유롭게 답한다. 조회 명령은 모드와 무관하게 규칙이 먼저 잡는다.
+    free: bool = False
     # 화면에 떠 있는 조회 결과. 후속 질문에 답하려면 필요하다.
     context: Optional[ChatContext] = None
 
@@ -354,6 +357,9 @@ class AdviceRequest(BaseModel):
     mode: str = DEFAULT_MODE
     # 기본은 LLM 조치 생성. True 를 주면 근거 나열 템플릿만 쓴다.
     mock: bool = False
+    # 자유 모드. True 면 근거를 찾은 조회에도 모델 추측을 덧붙인다.
+    # 추측이 steps·4D 리포트에 섞이지 않는 것은 모드와 무관하게 유지된다.
+    free: bool = False
 
 
 # ── 엔드포인트 ──────────────────────────────────────────────
@@ -844,7 +850,7 @@ def advice(req: AdviceRequest):
         # steps 에 넣지 않고 별도 필드로 내보낸다 — 화면은 접힌 상태로
         # 따로 보여주고, 4D 리포트는 이 필드를 읽지 않는다.
         guess, guess_note = None, ""
-        if decision != "advise" and not req.mock:
+        if (req.free or decision != "advise") and not req.mock:
             try:
                 from graph.advisor import guess as _guess
                 guess, guess_note = _guess(
@@ -1886,6 +1892,27 @@ def chat_help(req: ChatRequest):
                              if req.use_llm else "요청에서 비활성")
         return out
 
+    # 자유 모드의 대화 지침.
+    #
+    # 명령 해석 스키마는 그대로 둔다 — 조회는 모드와 무관하게 정확해야
+    # 한다. 달라지는 것은 type=chat 일 때의 답변 폭이다. 근거 모드는
+    # 도구 안내로 한정하고, 자유 모드는 일반 지식으로 답하되 두 가지를
+    # 지킨다: 조회 결과(판넬 위치·인터락 조건·매뉴얼 페이지)를 지어내지
+    # 않는다, 기술 판단에는 문서 근거가 아님을 밝힌다.
+    free_clause = (
+        "질문이나 대화이면 type=chat 으로 두고 reply 에 한국어로 자유롭게 "
+        "답하십시오. 일반적인 정비 지식·개념 설명·잡담도 됩니다. 다만 "
+        "두 가지는 지키십시오. (1) 이 도구의 조회 결과 — 특정 태그의 판넬 "
+        "위치, 인터락 조건, 매뉴얼 페이지 — 를 지어내지 마십시오. 그런 "
+        "질문에는 해당 조회 기능을 안내하십시오. (2) 기술적 판단을 담은 "
+        "답에는 문서 근거가 아니라 일반 지식이라는 점을 한 줄로 "
+        "밝히십시오."
+        if req.free else
+        "명령이 아니라 질문이나 인사이면 type=chat 으로 두고 reply 에 "
+        "한국어로 자연스럽게 답하십시오. 기능을 물으면 위 목록을 바탕으로 "
+        "두세 문장으로 설명하고, 바로 써 볼 수 있는 예시를 한 줄 "
+        "덧붙이십시오.")
+
     system = (
         "당신은 Plant Maintenance Copilot 의 도우미입니다. "
         "플랜트 정비원이 쓰는 도구이며, 다음을 할 수 있습니다.\n"
@@ -1898,10 +1925,7 @@ def chat_help(req: ChatRequest):
         "인터락·퍼미시브·시퀀스로 나누어 보여주고 엑셀 원본과 대조합니다.\n"
         "- 도면: 태그가 표시된 P&ID 위치와 배선 정보를 보여줍니다.\n"
         "- 4D 리포트: 조회 결과를 PDF 보고서로 출력합니다.\n\n"
-        "사용자 메시지를 UI 명령 JSON 으로 해석하십시오. 명령이 아니라 "
-        "질문이나 인사이면 type=chat 으로 두고 reply 에 한국어로 자연스럽게 "
-        "답하십시오. 기능을 물으면 위 목록을 바탕으로 두세 문장으로 "
-        "설명하고, 바로 써 볼 수 있는 예시를 한 줄 덧붙이십시오.\n"
+        "사용자 메시지를 UI 명령 JSON 으로 해석하십시오. " + free_clause + "\n"
         "Reply language: Korean.\n"
         "Schema:\n"
         '{"type":"diagnose|drawing|interlock|interlock_source|advice|help|chat|navigate",'
@@ -1928,6 +1952,12 @@ def chat_help(req: ChatRequest):
                 and not rule.get("generic")):
             out["reply"] = rule["reply"]
         out.pop("generic", None)
+        # 자유 모드의 대화 답변은 근거가 없다는 표식을 싣는다.
+        # 화면이 이 표식으로 라벨을 붙인다 — 표식 없이 내보내면
+        # 근거 기반 답변(qa·followup)과 구분되지 않는다.
+        if req.free and out.get("type") == "chat":
+            out["free"] = True
+            out["grounded"] = False
         return out
     except Exception as e:                                  # noqa: BLE001
         out = finalize(rule, "rule_fallback")

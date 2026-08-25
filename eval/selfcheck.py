@@ -1063,6 +1063,15 @@ def c_guess_only_on_abstain():
         if any((s.get("kind") == "guess") for s in out.get("steps", [])):
             return False, "추측이 조치 배열에 섞였습니다"
 
+        # 자유 모드 — 추측이 모든 판정에 붙을 수 있게 되지만,
+        # steps 분리는 모드와 무관하게 유지되어야 한다. 자유 모드가
+        # 이 선을 넘으면 추측이 조치로 저장되어 다음 조회의 이력
+        # 근거가 된다.
+        out = S.advice(S.AdviceRequest(tag=tag, alarm="산 잔량 10% 미만 경고",
+                                       mode="lexical", mock=True, free=True))
+        if any((s.get("kind") == "guess") for s in out.get("steps", [])):
+            return False, "자유 모드에서 추측이 조치 배열에 섞였습니다"
+
         rep = S.report_4d(S.ReportRequest(tag=tag, alarm="근거 없는 증상",
                                           mode="lexical"))
         body = rep.body if isinstance(rep.body, (bytes, bytearray)) else b""
@@ -1072,7 +1081,7 @@ def c_guess_only_on_abstain():
         return False, "%s: %s" % (type(e).__name__, str(e)[:90])
     finally:
         config.LLM_PROVIDER = prev
-    return True, "advise 미부착 / 조치 배열 분리 / 리포트 미포함"
+    return True, "advise 미부착 / 자유 모드 포함 조치 배열 분리 / 리포트 미포함"
 
 
 def _first_tag_with_manual():
