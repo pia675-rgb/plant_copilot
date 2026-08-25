@@ -837,6 +837,24 @@ def advice(req: AdviceRequest):
                 "source": "system",
                 "kind": "system",
             }]
+        # 근거를 못 찾았을 때만 추측을 붙인다.
+        #
+        # 화면이 통째로 비면 사용자는 도구를 닫고 다른 데로 간다. 그렇다고
+        # 조치 자리에 끼워 넣으면 근거 있는 답과 구분이 사라진다. 그래서
+        # steps 에 넣지 않고 별도 필드로 내보낸다 — 화면은 접힌 상태로
+        # 따로 보여주고, 4D 리포트는 이 필드를 읽지 않는다.
+        guess, guess_note = None, ""
+        if decision != "advise" and not req.mock:
+            try:
+                from graph.advisor import guess as _guess
+                guess, guess_note = _guess(
+                    req.tag, req.alarm,
+                    device=str(_inst.get("MODEL") or ""),
+                    service=str(_inst.get("SERVICE") or ""))
+            except Exception as e:                          # noqa: BLE001
+                guess, guess_note = None, "%s: %s" % (type(e).__name__,
+                                                      str(e)[:90])
+
         summary = (
             f"판정: {decision} (충분성 {diag.get('grade', 0):.2f}). "
             f"{diag.get('grade_reason') or ''}"
@@ -854,6 +872,8 @@ def advice(req: AdviceRequest):
             "evidence": evidence[: config.FINAL_TOP_K],
             "history_card": hist_card,
             "history_matched": len(hist_rows),
+            "guess": guess,
+            "guess_note": guess_note,
         }
     except Exception as e:
         raise HTTPException(500, str(e))

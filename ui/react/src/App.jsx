@@ -809,6 +809,17 @@ function AlarmView({ tag, alarm, code, mode, botPending, onBotHandled, onAlarmCh
         </div>
       )}
 
+      {advice?.guess && <GuessPanel guess={advice.guess} />}
+      {!advice?.guess && advice?.guess_note && (
+        <div className="panel" style={{ marginTop: 14 }}>
+          <div className="panel-body" style={{
+            fontSize: '0.8rem', color: 'var(--faint)', lineHeight: 1.5,
+          }}>
+            모델 추측을 붙이지 않았습니다 — {advice.guess_note}
+          </div>
+        </div>
+      )}
+
       {/* 조치 결과 피드백 */}
       <div className="panel" style={{ marginTop: 14 }}>
         <div
@@ -2069,6 +2080,70 @@ const HIST_TONE = {
   참고: { bd: 'var(--ink-3, #64748b)', bg: 'rgba(100,116,139,0.06)' },
   확인: { bd: 'var(--ink-3, #64748b)', bg: 'transparent' },
 }
+
+function GuessPanel({ guess }) {
+  // 기본은 접힌 상태다. 펼치는 동작 자체가 "근거 없는 내용임을 알고
+  // 본다" 는 확인이 된다. 펼쳐 놓고 시작하면 근거 있는 답과 나란히
+  // 읽히고, 그 순간 이 도구가 지키려는 구분이 사라진다.
+  const [open, setOpen] = useState(false)
+  const has = (guess.causes?.length || 0) + (guess.checks?.length || 0) > 0
+  if (!has) return null
+
+  return (
+    <div className="panel" style={{ marginTop: 14, borderColor: 'var(--warn, #7a5c00)' }}>
+      <div
+        className="panel-head"
+        style={{ cursor: 'pointer', color: 'var(--warn-ink, #d9a441)' }}
+        onClick={() => setOpen(!open)}
+      >
+        {open ? '▾' : '▸'} {guess.label || '매뉴얼 근거 없음 · 모델 추측'}
+        <span style={{ marginLeft: 8, fontSize: '0.78rem', color: 'var(--faint)' }}>
+          {open ? '' : '눌러서 펼치기'}
+        </span>
+      </div>
+      {open && (
+        <div className="panel-body">
+          <div style={{
+            fontSize: '0.82rem', color: 'var(--warn-ink, #d9a441)',
+            marginBottom: 12, lineHeight: 1.5,
+          }}>
+            {guess.warning}
+          </div>
+
+          {guess.causes?.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div className="step-title">짚어 볼 만한 것</div>
+              {guess.causes.map((c, i) => (
+                <div className="step-detail" key={'c' + i}>· {c}</div>
+              ))}
+            </div>
+          )}
+
+          {guess.checks?.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div className="step-title">현장에서 확인할 것</div>
+              {guess.checks.map((c, i) => (
+                <div className="step-detail" key={'k' + i}>· {c}</div>
+              ))}
+            </div>
+          )}
+
+          {guess.ask_vendor && (
+            <div>
+              <div className="step-title">벤더 문의 시</div>
+              <div className="step-detail">{guess.ask_vendor}</div>
+            </div>
+          )}
+
+          <div className="ev-cite" style={{ marginTop: 12 }}>
+            근거 없음 · 모델 생성 — 4D 리포트에는 포함되지 않습니다
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 function HistoryCard({ card }) {
   const [open, setOpen] = useState(true)

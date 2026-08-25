@@ -1031,6 +1031,59 @@ def c_history_wo_forged():
         len(qs), target, len(expect_break))
 
 
+def c_guess_only_on_abstain():
+    """
+    [주입] 추측이 근거 있는 조회에 새지 않는가.
+
+    근거를 못 찾았을 때 화면이 비는 것을 막으려고 모델 추측을 붙였다.
+    이 기능의 위험은 하나다 — 근거 있는 답과 추측이 같은 화면에서 같은
+    무게로 보이는 것. 그러면 "근거 없이 답하지 않는다" 는 전제가 무너진다.
+
+    세 가지를 본다.
+
+      1) advise 판정에는 추측이 붙지 않는다
+      2) 추측은 조치 배열(steps)에 섞이지 않는다 — 별도 필드로만 나간다
+      3) 4D 리포트에 추측이 실리지 않는다
+
+    2·3 은 한 번 섞이면 되돌리기 어렵다. 조치로 저장된 추측은 다음
+    조회에서 이력 근거가 되고, 리포트로 나간 추측은 결재를 탄다.
+    """
+    import api.server as S
+    prev = config.LLM_PROVIDER
+    try:
+        config.LLM_PROVIDER = "off"     # 추측 생성 자체를 막고 경로만 본다
+        tag = _first_tag_with_manual()
+        if not tag:
+            return False, "매뉴얼이 있는 태그를 찾지 못했습니다"
+
+        out = S.advice(S.AdviceRequest(tag=tag, alarm="산 잔량 10% 미만 경고",
+                                       mode="lexical", mock=True))
+        if out.get("guess"):
+            return False, "mock 조회인데 추측이 붙었습니다"
+        if any((s.get("kind") == "guess") for s in out.get("steps", [])):
+            return False, "추측이 조치 배열에 섞였습니다"
+
+        rep = S.report_4d(S.ReportRequest(tag=tag, alarm="근거 없는 증상",
+                                          mode="lexical"))
+        body = rep.body if isinstance(rep.body, (bytes, bytearray)) else b""
+        if b"model_only" in body or "모델 추측".encode("utf-8") in body:
+            return False, "4D 리포트에 추측이 실렸습니다"
+    except Exception as e:                                  # noqa: BLE001
+        return False, "%s: %s" % (type(e).__name__, str(e)[:90])
+    finally:
+        config.LLM_PROVIDER = prev
+    return True, "advise 미부착 / 조치 배열 분리 / 리포트 미포함"
+
+
+def _first_tag_with_manual():
+    """벤더 매뉴얼이 있는 계기 태그 하나."""
+    from api.server import load_instruments
+    for t, r in load_instruments().items():
+        if str(r.get("MODEL") or "").strip():
+            return t
+    return None
+
+
 def c_attr_source_real():
     """
     [주입] TYPE·FAIL POSITION 이 실물 문서에서 오는가.
@@ -1430,6 +1483,7 @@ def main():
     run("조치 생성 경로 [주입]", c_advice_path_runs)
     run("이력 파일 부재 [주입]", c_history_missing_file)
     run("이력 번호 위조 [주입]", c_history_wo_forged)
+    run("추측 격리 [주입]", c_guess_only_on_abstain)
     run("부속 데이터 폐지 [주입]", c_no_attr_file)
     run("TB 리스트 대조 [주입]", c_tb_list)
     run("스테이션·랙 유일성", c_rack_unique)

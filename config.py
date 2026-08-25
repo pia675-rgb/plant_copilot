@@ -299,6 +299,16 @@ SUMMARY_TIMEOUT = int(os.environ.get("COPILOT_SUMMARY_TIMEOUT", "20"))
 SUMMARY_MAX = int(os.environ.get("COPILOT_SUMMARY_MAX", "3"))
 SUMMARY_NUM_PREDICT = int(os.environ.get("COPILOT_SUMMARY_TOKENS", "120"))
 
+# ── 거절 시 추측 ────────────────────────────────────────────
+# 근거를 못 찾았을 때 화면이 통째로 비는 것을 막기 위한 덤이다.
+# 조치가 아니라 추측이므로 조치 배열에 넣지 않고 별도 필드로 나간다.
+#
+# 끌 수 있게 두는 것이 중요하다. 근거 없는 문장을 아예 내보내지 않는
+# 운영을 택할 수도 있어야 한다.
+GUESS_ON_ABSTAIN = os.environ.get("COPILOT_GUESS", "on").lower() != "off"
+GUESS_TIMEOUT = int(os.environ.get("COPILOT_GUESS_TIMEOUT", "60"))
+GUESS_NUM_PREDICT = int(os.environ.get("COPILOT_GUESS_TOKENS", "400"))
+
 # ── 결과 구성 다양성 ────────────────────────────────────────
 # 상위 결과에 코드표·매뉴얼 본문 두 층과, 계기·카드 두 기기 축이
 # 각각 최소 1건씩 남도록 보장한다. 순위를 바꾸는 것이 아니라 잘려나갈

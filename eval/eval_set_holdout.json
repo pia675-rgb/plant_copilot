@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "author": "도남진 (검증 담당)",
+    "purpose": "검색 평가셋 확장 — 개발자가 만들지 않은 문항으로 일반화 확인",
+    "rules": [
+      "1. eval_set_v2.json 을 열어보지 말 것. 기존 문항의 표현을 따라가게 된다.",
+      "2. 벤더 매뉴얼 PDF 를 보고 문항을 만들 것. 시스템에 먼저 물어보지 말 것.",
+      "3. 현장 정비원이 실제로 쓸 법한 한국어로 쓸 것. 영문 용어를 떠올리지 말 것.",
+      "4. 만든 뒤 한 번만 채점하고, 그 결과를 보고 문항을 고치지 말 것.",
+      "5. 근거가 없는 문항(abstain)을 반드시 섞을 것. 지어내는지 보는 유일한 방법이다."
+    ],
+    "how_to_find_expected": [
+      "코드표 항목: docs/holdout/참고_코드표.txt 에 306건이 정리되어 있습니다.",
+      "본문 섹션:  docs/holdout/참고_본문섹션.txt",
+      "계기 태그:  docs/holdout/참고_계기목록.txt (demo_data/INSTRUMENT_LIST.xlsx 의 TAG 열)",
+      "직접 뽑으려면 demo_index/chunks.jsonl 을 읽으십시오 — index/ 가 아니라 demo_index/ 입니다."
+    ],
+    "run": "set COPILOT_DATA_DIR=%CD%\\demo_data && set COPILOT_INDEX_DIR=%CD%\\demo_index && set COPILOT_DERIVED_DIR=%CD%\\demo_derived && python -m eval.run_eval_v2 --eval eval/eval_set_holdout.json --systems hybrid --md eval/scorecard_holdout.md",
+    "guide": "docs/holdout/홀드아웃_작성안내.md",
+    "count": "10문항 (syn 4 · body 2 · typo 1 · abstain 3)",
+    "note_on_edit": "태그 표기와 코드표 id 표기만 이 데이터 세트에 맞게 고쳤습니다. 문항 문장·정답 항목·기대 동작은 작성자가 쓴 그대로입니다."
+  },
+  "questions": [
+    {
+      "id": "H01",
+      "type": "syn",
+      "tag": "AIT-4002",
+      "alarm": "Acid reagent bottle is almost empty, warning came up",
+      "expect_top3": [
+        "M9E-300"
+      ],
+      "note": "Synonym test: Acid container volume <10% expressed as 'acid reagent bottle is almost empty'"
+    },
+    {
+      "id": "H02",
+      "type": "body",
+      "tag": "AIT-4002",
+      "alarm": "How do I replace the UV lamp?",
+      "expect_kind": "manual_text",
+      "expect_section_any": [
+        "To replace the UV Lamp",
+        "Replacing the UV Lamp"
+      ],
+      "expect_file": "im_e_sievers-m9-manual_dlm_77020-02.pdf"
+    },
+    {
+      "id": "H03",
+      "type": "typo",
+      "tag": "AIT-4002",
+      "alarm": "Oxidzer reagent is almost gone, waring showed up, do I need to replace it?",
+      "expect_top3": [
+        "M9E-400"
+      ],
+      "note": "Typos: oxidizer→oxidzer, warning→waring"
+    },
+    {
+      "id": "H04",
+      "type": "abstain",
+      "tag": "AIT-4002",
+      "alarm": "Cooling fan inside the analyzer is running really loud, what's the fan replacement interval?",
+      "expect_abstain": true,
+      "note": "No content in the manual about cooling fan replacement interval or noise"
+    },
+    {
+      "id": "H05",
+      "type": "abstain",
+      "tag": "AIT-4002",
+      "alarm": "Where is the setting that automatically stops analysis when sample temperature goes over 45 degrees?",
+      "expect_abstain": true,
+      "note": "Manual has no automatic stop function at sample temperature of 45 degrees"
+    },
+    {
+      "id": "H06",
+      "type": "syn",
+      "tag": "AIT-5003",
+      "alarm": "UV lamp life is done, warning says I need to replace it right now",
+      "expect_top3": [
+        "M9E-502"
+      ],
+      "note": "Synonym test: UV lamp has expired expressed as 'UV lamp life is done, need to replace it right now'"
+    },
+    {
+      "id": "H07",
+      "type": "syn",
+      "tag": "AIT-6002",
+      "alarm": "Resin filter life is almost over, warning came up",
+      "expect_top3": [
+        "M9E-700"
+      ],
+      "note": "Synonym test: Resin bed remaining life <15 days expressed as 'resin filter life is almost over'"
+    },
+    {
+      "id": "H08",
+      "type": "syn",
+      "tag": "AIT-5008",
+      "alarm": "IC sample pump hose life warning popped up, when do I need to change it?",
+      "expect_top3": [
+        "M9E-600"
+      ],
+      "note": "Synonym test: IC Sample Pump tube life <15 days expressed as 'IC sample pump hose life warning'"
+    },
+    {
+      "id": "H09",
+      "type": "body",
+      "tag": "AIT-4002",
+      "alarm": "How do I bleed the air after first installing the DI water pump?",
+      "expect_kind": "manual_text",
+      "expect_section_any": [
+        "Step 8: Prime the DI Pump",
+        "To prime the DI Water pump",
+        "Prime the DI Pump"
+      ],
+      "expect_file": "im_e_sievers-m9-manual_dlm_77020-02.pdf"
+    },
+    {
+      "id": "H10",
+      "type": "abstain",
+      "tag": "AIT-5003",
+      "alarm": "Is there a battery backup that keeps the analyzer running for about an hour after power is turned off?",
+      "expect_abstain": true,
+      "note": "Manual has no emergency battery backup power function at all"
+    }
+  ]
+}

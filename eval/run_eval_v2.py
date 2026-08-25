@@ -320,9 +320,26 @@ def main():
 
 def write_md(path, ev, qs, results, labels, skipped, summ, types, keys):
     hdr = [labels.get(n, n) for n in results]
+    meta = ev.get("meta") or {}
     L = ["# Plant Maintenance Copilot — 검색 정확도 스코어카드 v2", "",
-         "평가셋 %d문항. 같은 문항을 v1 과 v2 각 구성에 돌린 결과입니다." % len(qs),
-         "", "> %s" % ev["meta"]["fairness_note"], ""]
+         "평가셋 %d문항. 같은 문항을 v1 과 v2 각 구성에 돌린 결과입니다." % len(qs)]
+
+    # 공정성 각주는 평가셋마다 있을 수도 없을 수도 있다. 없다고 채점을
+    # 끝낸 뒤 파일 쓰는 자리에서 죽으면, 방금 잰 결과가 통째로 날아간다.
+    # 홀드아웃 평가셋에서 실제로 그렇게 잃었다.
+    note = meta.get("fairness_note")
+    if note:
+        L += ["", "> %s" % note, ""]
+    else:
+        L += [""]
+
+    # 누가 만든 평가셋인지는 수치만큼 중요하다. 개발자가 만든 문항과
+    # 개발에 관여하지 않은 사람이 만든 문항은 같은 점수라도 뜻이 다르다.
+    who = meta.get("author")
+    purpose = meta.get("purpose")
+    if who or purpose:
+        L += ["> **작성** %s%s" % (who or "(미기재)",
+                                   " — %s" % purpose if purpose else ""), ""]
 
     if skipped:
         L += ["> **미실행 구성이 있습니다.** 아래 열은 이 표에 없습니다 — "
