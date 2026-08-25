@@ -137,14 +137,15 @@ export default function App() {
           onClick={() => setFreeMode(f => !f)}
           title="자유 모드: 근거를 찾은 조회에도 모델 추측을 함께 표시하고, 도우미가 자유 대화에 답합니다. 추측은 조치 순서와 4D 리포트에는 어느 모드에서도 들어가지 않습니다."
           style={{
-            margin: '4px 12px 10px', padding: '5px 10px', width: 'calc(100% - 24px)',
-            borderRadius: 6, cursor: 'pointer', fontSize: '0.78rem',
+            margin: '4px 12px 10px', padding: '0 10px', width: 'calc(100% - 24px)',
+            height: 34, lineHeight: '34px', whiteSpace: 'nowrap',
+            borderRadius: 6, cursor: 'pointer', fontSize: '0.82rem',
             border: freeMode ? '1px solid #d9a441' : '1px solid var(--line-strong)',
             background: freeMode ? 'rgba(217,164,65,0.12)' : 'transparent',
             color: freeMode ? '#d9a441' : 'var(--faint)',
           }}
         >
-          {freeMode ? '자유 모드 — 근거 없는 내용 포함' : '근거 모드 (기본)'}
+          {freeMode ? '자유 모드' : '근거 모드'}
         </button>
 
         <nav className="nav-tabs">
@@ -284,17 +285,6 @@ export default function App() {
           </div>
         )}
 
-        {freeMode && (
-          <div style={{
-            margin: '0 0 12px', padding: '7px 12px', borderRadius: 6,
-            border: '1px solid #d9a441', background: 'rgba(217,164,65,0.10)',
-            color: '#d9a441', fontSize: '0.8rem',
-          }}>
-            자유 모드입니다 — 근거 없는 모델 추측이 함께 표시됩니다.
-            조치 순서와 4D 리포트에는 들어가지 않습니다.
-          </div>
-        )}
-
         {tab === 'alarm' && (
           <AlarmView
             key={`alarm-${tag}`}
@@ -308,13 +298,13 @@ export default function App() {
         {tab === 'interlock' && (
           <InterlockView
             key={`il-${tag}-${ilAction}-${asInput}`}
-            tag={tag} action={ilAction} asInput={asInput}
+            tag={tag} action={ilAction} asInput={asInput} free={freeMode}
             botPending={botPending}
             onBotHandled={() => setBotPending(null)}
           />
         )}
         {tab === 'panel' && (
-          <PanelView key="panel" tag={tag} panelSel={panelSel} cardSel={cardSel} onPickTag={setTag} />
+          <PanelView key="panel" tag={tag} panelSel={panelSel} cardSel={cardSel} onPickTag={setTag} free={freeMode} />
         )}
       </main>
 
@@ -556,7 +546,7 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
   return (
     <>
       <div className="main-header">
-        <h1>Plant Maintenance Copilot <span>· 알람 상세</span></h1>
+        <h1>Plant Maintenance Copilot <span>· 알람 상세</span><FreeBadge show={free} /></h1>
       </div>
 
       {/* 태그 메타 */}
@@ -1124,7 +1114,7 @@ function RackLayout({ cards, selected, onSelect }) {
   )
 }
 
-function PanelView({ tag, panelSel, cardSel, onPickTag }) {
+function PanelView({ tag, panelSel, cardSel, onPickTag, free }) {
   const [panels, setPanels] = useState([])
   const [sel, setSel] = useState(null)
   const [data, setData] = useState(null)
@@ -1220,7 +1210,7 @@ function PanelView({ tag, panelSel, cardSel, onPickTag }) {
   return (
     <>
       <div className="main-header">
-        <h1>Plant Maintenance Copilot <span>· 판넬 조회</span></h1>
+        <h1>Plant Maintenance Copilot <span>· 판넬 조회</span><FreeBadge show={free} /></h1>
       </div>
 
       <div className="panel-chips">
@@ -1489,7 +1479,7 @@ function FeedbackForm({ tag, alarm, onSaved }) {
 /* ══════════════════════════════════════════════════════════
    인터락
    ══════════════════════════════════════════════════════════ */
-function InterlockView({ tag, action, asInput, botPending, onBotHandled }) {
+function InterlockView({ tag, action, asInput, botPending, onBotHandled, free }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [data, setData] = useState(null)
@@ -1574,7 +1564,7 @@ function InterlockView({ tag, action, asInput, botPending, onBotHandled }) {
   return (
     <>
       <div className="main-header">
-        <h1>Plant Maintenance Copilot <span>· 인터락 조회</span></h1>
+        <h1>Plant Maintenance Copilot <span>· 인터락 조회</span><FreeBadge show={free} /></h1>
       </div>
 
       <button className="btn" style={{ width: 'auto', padding: '10px 20px', marginBottom: 16 }}
@@ -2116,6 +2106,28 @@ const HIST_TONE = {
   참고: { bd: 'var(--ink-3, #64748b)', bg: 'rgba(100,116,139,0.06)' },
   확인: { bd: 'var(--ink-3, #64748b)', bg: 'transparent' },
 }
+
+function FreeBadge({ show }) {
+  // 자유 모드 표시는 화면마다 제목 옆에 붙인다. 모드는 챗봇을 포함해
+  // 전 화면에 걸리므로, 알람 화면에만 두면 다른 탭에서 켜져 있는 줄
+  // 모른 채 쓰게 된다.
+  if (!show) return null
+  return (
+    <span
+      title="근거 없는 모델 추측이 함께 표시됩니다. 조치 순서와 4D 리포트에는 들어가지 않습니다."
+      style={{
+        marginLeft: 10, padding: '2px 9px', borderRadius: 999,
+        border: '1px solid #d9a441', color: '#d9a441',
+        background: 'rgba(217,164,65,0.10)',
+        fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
+        verticalAlign: 'middle',
+      }}
+    >
+      자유 모드 · 근거 없는 내용 포함
+    </span>
+  )
+}
+
 
 function GuessPanel({ guess }) {
   // 기본은 접힌 상태다. 펼치는 동작 자체가 "근거 없는 내용임을 알고

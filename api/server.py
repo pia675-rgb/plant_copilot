@@ -1854,11 +1854,14 @@ def chat_help(req: ChatRequest):
             res = qa_answer(rule["question"], tag=ctx.tag,
                             copilot=_FixedEvidence(ev, ctx),
                             instruments=load_instruments())
-            return {"type": "chat", "engine": "followup",
-                    "reply": res["reply"], "grounded": res["ok"],
-                    "citations": [{"id": e["id"], "title": e.get("title", ""),
-                                   "cite": e.get("cite", "")}
-                                  for e in (res.get("evidence") or [])[:3]]}
+            if res["ok"] or not req.free:
+                return {"type": "chat", "engine": "followup",
+                        "reply": res["reply"], "grounded": res["ok"],
+                        "citations": [{"id": e["id"],
+                                       "title": e.get("title", ""),
+                                       "cite": e.get("cite", "")}
+                                      for e in (res.get("evidence") or [])[:3]]}
+            # 자유 모드 — 화면 결과로 답하지 못했으면 자유 경로로 넘긴다.
         except Exception as e:                              # noqa: BLE001
             return finalize({"type": "chat",
                              "reply": "결과를 해석하지 못했습니다: %s"
@@ -1875,13 +1878,18 @@ def chat_help(req: ChatRequest):
             res = qa_answer(text, tag=normalize_tag(req.tag),
                             mode=DEFAULT_MODE, copilot=get_copilot(DEFAULT_MODE),
                             instruments=load_instruments())
-            return {"type": "chat", "engine": "qa",
-                    "reply": res["reply"],
-                    "grounded": res["ok"],
-                    "grade": res.get("grade"),
-                    "citations": [{"id": e["id"], "title": e.get("title", ""),
-                                   "cite": e.get("cite", "")}
-                                  for e in (res.get("evidence") or [])[:3]]}
+            # 근거로 답하지 못했을 때, 자유 모드면 여기서 끝내지 않고
+            # 아래 자유 경로로 넘긴다. 자유 모드를 켠 사용자에게
+            # "근거를 못 찾았습니다" 로 끝내면 모드를 켠 뜻이 없다.
+            if res["ok"] or not req.free:
+                return {"type": "chat", "engine": "qa",
+                        "reply": res["reply"],
+                        "grounded": res["ok"],
+                        "grade": res.get("grade"),
+                        "citations": [{"id": e["id"],
+                                       "title": e.get("title", ""),
+                                       "cite": e.get("cite", "")}
+                                      for e in (res.get("evidence") or [])[:3]]}
         except Exception as e:                              # noqa: BLE001
             pass    # 실패하면 아래 일반 대화 경로로 내려간다
 
