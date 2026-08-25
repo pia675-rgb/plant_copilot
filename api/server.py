@@ -474,6 +474,41 @@ def list_tags(system: Optional[str] = None, q: Optional[str] = None,
                 "io_count": len(r.get("io_tags") or []),
             })
 
+    # ── 인터락 입력 표시 ────────────────────────────────────
+    #
+    # 화면에서 '입력 태그 기준 조회' 를 켜면 묻는 대상이 출력 기기가
+    # 아니라 입력 계기로 바뀐다. 그때 무엇을 고를 수 있는지는 태그의
+    # 종류(계기/출력)가 아니라 **인터락 조건에 실제로 등장하는가**로
+    # 정해진다. 종류로 짐작하면 두 방향으로 틀린다 — 조건에는 다른 출력
+    # 기기의 상태도 들어오고, 계기 리스트의 태그가 전부 인터락에 걸려
+    # 있는 것도 아니다.
+    try:
+        _ilin = {t.upper() for t in get_interlock().input_tags()}
+    except Exception:                                       # noqa: BLE001
+        _ilin = set()
+
+    _seen = set()
+    for r in rows:
+        hit = (str(r["tag"]).upper() in _ilin
+               or str(r.get("pid_tag") or "").upper() in _ilin)
+        r["in_interlock"] = hit
+        if hit:
+            _seen.add(str(r["tag"]).upper())
+            _seen.add(str(r.get("pid_tag") or "").upper())
+
+    # 어느 목록에도 없이 인터락에만 등장하는 태그도 고를 수 있어야 한다.
+    # 이것들을 빼면 화면에서 조회할 방법이 없는 인터락 조건이 생긴다.
+    if kind in (None, "all", "output"):
+        for t in sorted(_ilin - _seen):
+            if q and q.lower() not in t.lower():
+                continue
+            rows.append({
+                "tag": t, "pid_tag": t, "service": "",
+                "maker": "", "model": "", "signal": "",
+                "kind": "interlock_input", "io_count": 0,
+                "in_interlock": True,
+            })
+
     return {"tags": rows, "systems": [], "count": len(rows)}
 
 
@@ -802,6 +837,24 @@ def advice(req: AdviceRequest):
                 "source": "system",
                 "kind": "system",
             }]
+        # 근거를 못 찾았을 때만 추측을 붙인다.
+        #
+        # 화면이 통째로 비면 사용자는 도구를 닫고 다른 데로 간다. 그렇다고
+        # 조치 자리에 끼워 넣으면 근거 있는 답과 구분이 사라진다. 그래서
+        # steps 에 넣지 않고 별도 필드로 내보낸다 — 화면은 접힌 상태로
+        # 따로 보여주고, 4D 리포트는 이 필드를 읽지 않는다.
+        guess, guess_note = None, ""
+        if decision != "advise" and not req.mock:
+            try:
+                from graph.advisor import guess as _guess
+                guess, guess_note = _guess(
+                    req.tag, req.alarm,
+                    device=str(_inst.get("MODEL") or ""),
+                    service=str(_inst.get("SERVICE") or ""))
+            except Exception as e:                          # noqa: BLE001
+                guess, guess_note = None, "%s: %s" % (type(e).__name__,
+                                                      str(e)[:90])
+
         summary = (
             f"판정: {decision} (충분성 {diag.get('grade', 0):.2f}). "
             f"{diag.get('grade_reason') or ''}"
@@ -819,6 +872,8 @@ def advice(req: AdviceRequest):
             "evidence": evidence[: config.FINAL_TOP_K],
             "history_card": hist_card,
             "history_matched": len(hist_rows),
+            "guess": guess,
+            "guess_note": guess_note,
         }
     except Exception as e:
         raise HTTPException(500, str(e))

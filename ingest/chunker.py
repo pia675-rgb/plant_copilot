@@ -120,12 +120,41 @@ def split_text(text, target, max_chars, overlap, min_chars):
     return chunks
 
 
+WS = re.compile(r"\s+")
+
+
+def locate_page(part, norm_pages, s, e, fallback):
+    """
+    청크가 실제로 시작하는 페이지를 찾는다.
+
+    기존에는 구간 길이에 비례해 페이지를 매겼다. 11페이지 구간을 18조각
+    으로 나누고 순서대로 나눠 준 값이라, 실제 페이지와 어긋난다. M9e
+    매뉴얼 645청크를 대조하니 세 건 중 한 건이 틀리고 68건은 두 쪽
+    이상, 최대 17쪽까지 벌어졌다.
+
+    화면의 '원문 보기' 가 이 값으로 페이지를 연다. 근거를 문서명과
+    페이지로 제시하는 것이 이 도구의 핵심인데, 눌러서 다른 내용이
+    나오면 근거를 댔다고 할 수 없다.
+
+    청크 앞부분을 구간 안의 페이지 본문과 대조해 실제 페이지를 찾는다.
+    못 찾으면 기존 근사값을 그대로 쓴다 — 값이 없는 것보다 낫다.
+    """
+    key = WS.sub(" ", part.strip())[:40]
+    if len(key) >= 12:
+        for i in range(s, e + 1):
+            if key in norm_pages[i]:
+                return i + 1
+    return fallback + 1
+
+
 def chunk_manual(path, device):
     doc = pymupdf.open(path)
     fname = os.path.basename(path)
     pages = [doc[i].get_text() for i in range(doc.page_count)]
     boiler = find_boilerplate(pages)
     clean = [strip_page(t, boiler) for t in pages]
+    # 페이지 대조용. 줄바꿈·공백이 달라도 걸리도록 한 번만 정규화한다.
+    norm_pages = [WS.sub(" ", t) for t in clean]
 
     out = []
     for lv, title, s, e in toc_sections(doc):
@@ -141,6 +170,7 @@ def chunk_manual(path, device):
         for k, part in enumerate(parts):
             span = max(1, e - s + 1)
             approx = s + min(span - 1, int(k * span / max(1, len(parts))))
+            page = locate_page(part, norm_pages, s, e, approx)
             out.append({
                 "id": "%s#%s#%d" % (device, re.sub(r"\W+", "_", title)[:40], k),
                 "kind": "manual_text",
@@ -152,7 +182,7 @@ def chunk_manual(path, device):
                     "file": fname,
                     "rel_path": str(Path(path).relative_to(config.MANUAL_DIR)).replace("\\", "/")
                                if Path(path).is_relative_to(config.MANUAL_DIR) else fname,
-                    "pdf_page": approx + 1,
+                    "pdf_page": page,
                     "page_from": s + 1,
                     "page_to": e + 1,
                     "section": title,

@@ -90,23 +90,36 @@ export default function App() {
   }, [])
 
   const filteredTags = tags.filter(t => {
-    // 인터락 탭: 출력 태그 우선, 알람 탭: 계기 태그 우선
-    if (tab === 'interlock' && t.kind === 'instrument') return false
-    if (tab === 'alarm' && t.kind === 'output') return false
-    if (tagQ) {
-      const hay = `${t.tag} ${t.service} ${t.model} ${t.maker}`.toLowerCase()
-      if (!hay.includes(tagQ.toLowerCase())) return false
+    if (tab === 'interlock') {
+      // 조회 방향에 따라 고를 수 있는 태그가 다르다.
+      //
+      // 출력 기준은 "이 기기가 왜 안 도나" 이므로 출력 장비를 고르고,
+      // 입력 기준은 "이 계기를 빼면 뭐가 서나" 이므로 인터락 조건에
+      // 등장하는 태그를 고른다. 종류(계기/출력)로 거르면 안 된다 —
+      // 조건에는 다른 출력 기기의 상태도 들어오고, 계기 리스트에 있는
+      // 태그가 전부 인터락에 걸려 있는 것도 아니다. 서버가 실제 조건을
+      // 훑어 표시해 준 in_interlock 을 쓴다.
+      if (asInput) return !!t.in_interlock
+      return t.kind === 'output'
     }
+    // 알람 탭은 계기 태그만. 인터락에만 등장하는 태그는 벤더 매뉴얼을
+    // 붙일 수 없으므로 여기서 고르게 하면 안 된다.
+    if (tab === 'alarm') return t.kind === 'instrument'
     return true
+  }).filter(t => {
+    if (!tagQ) return true
+    const hay = `${t.tag} ${t.service} ${t.model} ${t.maker}`.toLowerCase()
+    return hay.includes(tagQ.toLowerCase())
   })
 
-  // 탭 전환 시 해당 목록의 첫 태그로 맞춤
+  // 탭 전환이나 조회 방향 전환 시 해당 목록의 첫 태그로 맞춤.
+  // asInput 을 넣지 않으면 체크박스를 켜도 출력 태그가 그대로 남는다.
   useEffect(() => {
     if (!filteredTags.length) return
     if (!filteredTags.some(t => t.tag === tag)) {
       setTag(filteredTags[0].tag)
     }
-  }, [tab, tagQ, tags])
+  }, [tab, tagQ, tags, asInput])
 
   return (
     <div className={`app-shell ${navOpen ? '' : 'nav-collapsed'}`}>
@@ -146,7 +159,11 @@ export default function App() {
             <select value={tag} onChange={e => setTag(e.target.value)}>
               {filteredTags.map(t => (
                 <option key={t.tag + (t.kind || '')} value={t.tag}>
-                  {t.kind === 'output'
+                  {/* 입력 기준 조회에서는 종류를 붙이지 않는다. 목록에
+                      계기와 출력이 섞여 있는 것이 정상인데(펌프가 도는
+                      상태가 밸브 개방의 조건이 되는 식), '· 출력' 이
+                      붙어 있으면 잘못 걸러진 것처럼 읽힌다. */}
+                  {t.kind === 'output' && !(tab === 'interlock' && asInput)
                     ? `${t.tag} · 출력`
                     : `${t.tag}${t.service ? ' — ' + t.service : ''}`}
                 </option>
@@ -157,7 +174,12 @@ export default function App() {
             <div className="field-hint" style={{ marginBottom: 10, lineHeight: 1.4 }}>
               {(() => {
                 const t = filteredTags.find(x => x.tag === tag)
-                return `${t.maker} ${t.model} · ${t.service}`
+                // 인터락에만 등장하는 태그는 계기 리스트에 없어 제조사·
+                // 모델이 비어 있다. 비어 있는 칸을 구분자로 잇지 않는다 —
+                // '· ' 만 덩그러니 남으면 자료가 깨진 것처럼 보인다.
+                const parts = [t.maker, t.model].filter(Boolean).join(' ')
+                const line = [parts, t.service].filter(Boolean).join(' · ')
+                return line || '인터락 리스트에만 등장하는 태그입니다.'
               })()}
             </div>
           )}
@@ -783,6 +805,17 @@ function AlarmView({ tag, alarm, code, mode, botPending, onBotHandled, onAlarmCh
                   </div>
                 )
             ))}
+          </div>
+        </div>
+      )}
+
+      {advice?.guess && <GuessPanel guess={advice.guess} />}
+      {!advice?.guess && advice?.guess_note && (
+        <div className="panel" style={{ marginTop: 14 }}>
+          <div className="panel-body" style={{
+            fontSize: '0.8rem', color: 'var(--faint)', lineHeight: 1.5,
+          }}>
+            모델 추측을 붙이지 않았습니다 — {advice.guess_note}
           </div>
         </div>
       )}
@@ -2047,6 +2080,70 @@ const HIST_TONE = {
   참고: { bd: 'var(--ink-3, #64748b)', bg: 'rgba(100,116,139,0.06)' },
   확인: { bd: 'var(--ink-3, #64748b)', bg: 'transparent' },
 }
+
+function GuessPanel({ guess }) {
+  // 기본은 접힌 상태다. 펼치는 동작 자체가 "근거 없는 내용임을 알고
+  // 본다" 는 확인이 된다. 펼쳐 놓고 시작하면 근거 있는 답과 나란히
+  // 읽히고, 그 순간 이 도구가 지키려는 구분이 사라진다.
+  const [open, setOpen] = useState(false)
+  const has = (guess.causes?.length || 0) + (guess.checks?.length || 0) > 0
+  if (!has) return null
+
+  return (
+    <div className="panel" style={{ marginTop: 14, borderColor: 'var(--warn, #7a5c00)' }}>
+      <div
+        className="panel-head"
+        style={{ cursor: 'pointer', color: 'var(--warn-ink, #d9a441)' }}
+        onClick={() => setOpen(!open)}
+      >
+        {open ? '▾' : '▸'} {guess.label || '매뉴얼 근거 없음 · 모델 추측'}
+        <span style={{ marginLeft: 8, fontSize: '0.78rem', color: 'var(--faint)' }}>
+          {open ? '' : '눌러서 펼치기'}
+        </span>
+      </div>
+      {open && (
+        <div className="panel-body">
+          <div style={{
+            fontSize: '0.82rem', color: 'var(--warn-ink, #d9a441)',
+            marginBottom: 12, lineHeight: 1.5,
+          }}>
+            {guess.warning}
+          </div>
+
+          {guess.causes?.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div className="step-title">짚어 볼 만한 것</div>
+              {guess.causes.map((c, i) => (
+                <div className="step-detail" key={'c' + i}>· {c}</div>
+              ))}
+            </div>
+          )}
+
+          {guess.checks?.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div className="step-title">현장에서 확인할 것</div>
+              {guess.checks.map((c, i) => (
+                <div className="step-detail" key={'k' + i}>· {c}</div>
+              ))}
+            </div>
+          )}
+
+          {guess.ask_vendor && (
+            <div>
+              <div className="step-title">벤더 문의 시</div>
+              <div className="step-detail">{guess.ask_vendor}</div>
+            </div>
+          )}
+
+          <div className="ev-cite" style={{ marginTop: 12 }}>
+            근거 없음 · 모델 생성 — 4D 리포트에는 포함되지 않습니다
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 function HistoryCard({ card }) {
   const [open, setOpen] = useState(true)

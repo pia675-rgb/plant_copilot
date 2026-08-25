@@ -1,0 +1,42 @@
+# Plant Maintenance Copilot — 검색 정확도 스코어카드 v2
+
+평가셋 10문항. 같은 문항을 v1 과 v2 각 구성에 돌린 결과입니다.
+
+> **작성** 도남진 (검증 담당) — 검색 평가셋 확장 — 개발자가 만들지 않은 문항으로 일반화 확인
+
+## 유형별
+
+| 유형 | 문항 | hybrid |
+|---|---|---|
+| syn | 4 | 0/4 |
+| body | 2 | 0/2 |
+| typo | 1 | 0/1 |
+| abstain | 3 | 0/3 |
+| **전체** | **10** | **0/10** |
+
+## 채점 항목별
+
+| 항목 | hybrid |
+|---|---|
+| Top-3 | 0/5 |
+| 과잉거절 없음 | 7/7 |
+| 본문 적중 | 0/2 |
+| 출처 정확 | 2/2 |
+| 거절 | 0/3 |
+
+## 실패 문항 (hybrid 기준, 10건)
+
+| 문항 | 유형 | 질의 | 기대 | 실제 상위 | 실패 항목 | 판정 |
+|---|---|---|---|---|---|---|
+| H01 | syn | Acid reagent bottle is almos | M9E-300 | M9e#Replacing_the_Chemical_Reagents_To | Top-3 | advise 0.81 |
+| H02 | body | How do I replace the UV lamp | To replace the UV Lamp, Replacin | M9e#Replacing_other_Consumables_To_rep | 본문 적중 | advise 0.96 |
+| H03 | typo | Oxidzer reagent is almost go | M9E-400 | M9e#Replacing_the_Chemical_Reagents_To | Top-3 | advise 0.79 |
+| H04 | abstain | Cooling fan inside the analy | - | M9e#Cleaning_the_Analyzer#0, M9e#Overv | 거절 | advise 0.78 |
+| H05 | abstain | Where is the setting that au | - | M9e#Offsetting_the_Acid_s_TOC_contribu | 거절 | advise 0.87 |
+| H06 | syn | UV lamp life is done, warnin | M9E-502 | M9e#Replacing_other_Consumables_To_rep | Top-3 | advise 0.86 |
+| H07 | syn | Resin filter life is almost  | M9E-700 | M9e#Replacing_other_Consumables_To_rep | Top-3 | advise 0.95 |
+| H08 | syn | IC sample pump hose life war | M9E-600 | M9e#Replacing_other_Consumables_To_rep | Top-3 | advise 0.89 |
+| H09 | body | How do I bleed the air after | Step 8: Prime the DI Pump, To pr | M9e#Maintaining_the_DI_Water_Reservoir | 본문 적중 | advise 0.93 |
+| H10 | abstain | Is there a battery backup th | - | M9e#Cleaning_the_Analyzer#0, M9e#Power | 거절 | advise 0.91 |
+
+실험 조건: `bm25=40 dense=40 rrf_k=60 fused=30 final=5 rerank=off embed=ollama/bge-m3 grade_thr=0.50 max_rewrites=2 diversify=off`

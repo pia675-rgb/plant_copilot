@@ -417,6 +417,99 @@ def summarize_ko(text, title="", timeout=None):
         return ""
 
 
+_GUESS_SYSTEM = """당신은 플랜트 계장제어 정비를 지원합니다.
+
+지금은 **벤더 매뉴얼에서 근거를 찾지 못한 상황**입니다. 그래서 당신의
+답은 근거가 아니라 추측입니다. 그 사실을 감추지 마십시오.
+
+규칙:
+- 매뉴얼에 이렇게 적혀 있다는 식으로 말하지 마십시오. 근거가 없습니다.
+- 문서명·페이지·코드번호를 지어내지 마십시오. 하나라도 지어내면 답 전체를 버립니다.
+- 확실한 것처럼 쓰지 마십시오. "~일 수 있습니다", "~인지 확인이 필요합니다" 로 씁니다.
+- 계장 정비원이 **현장에서 직접 확인할 수 있는 것**을 우선하십시오.
+- 모르면 모른다고 쓰십시오. 채우려고 늘리지 마십시오.
+
+JSON 으로만 답하십시오. 다른 말은 붙이지 마십시오.
+{"causes": ["가능한 원인 1", "가능한 원인 2"],
+ "checks": ["현장에서 확인할 것 1", "확인할 것 2"],
+ "ask_vendor": "벤더에 문의한다면 무엇을 물어야 하는지 한 문장"}
+
+causes 와 checks 는 각각 최대 3개입니다."""
+
+
+def guess(tag, alarm, device="", service="", timeout=None):
+    """
+    근거를 찾지 못했을 때의 **추측**. 조치가 아니다.
+
+    이 함수는 거절(abstain) 판정에서만 호출한다. 근거가 있는 조회에
+    붙으면 사용자가 근거 있는 답과 추측을 구분하지 못하게 되고, 그러면
+    "근거 없이 답하지 않는다" 는 이 도구의 전제가 무너진다.
+
+    반환값은 조치 배열에 넣지 않는다. 별도 필드로 내보내 화면이 접힌
+    상태로 따로 보여주고, 4D 리포트에는 싣지 않는다. 리포트는 조치
+    기록이므로 추측이 들어갈 자리가 아니다.
+
+    반환: (추측 dict 또는 None, 안 나온 사유 문자열)
+
+    **사유를 함께 돌려준다.** 조용히 None 을 반환하면 왜 안 나왔는지
+    알 수 없다. 이 프로젝트는 검색 강등도 화면에 사유를 남긴다 — 안 되는
+    것보다 왜 안 되는지 모르는 것이 더 나쁘다.
+    """
+    if not getattr(config, "GUESS_ON_ABSTAIN", True):
+        return None, "COPILOT_GUESS=off"
+    fn = _CHAT.get(config.LLM_PROVIDER)
+    if fn is None or config.LLM_PROVIDER == "off":
+        return None, "LLM 제공자 없음 (%s)" % config.LLM_PROVIDER
+    timeout = timeout or getattr(config, "GUESS_TIMEOUT", 60)
+
+    who = " · ".join(x for x in (device, service) if x)
+    user = "태그: %s\n기종·용도: %s\n증상: %s" % (tag, who or "(미상)", alarm)
+    raw = ""
+    try:
+        kw = {}
+        if config.LLM_PROVIDER == "ollama":
+            kw = {"num_predict": getattr(config, "GUESS_NUM_PREDICT", 400)}
+        raw = fn([{"role": "system", "content": _GUESS_SYSTEM},
+                  {"role": "user", "content": user}], timeout, **kw)
+    except Exception as e:                                  # noqa: BLE001
+        return None, "모델 호출 실패 — %s: %s" % (type(e).__name__, str(e)[:90])
+
+    try:
+        d = _parse(raw)
+    except Exception:                                       # noqa: BLE001
+        return None, "JSON 형식이 아님 — 모델 응답 앞부분: %s" % \
+            re.sub(r"\s+", " ", raw or "")[:120]
+
+    def clean(xs):
+        out = []
+        for x in (xs or [])[:3]:
+            t = re.sub(r"\s+", " ", str(x)).strip()
+            if 4 <= len(t) <= 200:
+                out.append(t)
+        return out
+
+    causes, checks = clean(d.get("causes")), clean(d.get("checks"))
+    if not causes and not checks:
+        return None, "내용이 비어 있음 (causes·checks 모두 없음)"
+
+    # 근거가 없는데 근거를 인용한 것처럼 쓰면 통째로 버린다. 추측이라고
+    # 밝혀 놓아도, 문서명이나 페이지가 섞이면 사용자는 근거로 읽는다.
+    joined = " ".join(causes + checks)
+    m = re.search(r"\.pdf|\bp\.\s*\d|매뉴얼에\s*(따르면|의하면)|\[\d+\]", joined)
+    if m:
+        return None, "없는 근거를 인용해 폐기 — '%s' 부근" % m.group(0)
+
+    return {
+        "kind": "guess",
+        "basis": "model_only",
+        "label": "매뉴얼 근거 없음 · 모델 추측",
+        "warning": "이 내용은 문서 근거가 없습니다. 조치 근거로 쓰지 마십시오.",
+        "causes": causes,
+        "checks": checks,
+        "ask_vendor": re.sub(r"\s+", " ", str(d.get("ask_vendor") or "")).strip()[:200],
+    }, ""
+
+
 def main():
     import argparse
     from graph.app_graph import Copilot2
