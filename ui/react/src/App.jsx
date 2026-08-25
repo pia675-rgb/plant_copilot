@@ -1985,7 +1985,10 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
     if (intent.reply) {
       // 자유 모드의 근거 없는 답변에는 라벨을 붙인다. 근거 기반
       // 답변(조회·후속·QA)과 같은 말풍선 모양으로 나오면 구분이 안 된다.
-      const label = intent.free && intent.grounded === false
+      // 근거 답변 실패 뒤에 자유 답변을 덧붙인 경우에는 라벨이 본문에
+      // 이미 들어 있다. 두 번 붙이지 않는다.
+      const has = (intent.reply || '').includes('〔모델 답변')
+      const label = intent.free && intent.grounded === false && !has
         ? '〔모델 답변 · 문서 근거 아님〕\n' : ''
       push('bot', label + intent.reply, intent.citations)
     }

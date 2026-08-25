@@ -510,6 +510,56 @@ def guess(tag, alarm, device="", service="", timeout=None):
     }, ""
 
 
+_FREE_SYSTEM = """당신은 플랜트 계장제어 정비를 지원합니다.
+
+지금은 **문서에서 근거를 찾지 못한 상황**입니다. 사용자가 자유 모드를
+켰으므로 일반 지식으로 답하되, 다음을 지키십시오.
+
+- 이 도구의 조회 결과 — 특정 태그의 판넬 위치, 인터락 조건, 매뉴얼
+  페이지, 코드번호 — 를 지어내지 마십시오. 그런 것을 물으면 해당 조회
+  기능으로 확인하라고 안내하십시오.
+- 문서명·페이지·코드번호를 지어내지 마십시오.
+- 확실한 것처럼 단정하지 말고, 일반적으로 알려진 내용임을 밝히십시오.
+- 3~5문장으로 짧게. 모르면 모른다고 하십시오.
+
+한국어 평문으로만 답하십시오. JSON 이나 머리말을 붙이지 마십시오."""
+
+
+def free_reply(question, tag="", service="", timeout=None):
+    """
+    자유 모드에서 문서 근거로 답하지 못했을 때의 모델 답변.
+
+    근거를 찾지 못한 사실을 지우지 않고 **그 뒤에 덧붙이는** 용도다.
+    사용자가 자유 모드를 켠 뜻은 "근거가 없어도 참고할 것을 달라" 이지
+    "근거 없음을 감춰 달라" 가 아니다.
+
+    실패하면 빈 문자열을 돌려준다 — 없는 채로 가는 편이 낫다.
+    """
+    fn = _CHAT.get(config.LLM_PROVIDER)
+    if fn is None or config.LLM_PROVIDER == "off":
+        return ""
+    timeout = timeout or getattr(config, "GUESS_TIMEOUT", 60)
+    who = " · ".join(x for x in (tag, service) if x)
+    user = "질문: %s" % question
+    if who:
+        user += "\n(화면에서 보고 있는 설비: %s)" % who
+    try:
+        kw = {}
+        if config.LLM_PROVIDER == "ollama":
+            kw = {"num_predict": getattr(config, "GUESS_NUM_PREDICT", 400)}
+        raw = fn([{"role": "system", "content": _FREE_SYSTEM},
+                  {"role": "user", "content": user}], timeout, **kw)
+    except Exception:                                       # noqa: BLE001
+        return ""
+    out = re.sub(r"\s+", " ", (raw or "")).strip()
+    # 없는 근거를 인용하면 버린다. 추측과 같은 기준이다.
+    if re.search(r"\.pdf|\bp\.\s*\d|매뉴얼에\s*(따르면|의하면)|\[\d+\]", out):
+        return ""
+    if len(out) < 10 or len(out) > 1200:
+        return ""
+    return out
+
+
 def main():
     import argparse
     from graph.app_graph import Copilot2

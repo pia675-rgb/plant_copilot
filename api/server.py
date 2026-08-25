@@ -1739,6 +1739,24 @@ class _FixedEvidence:
                 "evidence": self._ev}
 
 
+def _with_free_reply(res, question, tag="", service=""):
+    """
+    자유 모드에서 근거로 답하지 못했을 때 모델 답변을 덧붙인다.
+
+    근거 없음을 지우지 않고 **뒤에 붙인다**. 자유 모드를 켠 뜻은
+    "근거가 없어도 참고할 것을 달라" 이지 "근거 없음을 감춰 달라" 가
+    아니다. 못 찾았다는 사실과 참고 답변이 함께 보여야 사용자가 무엇을
+    믿을지 스스로 정할 수 있다.
+    """
+    from graph.advisor import free_reply
+    extra = free_reply(question, tag=tag or "", service=service or "")
+    if not extra:
+        return res.get("reply") or "", False
+    head = (res.get("reply") or "").strip()
+    return (head + "\n\n〔모델 답변 · 문서 근거 아님〕\n" + extra
+            if head else "〔모델 답변 · 문서 근거 아님〕\n" + extra), True
+
+
 @app.post("/api/chat")
 def chat_help(req: ChatRequest):
     """도우미 챗봇. LLM API 가 있으면 의도 분석, 없으면 규칙 기반."""
@@ -1854,14 +1872,17 @@ def chat_help(req: ChatRequest):
             res = qa_answer(rule["question"], tag=ctx.tag,
                             copilot=_FixedEvidence(ev, ctx),
                             instruments=load_instruments())
-            if res["ok"] or not req.free:
-                return {"type": "chat", "engine": "followup",
-                        "reply": res["reply"], "grounded": res["ok"],
-                        "citations": [{"id": e["id"],
-                                       "title": e.get("title", ""),
-                                       "cite": e.get("cite", "")}
-                                      for e in (res.get("evidence") or [])[:3]]}
-            # 자유 모드 — 화면 결과로 답하지 못했으면 자유 경로로 넘긴다.
+            reply, added = res["reply"], False
+            if not res["ok"] and req.free:
+                reply, added = _with_free_reply(res, rule["question"],
+                                                tag=ctx.tag)
+            return {"type": "chat", "engine": "followup",
+                    "reply": reply, "grounded": res["ok"],
+                    "free": added,
+                    "citations": [{"id": e["id"],
+                                   "title": e.get("title", ""),
+                                   "cite": e.get("cite", "")}
+                                  for e in (res.get("evidence") or [])[:3]]}
         except Exception as e:                              # noqa: BLE001
             return finalize({"type": "chat",
                              "reply": "결과를 해석하지 못했습니다: %s"
@@ -1881,15 +1902,19 @@ def chat_help(req: ChatRequest):
             # 근거로 답하지 못했을 때, 자유 모드면 여기서 끝내지 않고
             # 아래 자유 경로로 넘긴다. 자유 모드를 켠 사용자에게
             # "근거를 못 찾았습니다" 로 끝내면 모드를 켠 뜻이 없다.
-            if res["ok"] or not req.free:
-                return {"type": "chat", "engine": "qa",
-                        "reply": res["reply"],
-                        "grounded": res["ok"],
-                        "grade": res.get("grade"),
-                        "citations": [{"id": e["id"],
-                                       "title": e.get("title", ""),
-                                       "cite": e.get("cite", "")}
-                                      for e in (res.get("evidence") or [])[:3]]}
+            reply, added = res["reply"], False
+            if not res["ok"] and req.free:
+                reply, added = _with_free_reply(res, text,
+                                                tag=normalize_tag(req.tag))
+            return {"type": "chat", "engine": "qa",
+                    "reply": reply,
+                    "grounded": res["ok"],
+                    "free": added,
+                    "grade": res.get("grade"),
+                    "citations": [{"id": e["id"],
+                                   "title": e.get("title", ""),
+                                   "cite": e.get("cite", "")}
+                                  for e in (res.get("evidence") or [])[:3]]}
         except Exception as e:                              # noqa: BLE001
             pass    # 실패하면 아래 일반 대화 경로로 내려간다
 
