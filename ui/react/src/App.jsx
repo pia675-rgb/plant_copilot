@@ -90,23 +90,36 @@ export default function App() {
   }, [])
 
   const filteredTags = tags.filter(t => {
-    // 인터락 탭: 출력 태그 우선, 알람 탭: 계기 태그 우선
-    if (tab === 'interlock' && t.kind === 'instrument') return false
-    if (tab === 'alarm' && t.kind === 'output') return false
-    if (tagQ) {
-      const hay = `${t.tag} ${t.service} ${t.model} ${t.maker}`.toLowerCase()
-      if (!hay.includes(tagQ.toLowerCase())) return false
+    if (tab === 'interlock') {
+      // 조회 방향에 따라 고를 수 있는 태그가 다르다.
+      //
+      // 출력 기준은 "이 기기가 왜 안 도나" 이므로 출력 장비를 고르고,
+      // 입력 기준은 "이 계기를 빼면 뭐가 서나" 이므로 인터락 조건에
+      // 등장하는 태그를 고른다. 종류(계기/출력)로 거르면 안 된다 —
+      // 조건에는 다른 출력 기기의 상태도 들어오고, 계기 리스트에 있는
+      // 태그가 전부 인터락에 걸려 있는 것도 아니다. 서버가 실제 조건을
+      // 훑어 표시해 준 in_interlock 을 쓴다.
+      if (asInput) return !!t.in_interlock
+      return t.kind === 'output'
     }
+    // 알람 탭은 계기 태그만. 인터락에만 등장하는 태그는 벤더 매뉴얼을
+    // 붙일 수 없으므로 여기서 고르게 하면 안 된다.
+    if (tab === 'alarm') return t.kind === 'instrument'
     return true
+  }).filter(t => {
+    if (!tagQ) return true
+    const hay = `${t.tag} ${t.service} ${t.model} ${t.maker}`.toLowerCase()
+    return hay.includes(tagQ.toLowerCase())
   })
 
-  // 탭 전환 시 해당 목록의 첫 태그로 맞춤
+  // 탭 전환이나 조회 방향 전환 시 해당 목록의 첫 태그로 맞춤.
+  // asInput 을 넣지 않으면 체크박스를 켜도 출력 태그가 그대로 남는다.
   useEffect(() => {
     if (!filteredTags.length) return
     if (!filteredTags.some(t => t.tag === tag)) {
       setTag(filteredTags[0].tag)
     }
-  }, [tab, tagQ, tags])
+  }, [tab, tagQ, tags, asInput])
 
   return (
     <div className={`app-shell ${navOpen ? '' : 'nav-collapsed'}`}>
