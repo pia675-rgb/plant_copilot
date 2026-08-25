@@ -4,7 +4,19 @@ REM  이 파일은 cp949 로 저장돼 있다. 콘솔 코드페이지를
 REM  65001(UTF-8) 로 바꾸면 여기 적힌 한글이 깨져 나온다.
 cd /d "%~dp0"
 
-REM -- 자료 폴더는 data/ 한 곳 --
+REM ============================================================
+REM  이 배치는 **실물 자료(data/)** 로 돈다.
+REM
+REM  경로를 설정하지 않고 기본값에 기대면, 데모 변수가 살아 있는
+REM  창에서 실행했을 때 그것을 물려받는다. 그런데 아래 echo 는
+REM  data/ 라고 찍는다 - 표시가 사실과 달라진다. 실제로 이 혼선으로
+REM  데모 색인이 실물 자료로 덮이는 사고가 났다.
+REM  그래서 물려받지 않도록 여기서 못 박는다.
+REM ============================================================
+set COPILOT_DATA_DIR=%CD%\data
+set COPILOT_INDEX_DIR=%CD%\index
+set COPILOT_DERIVED_DIR=%CD%\derived
+
 if not exist "data\IO_LIST.xlsx" (
   echo [ERROR] data\IO_LIST.xlsx 가 없습니다.
   echo         python -m tools.make_io_list 를 먼저 실행하십시오.
@@ -41,7 +53,8 @@ set AZURE_OPENAI_ENDPOINT=
 set AZURE_OPENAI_API_KEY=
 set AZURE_OPENAI_EMBED_DEPLOYMENT=
 
-echo DATA      = %CD%\data
+echo DATA      = %COPILOT_DATA_DIR%
+echo INDEX     = %COPILOT_INDEX_DIR%
 echo EMBED     = %COPILOT_EMBED_PROVIDER%/%COPILOT_EMBED_MODEL%
 echo LLM       = %COPILOT_PROVIDER%/%COPILOT_MODEL%
 echo DIVERSIFY = %COPILOT_DIVERSIFY%
