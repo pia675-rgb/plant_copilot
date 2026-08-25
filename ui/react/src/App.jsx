@@ -159,7 +159,11 @@ export default function App() {
             <select value={tag} onChange={e => setTag(e.target.value)}>
               {filteredTags.map(t => (
                 <option key={t.tag + (t.kind || '')} value={t.tag}>
-                  {t.kind === 'output'
+                  {/* 입력 기준 조회에서는 종류를 붙이지 않는다. 목록에
+                      계기와 출력이 섞여 있는 것이 정상인데(펌프가 도는
+                      상태가 밸브 개방의 조건이 되는 식), '· 출력' 이
+                      붙어 있으면 잘못 걸러진 것처럼 읽힌다. */}
+                  {t.kind === 'output' && !(tab === 'interlock' && asInput)
                     ? `${t.tag} · 출력`
                     : `${t.tag}${t.service ? ' — ' + t.service : ''}`}
                 </option>
@@ -170,7 +174,12 @@ export default function App() {
             <div className="field-hint" style={{ marginBottom: 10, lineHeight: 1.4 }}>
               {(() => {
                 const t = filteredTags.find(x => x.tag === tag)
-                return `${t.maker} ${t.model} · ${t.service}`
+                // 인터락에만 등장하는 태그는 계기 리스트에 없어 제조사·
+                // 모델이 비어 있다. 비어 있는 칸을 구분자로 잇지 않는다 —
+                // '· ' 만 덩그러니 남으면 자료가 깨진 것처럼 보인다.
+                const parts = [t.maker, t.model].filter(Boolean).join(' ')
+                const line = [parts, t.service].filter(Boolean).join(' · ')
+                return line || '인터락 리스트에만 등장하는 태그입니다.'
               })()}
             </div>
           )}
