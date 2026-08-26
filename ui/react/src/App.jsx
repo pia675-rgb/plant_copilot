@@ -2057,7 +2057,7 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
           <div className="helpbot-head">
             <div className="helpbot-brand">
               <div className="helpbot-avatar" aria-hidden>
-                <img src="/assistant-badge.jpg" alt="" draggable={false} />
+                <BotIcon size={36} />
               </div>
               <div>
                 <div className="helpbot-title">Copilot Assistant</div>
@@ -2076,7 +2076,7 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
               <div key={i} className={`helpbot-row ${m.role}`}>
                 {m.role === 'bot' && (
                   <div className="helpbot-mini-av" aria-hidden>
-                    <img src="/assistant-badge.jpg" alt="" draggable={false} />
+                    <BotIcon size={22} />
                   </div>
                 )}
                 <div className={`helpbot-msg ${m.role}`}>
@@ -2137,7 +2137,7 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
             <path d="M6 6l12 12M18 6L6 18"/>
           </svg>
         ) : (
-          <img src="/assistant-badge.jpg" alt="" className="helpbot-fab-img" draggable={false} />
+          <BotIcon size={64} />
         )}
       </button>
     </div>
@@ -2172,6 +2172,33 @@ function FreeBadge({ show }) {
     >
       자유 모드 · 근거 없는 내용 포함
     </span>
+  )
+}
+
+
+/* 도우미 아이콘.
+ *
+ * 이미지 파일 대신 도형으로 그린다. 파일이면 배경 여백이 함께 따라와
+ * 어두운 화면에서 흰 테두리가 생기고, 크기마다 다시 만들어야 한다.
+ * 색은 화면의 도우미 계열(청록)에 맞춘다 - 파랑은 조회 버튼 색이라
+ * 기능과 도우미가 섞여 보인다. */
+function BotIcon({ size = 36 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden>
+      <defs>
+        <linearGradient id="botg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#22d3ee" />
+          <stop offset="100%" stopColor="#0e7490" />
+        </linearGradient>
+      </defs>
+      <circle cx="24" cy="24" r="24" fill="url(#botg)" />
+      <text
+        x="24" y="24" textAnchor="middle" dominantBaseline="central"
+        fill="#ffffff" fontSize="19" fontWeight="700"
+        fontFamily="Inter, 'Segoe UI', system-ui, sans-serif"
+        letterSpacing="0.5"
+      >AI</text>
+    </svg>
   )
 }
 

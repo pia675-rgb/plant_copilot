@@ -1098,10 +1098,10 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   place-items: center;
   overflow: hidden;
   background: transparent;
-  border: 1px solid rgba(45, 212, 191, 0.2);
   box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
-.helpbot-avatar img {
+.helpbot-avatar img,
+.helpbot-avatar svg {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1161,10 +1161,10 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   place-items: center;
   overflow: hidden;
   background: transparent;
-  border: 1px solid rgba(45, 212, 191, 0.2);
   margin-bottom: 2px;
 }
-.helpbot-mini-av img {
+.helpbot-mini-av img,
+.helpbot-mini-av svg {
   width: 100%;
   height: 100%;
   object-fit: cover;
