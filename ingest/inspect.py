@@ -157,11 +157,38 @@ def _inspect_manuals():
     # 기종 쪽에서만 보면 "매뉴얼 없는 기종" 은 잡아도 "기종 없는
     # 매뉴얼" 은 조용히 지나간다. 잘못 올린 파일이 그렇게 숨는다.
     used = {x["manual"] for x in link if x["manual"]}
-    orphan = [n for n in names if n not in used]
+    rest = [n for n in names if n not in used]
+
+    # 그중 IO 카드 문서는 제 자리에 잇는다. 카드 매뉴얼은 계기 기종이
+    # 아니라 IO 유형(AI·DI·DO·AO)의 포인트들을 섬긴다. 계기 기종에
+    # 억지로 붙이면 거짓 연결이고, 미연결로 두면 쓰이는 문서가 잘못
+    # 올린 파일처럼 보인다.
+    io_type_counts = {}
+    try:
+        from api.server import load_io_points
+        for r in load_io_points().values():
+            t = str(r.get("IO TYPE") or "").strip().upper()
+            if t:
+                io_type_counts[t] = io_type_counts.get(t, 0) + 1
+    except Exception:                                       # noqa: BLE001
+        pass
+
+    card_files, orphan = [], []
+    for n in rest:
+        dev = (str(file_dev.get(n, "")) + " " + n).upper()
+        dev = re.sub(r"[_\-.]", " ", dev)   # 밑줄·하이픈도 단어 경계로
+        m = re.search(r"\b(AI|AO|DI|DO)\b", dev)
+        if m:
+            t = m.group(1)
+            card_files.append({"file": n, "io_type": t,
+                               "points": io_type_counts.get(t, 0)})
+        else:
+            orphan.append(n)
 
     return {"present": bool(pdfs), "files": names,
             "models": link,
             "unlinked": [x["model"] for x in link if not x["manual"]],
+            "card_files": card_files,
             "orphan_files": orphan}
 
 

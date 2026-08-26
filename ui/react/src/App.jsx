@@ -2512,6 +2512,14 @@ function IngestReport({ r }) {
               </span>}
         </div>
       ))}
+      {(mans.card_files || []).map((c, i) => (
+        <div className="step-detail" key={`c${i}`}
+          style={c.points > 0 ? {} : { color: 'var(--warn-ink, #d9a441)' }}>
+          · {c.file} — IO 카드 문서({c.io_type}) — {c.points > 0
+            ? `${c.io_type} 포인트 ${c.points}점에 해당 · 색인에 포함되어 검색에 쓰입니다`
+            : `이 자료에는 ${c.io_type} 포인트가 없습니다 — 잘못 올렸을 수 있습니다`}
+        </div>
+      ))}
       {(mans.orphan_files || []).map((n, i) => (
         <div className="step-detail" key={`o${i}`} style={{ color: 'var(--warn-ink, #d9a441)' }}>
           · {n} — 계기 리스트의 어느 기종과도 이어지지 않습니다.
