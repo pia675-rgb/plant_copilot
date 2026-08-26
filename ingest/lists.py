@@ -172,6 +172,9 @@ def read_rows(path, sheet=None):
     wb = load_workbook(path, read_only=True, data_only=True)
     ws = wb[sheet] if sheet and sheet in wb.sheetnames else wb.active
     rows = list(ws.iter_rows(values_only=True))
+    # read_only 워크북은 닫지 않으면 파일 핸들이 프로세스에 남는다.
+    # Windows 에서 그 핸들이 반입 화면의 파일 삭제·교체를 막는다.
+    wb.close()
     hi = next((i for i, r in enumerate(rows)
                if r and "TAG" in [_s(c).upper() for c in r]), None)
     if hi is None:
@@ -276,14 +279,20 @@ def read_instrument_rows(path):
                 out.append(rec)
         return out
     path = files[0]
+    # 시트를 전부 읽어 두고 바로 닫는다. read_only 워크북은 닫지
+    # 않으면 파일 핸들이 프로세스에 남아, Windows 에서 반입 화면의
+    # 파일 삭제·교체를 막는다.
     wb = load_workbook(path, read_only=True, data_only=True)
-    out = []
-    seen = set()
+    sheets = []
     for sn in wb.sheetnames:
         try:
-            rows = list(wb[sn].iter_rows(values_only=True))
-        except Exception:
+            sheets.append((sn, list(wb[sn].iter_rows(values_only=True))))
+        except Exception:                                   # noqa: BLE001
             continue
+    wb.close()
+    out = []
+    seen = set()
+    for sn, rows in sheets:
         for rec in _parse_instrument_sheet(rows):
             tag = _s(rec.get("TAG")).upper()
             if not tag or tag in seen:
@@ -311,13 +320,16 @@ def read_interlock_equip_candidates(path_or_dir):
     for path in files:
         try:
             wb = load_workbook(path, read_only=True, data_only=True)
+            sheets = []
+            for sn in wb.sheetnames:
+                try:
+                    sheets.append(list(wb[sn].iter_rows(values_only=True)))
+                except Exception:                           # noqa: BLE001
+                    continue
+            wb.close()
         except Exception:
             continue
-        for sn in wb.sheetnames:
-            try:
-                rows = wb[sn].iter_rows(values_only=True)
-            except Exception:
-                continue
+        for rows in sheets:
             for r in rows:
                 if not r or not r[0]:
                     continue

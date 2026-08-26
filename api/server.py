@@ -18,7 +18,7 @@ import sys
 from typing import Any, Dict, List, Optional
 
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -2210,6 +2210,291 @@ def drawing_page(
     })
 
 
+# ════════════════════════════════════════════════════════════
+#  자료 반입
+#
+#  본체는 파일 받기가 아니라 **반입 직후 점검**이다. 지금까지 찾은
+#  결함 여섯 종은 전부 자료를 넣는 시점에 생겼고, 답이 안 나오는
+#  형태가 아니라 그럴듯한 답이 나오되 틀린 형태였다. 그래서 넣자마자
+#  몇 행을 읽었는지, 못 읽은 것은 무엇인지, 문서 사이 태그가 얼마나
+#  맞물리는지를 리포트로 보인다. 판정은 하지 않는다 — 어느 쪽이
+#  맞는지는 데이터 주인이 안다.
+# ════════════════════════════════════════════════════════════
+import threading
+
+# 업로드 종류 → 저장 위치. 파일명이 아니라 종류를 받는 이유:
+# 로더가 고정 이름(IO_LIST.xlsx 등)을 찾으므로, 사용자가 무슨 이름으로
+# 올리든 그 자리에 놓아야 반영된다.
+_INGEST_DEST = {
+    "io":         lambda name: str(config.IO_LIST),
+    "instrument": lambda name: os.path.join(str(config.DATA_DIR), "INSTRUMENT_LIST.xlsx"),
+    "tb":         lambda name: os.path.join(str(config.DATA_DIR), "TB_LIST.xlsx"),
+    "interlock":  lambda name: os.path.join(str(config.INTERLOCK_DIR), name),
+    "manual":     lambda name: os.path.join(str(config.MANUAL_DIR), name),
+    "drawing":    lambda name: os.path.join(str(config.DRAWING_DIR), name)
+                  if getattr(config, "DRAWING_DIR", None)
+                  else os.path.join(str(config.DATA_DIR), "drawings", name),
+}
+
+_rebuild = {"running": False, "stage": "", "done": 0, "total": 0,
+            "error": "", "finished_at": ""}
+
+
+def _reset_caches():
+    """자료가 바뀌면 읽어 둔 것을 전부 버린다. 안 버리면 화면은 옛
+    자료로 답하면서 점검 리포트만 새 자료를 보는, 둘이 다른 말을 하는
+    상태가 된다."""
+    global _instruments, _io_points, _history, _drawings, _interlock
+    global _panel, _panel_error, _copilots
+    _instruments = None
+    _io_points = None
+    _history = None
+    _drawings = None
+    _interlock = None
+    _panel = None
+    _panel_error = None
+    _copilots.clear()
+
+
+@app.get("/api/ingest/report")
+def ingest_report():
+    # 점검 전에 읽어 둔 캐시를 버린다. 사용자가 화면을 거치지 않고
+    # 폴더에 파일을 직접 넣는 경우 서버는 알 길이 없다 — "다시 점검"
+    # 이 곧 "다시 읽기" 여야 리포트와 조회 화면이 같은 자료를 본다.
+    if not _rebuild["running"]:
+        _reset_caches()
+    from ingest.inspect import inspect_dataset
+    return inspect_dataset()
+
+
+@app.post("/api/ingest/upload")
+async def ingest_upload(request: Request,
+                        kind: str = Query(...),
+                        name: str = Query(...)):
+    """
+    본문 = 파일 바이트 그대로. multipart 를 쓰지 않는 이유는 의존성
+    (python-multipart) 을 하나 늘리지 않기 위해서다 — 배포 이미지와
+    로컬 환경 둘 다에 영향을 준다.
+    """
+    if _rebuild["running"]:
+        raise HTTPException(409, "색인 재생성 중에는 반입할 수 없습니다")
+    if kind not in _INGEST_DEST:
+        raise HTTPException(400, "kind 는 %s 중 하나여야 합니다"
+                            % "/".join(_INGEST_DEST))
+    safe = os.path.basename(name).strip()
+    if not safe or safe.startswith("."):
+        raise HTTPException(400, "파일 이름이 올바르지 않습니다")
+    if kind in ("io", "instrument", "tb", "interlock") \
+            and not safe.lower().endswith(".xlsx"):
+        raise HTTPException(400, "리스트는 .xlsx 파일이어야 합니다")
+    if kind in ("manual", "drawing") and not safe.lower().endswith(".pdf"):
+        raise HTTPException(400, "매뉴얼·도면은 .pdf 파일이어야 합니다")
+
+    body = await request.body()
+    if not body:
+        raise HTTPException(400, "빈 파일입니다")
+    dest = _INGEST_DEST[kind](safe)
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+
+    # 같은 자리에 파일이 있으면 덮어쓰기 전에 한 벌 남긴다. 색인 덮임
+    # 사고에서 배운 것 — 되돌릴 수 없는 덮어쓰기를 만들지 않는다.
+    replaced = False
+    if os.path.isfile(dest):
+        replaced = True
+        try:
+            os.replace(dest, dest + ".prev")
+        except OSError:
+            pass
+    with open(dest, "wb") as f:
+        f.write(body)
+    _reset_caches()
+
+    return {"saved": os.path.basename(dest),
+            "dir": os.path.dirname(dest),
+            "bytes": len(body),
+            "replaced": replaced,
+            "note": "색인 대상(매뉴얼)이 바뀐 경우 색인을 다시 만들어야 "
+                    "검색에 반영됩니다. 리스트류는 즉시 반영됩니다."}
+
+
+def _rebuild_worker():
+    try:
+        _rebuild.update(stage="청킹·코드표", done=0, total=0, error="")
+        from ingest.build_index import build as build_chunks
+        build_chunks()
+
+        _rebuild.update(stage="임베딩")
+        from retrieval.dense import DenseIndex
+        from ingest.build_index import load as load_chunks
+        di = DenseIndex(load_chunks())
+
+        def prog(done, total):
+            _rebuild.update(done=done, total=total)
+        di.build(progress=prog)
+
+        _reset_caches()
+        _rebuild.update(stage="완료",
+                        finished_at=dt.datetime.now().strftime("%H:%M:%S"))
+    except Exception as e:                                  # noqa: BLE001
+        _rebuild.update(error="%s: %s" % (type(e).__name__, str(e)[:160]),
+                        stage="실패")
+    finally:
+        _rebuild["running"] = False
+
+
+@app.post("/api/ingest/rebuild")
+def ingest_rebuild():
+    if _rebuild["running"]:
+        raise HTTPException(409, "이미 재생성 중입니다")
+    _rebuild.update(running=True, stage="시작", done=0, total=0,
+                    error="", finished_at="")
+    threading.Thread(target=_rebuild_worker, daemon=True).start()
+    return {"started": True,
+            "index_dir": str(config.INDEX_DIR),
+            "warning": "몇 분 걸립니다. 진행 상태는 /api/ingest/status 로 "
+                       "확인합니다."}
+
+
+
+# ── 자료 파일 목록·다운로드·삭제 ────────────────────────────
+#
+# 삭제는 두 단계다. 먼저 .deleted 로 이름을 바꿔 앱에서 안 보이게
+# 하고(로더가 원래 확장자만 찾는다), 영구 삭제는 .deleted 상태의
+# 파일에만 허용한다. 실수 한 번으로 되돌릴 수 없게 되는 조작을
+# 만들지 않는다 — .prev 보존과 같은 원칙이다.
+
+_INGEST_FOLDERS = {
+    "root":      lambda: str(config.DATA_DIR),
+    "interlock": lambda: str(getattr(config, "INTERLOCK_DIR", "") or ""),
+    "manuals":   lambda: str(getattr(config, "MANUAL_DIR", "") or ""),
+    "drawings":  lambda: str(getattr(config, "DRAWING_DIR", "") or
+                             os.path.join(str(config.DATA_DIR), "drawings")),
+}
+
+
+def _ingest_path(folder: str, name: str) -> str:
+    """폴더 밖으로 나가는 경로를 막는다. ../ 나 절대경로로 데이터
+    폴더 밖 파일을 집는 구멍이 생기면 다운로드가 유출구가 된다."""
+    if folder not in _INGEST_FOLDERS:
+        raise HTTPException(400, "folder 는 %s 중 하나여야 합니다"
+                            % "/".join(_INGEST_FOLDERS))
+    base = _INGEST_FOLDERS[folder]()
+    if not base or not os.path.isdir(base):
+        raise HTTPException(404, "폴더가 없습니다: %s" % folder)
+    safe = os.path.basename(name).strip()
+    if not safe or safe != name or safe.startswith("."):
+        raise HTTPException(400, "파일 이름이 올바르지 않습니다")
+    path = os.path.join(base, safe)
+    if os.path.commonpath([os.path.abspath(path),
+                           os.path.abspath(base)]) != os.path.abspath(base):
+        raise HTTPException(400, "경로가 폴더를 벗어납니다")
+    return path
+
+
+@app.get("/api/ingest/files")
+def ingest_files():
+    out = {}
+    for key, fn in _INGEST_FOLDERS.items():
+        base = fn()
+        rows = []
+        if base and os.path.isdir(base):
+            for n in sorted(os.listdir(base)):
+                p = os.path.join(base, n)
+                if not os.path.isfile(p):
+                    continue
+                if key == "root" and not n.lower().endswith(
+                        (".xlsx", ".xlsx.prev", ".xlsx.deleted", ".csv")):
+                    continue                         # 루트의 잡파일은 제외
+                st = os.stat(p)
+                rows.append({
+                    "name": n,
+                    "bytes": st.st_size,
+                    "mtime": dt.datetime.fromtimestamp(st.st_mtime)
+                             .strftime("%m-%d %H:%M"),
+                    "state": ("deleted" if n.endswith(".deleted")
+                              else "prev" if n.endswith(".prev")
+                              else "active"),
+                })
+        out[key] = {"dir": base, "files": rows}
+    return out
+
+
+@app.get("/api/ingest/download")
+def ingest_download(folder: str = Query(...), name: str = Query(...)):
+    path = _ingest_path(folder, name)
+    if not os.path.isfile(path):
+        raise HTTPException(404, "파일이 없습니다")
+    from fastapi.responses import FileResponse
+    return FileResponse(path, filename=os.path.basename(path))
+
+
+@app.post("/api/ingest/file-op")
+def ingest_file_op(folder: str = Query(...), name: str = Query(...),
+                   op: str = Query(...)):
+    if _rebuild["running"]:
+        raise HTTPException(409, "색인 재생성 중에는 파일을 바꿀 수 없습니다")
+    path = _ingest_path(folder, name)
+    if not os.path.isfile(path):
+        raise HTTPException(404, "파일이 없습니다")
+
+    if op == "delete":
+        # 1단계 — 앱에서 안 보이게만 한다.
+        if name.endswith(".deleted"):
+            raise HTTPException(400, "이미 삭제 상태입니다")
+        dest = path + ".deleted"
+        if os.path.isfile(dest):
+            os.remove(dest)                          # 같은 이름의 옛 삭제본
+        try:
+            os.replace(path, dest)
+        except PermissionError:
+            # Windows 는 열려 있는 파일의 이름을 못 바꾼다. 엑셀로
+            # 열어 둔 경우가 대부분이다.
+            raise HTTPException(423, "파일이 다른 프로그램에서 열려 "
+                                     "있습니다. 엑셀 등에서 닫고 다시 "
+                                     "시도하십시오.")
+        _reset_caches()
+        return {"ok": True, "state": "deleted",
+                "name": os.path.basename(dest),
+                "note": "앱에서는 더 이상 읽지 않습니다. 매뉴얼이라면 "
+                        "색인을 다시 만들어야 검색에서도 빠집니다. "
+                        "영구 삭제는 이 상태에서만 할 수 있습니다."}
+
+    if op == "restore":
+        if not (name.endswith(".deleted") or name.endswith(".prev")):
+            raise HTTPException(400, "삭제·보존 상태의 파일만 되살릴 수 있습니다")
+        dest = path[:-len(".deleted")] if name.endswith(".deleted")                else path[:-len(".prev")]
+        if os.path.isfile(dest):
+            raise HTTPException(409, "같은 이름의 사용 중 파일이 있습니다 — "
+                                     "먼저 그 파일을 삭제하십시오")
+        try:
+            os.replace(path, dest)
+        except PermissionError:
+            raise HTTPException(423, "파일이 다른 프로그램에서 열려 "
+                                     "있습니다. 닫고 다시 시도하십시오.")
+        _reset_caches()
+        return {"ok": True, "state": "active", "name": os.path.basename(dest)}
+
+    if op == "purge":
+        # 2단계 — .deleted 상태에서만. 화면에서 한 번에 지우는 길을
+        # 열지 않는다.
+        if not (name.endswith(".deleted") or name.endswith(".prev")):
+            raise HTTPException(400, "영구 삭제는 삭제·보존 상태의 파일만 "
+                                     "할 수 있습니다. 먼저 삭제하십시오.")
+        try:
+            os.remove(path)
+        except PermissionError:
+            raise HTTPException(423, "파일이 다른 프로그램에서 열려 "
+                                     "있습니다. 닫고 다시 시도하십시오.")
+        return {"ok": True, "state": "purged", "name": name}
+
+    raise HTTPException(400, "op 는 delete/restore/purge 중 하나여야 합니다")
+
+
+@app.get("/api/ingest/status")
+def ingest_status():
+    return dict(_rebuild)
+
+
 # ── 정적 파일 (빌드된 React UI) ─────────────────────────────
 # 반드시 모든 /api 라우트 뒤에 와야 한다. 앞에 두면 "/" 아래를
 # 정적 파일이 전부 가로채서 API 가 404 로 죽는다.
@@ -2219,3 +2504,4 @@ if _UI_DIST.is_dir():
 else:
     print(f"[warn] UI 빌드본이 없습니다: {_UI_DIST}")
     print("       ui/react 에서 npm run build 를 먼저 실행하십시오.")
+

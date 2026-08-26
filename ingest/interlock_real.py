@@ -148,6 +148,7 @@ def detect_real_format(path):
                 found_equip = True
         if found_action_by or found_equip:
             break
+    wb.close()   # 핸들이 남으면 Windows 에서 파일 삭제·교체가 막힌다
     if found_il_no and not found_action_by:
         return False
     return found_action_by or found_equip
@@ -163,9 +164,11 @@ def load_interlocks_real(path=None):
                 items.extend(load_interlocks_real(os.path.join(path, f)))
         return items
     wb = load_workbook(path, data_only=True)
+    sheets = [(sn, list(wb[sn].iter_rows(values_only=True)))
+              for sn in wb.sheetnames]
+    wb.close()
     items = []
-    for sheet_name in wb.sheetnames:
-        rows = list(wb[sheet_name].iter_rows(values_only=True))
+    for sheet_name, rows in sheets:
         items.extend(_parse_interlock_sheet(rows, sheet_name=sheet_name, path=path))
     return items
 
@@ -473,11 +476,13 @@ def extract_source_block(tag: str, path=None):
     for fpath in files:
         try:
             wb = load_workbook(fpath, data_only=True)
+            _sheets = [(sn, list(wb[sn].iter_rows(values_only=True)))
+                       for sn in wb.sheetnames]
+            wb.close()
         except Exception as e:
             print("[interlock_real] open fail", fpath, e)
             continue
-        for sheet_name in wb.sheetnames:
-            rows = list(wb[sheet_name].iter_rows(values_only=True))
+        for sheet_name, rows in _sheets:
             start = None
             title = ""
             for i, row in enumerate(rows):

@@ -166,15 +166,20 @@ class DenseIndex:
         self.mat = None
 
     # ── 인덱스 구축 / 로드 ──────────────────────────────────
-    def build(self, batch=None, verbose=True):
+    def build(self, batch=None, verbose=True, progress=None):
         batch = batch or config.EMBED_BATCH
         texts = [self._doc_text(r) for r in self.records]
         out = []
         for i in range(0, len(texts), batch):
             out.append(embed_batch(texts[i:i + batch]))
+            done = min(i + batch, len(texts))
             if verbose:
-                print("  임베딩 %d/%d" % (min(i + batch, len(texts)), len(texts)),
-                      end="\r")
+                print("  임베딩 %d/%d" % (done, len(texts)), end="\r")
+            # 반입 화면의 진행 표시용. 색인 재생성은 몇 분이 걸리므로
+            # 어디까지 왔는지 없이 돌리면 사용자는 멈춘 것과 구분하지
+            # 못한다.
+            if progress:
+                progress(done, len(texts))
         self.mat = l2norm(np.vstack(out))
         os.makedirs(config.INDEX_DIR, exist_ok=True)
         np.save(config.EMBED_NPY, self.mat)

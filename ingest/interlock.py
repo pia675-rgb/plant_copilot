@@ -157,8 +157,9 @@ def _valve_action(remark):
 
 def _load_interlocks_demo(path):
     """IL NO 표 형식 (데모) 파서."""
-    ws = load_workbook(path, read_only=True, data_only=True).active
-    rows = list(ws.iter_rows(values_only=True))
+    wb = load_workbook(path, read_only=True, data_only=True)
+    rows = list(wb.active.iter_rows(values_only=True))
+    wb.close()   # 핸들이 남으면 Windows 에서 파일 교체·삭제가 막힌다
     hi = next(i for i, r in enumerate(rows)
               if r and "IL NO" in [norm(c).upper() for c in r])
     hdr = [norm(c) for c in rows[hi]]

@@ -186,6 +186,7 @@ def read_tb_layout(path=None):
                     })
     if spare:
         print("[tb] 미사용 채널 %d점 제외 (주소 자리표시자)" % spare)
+    wb.close()   # 핸들이 남으면 파일 삭제·교체가 막힌다
     return out
 
 

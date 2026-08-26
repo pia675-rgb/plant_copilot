@@ -158,6 +158,9 @@ export default function App() {
           <button className={`nav-tab ${tab === 'panel' ? 'active' : ''}`} onClick={() => setTab('panel')}>
             판넬 조회
           </button>
+          <button className={`nav-tab ${tab === 'ingest' ? 'active' : ''}`} onClick={() => setTab('ingest')}>
+            자료 반입
+          </button>
         </nav>
 
         <div className="sidebar-section">
@@ -306,6 +309,7 @@ export default function App() {
         {tab === 'panel' && (
           <PanelView key="panel" tag={tag} panelSel={panelSel} cardSel={cardSel} onPickTag={setTag} free={freeMode} />
         )}
+        {tab === 'ingest' && <IngestView free={freeMode} />}
       </main>
 
       <HelpBot
@@ -2153,6 +2157,396 @@ const HIST_TONE = {
   참고: { bd: 'var(--ink-3, #64748b)', bg: 'rgba(100,116,139,0.06)' },
   확인: { bd: 'var(--ink-3, #64748b)', bg: 'transparent' },
 }
+
+/* ── 자료 반입 ──────────────────────────────────────────────
+ *
+ * 본체는 파일 받기가 아니라 반입 직후 점검이다. 결함 여섯 종이 전부
+ * 자료를 넣는 시점에 생겼고, 답이 안 나오는 형태가 아니라 그럴듯한
+ * 답이 나오되 틀린 형태였다. 그래서 넣자마자 리포트를 사람 앞에 놓는다.
+ * 판정하지 않는다 — 어느 쪽이 맞는지는 데이터 주인이 안다. */
+const INGEST_KINDS = [
+  { k: 'io',         label: 'IO List (.xlsx)',        hint: 'IO_LIST.xlsx 자리에 놓입니다' },
+  { k: 'instrument', label: '계기 리스트 (.xlsx)',     hint: 'INSTRUMENT_LIST.xlsx 자리에 놓입니다' },
+  { k: 'tb',         label: 'TB List (.xlsx)',        hint: 'TB_LIST.xlsx 자리에 놓입니다' },
+  { k: 'interlock',  label: '인터락 리스트 (.xlsx)',   hint: 'interlock/ 폴더에 원래 이름으로' },
+  { k: 'manual',     label: '벤더 매뉴얼 (.pdf)',      hint: 'manuals/ 폴더에 원래 이름으로 · 색인 재생성 필요' },
+  { k: 'drawing',    label: '도면 (.pdf)',            hint: 'drawings/ 폴더에 원래 이름으로' },
+]
+
+const FOLDER_LABEL = {
+  root: '리스트 (루트)', interlock: 'interlock/',
+  manuals: 'manuals/', drawings: 'drawings/',
+}
+
+function fmtBytes(n) {
+  if (n >= 1048576) return (n / 1048576).toFixed(1) + ' MB'
+  if (n >= 1024) return Math.round(n / 1024) + ' KB'
+  return n + ' B'
+}
+
+function FolderFiles({ files, onOp, busy }) {
+  return (
+    <>
+      {Object.entries(FOLDER_LABEL).map(([key, label]) => {
+        const d = files[key]
+        if (!d) return null
+        return (
+          <div key={key} style={{ marginBottom: 12 }}>
+            <div className="step-title">{label}</div>
+            {d.files.length === 0 && (
+              <div className="step-detail" style={{ color: 'var(--faint)' }}>· 비어 있음</div>
+            )}
+            {d.files.map(f => (
+              <div key={f.name} className="step-detail"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+                  opacity: f.state === 'active' ? 1 : 0.55,
+                }}>
+                <span style={{ flex: '1 1 auto', minWidth: 200 }}>
+                  · {f.name}
+                  {f.state === 'deleted' && ' (삭제됨)'}
+                  {f.state === 'prev' && ' (덮어쓰기 전 보존본)'}
+                </span>
+                <span style={{ color: 'var(--faint)', fontSize: '0.76rem' }}>
+                  {fmtBytes(f.bytes)} · {f.mtime}
+                </span>
+                <a className="btn" style={{ width: 'auto', padding: '2px 10px', fontSize: '0.76rem', textDecoration: 'none' }}
+                  href={`${API}/ingest/download?folder=${key}&name=${encodeURIComponent(f.name)}`}>
+                  받기
+                </a>
+                {f.state === 'active' && (
+                  <button className="btn" disabled={busy}
+                    style={{ width: 'auto', padding: '2px 10px', fontSize: '0.76rem' }}
+                    onClick={() => onOp(key, f.name, 'delete')}>삭제</button>
+                )}
+                {f.state !== 'active' && (
+                  <>
+                    <button className="btn" disabled={busy}
+                      style={{ width: 'auto', padding: '2px 10px', fontSize: '0.76rem' }}
+                      onClick={() => onOp(key, f.name, 'restore')}>되살리기</button>
+                    <button className="btn" disabled={busy}
+                      style={{ width: 'auto', padding: '2px 10px', fontSize: '0.76rem',
+                               borderColor: 'var(--bad, #f87171)', color: 'var(--bad, #f87171)' }}
+                      onClick={() => onOp(key, f.name, 'purge')}>영구 삭제</button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      })}
+      <div style={{ fontSize: '0.76rem', color: 'var(--faint)', lineHeight: 1.5 }}>
+        삭제는 두 단계입니다 — 삭제하면 .deleted 로 남아 앱이 읽지 않고,
+        영구 삭제는 그 상태에서만 됩니다. 실수 한 번으로 되돌릴 수 없게 되는
+        조작을 만들지 않습니다.
+      </div>
+    </>
+  )
+}
+
+function IngestView({ free }) {
+  const [report, setReport] = useState(null)
+  const [err, setErr] = useState('')
+  const [kind, setKind] = useState('manual')
+  const [busy, setBusy] = useState(false)
+  const [uploaded, setUploaded] = useState([])
+  const [st, setSt] = useState(null)       // 색인 재생성 상태
+  const fileRef = React.useRef(null)
+  const pollRef = React.useRef(null)
+
+  const [files, setFiles] = useState(null)
+
+  const loadReport = async () => {
+    setErr('')
+    try { setReport(await get('/ingest/report')) }
+    catch (e) { setErr(String(e.message || e)) }
+    try { setFiles(await get('/ingest/files')) } catch { /* 목록만 실패 */ }
+  }
+  useEffect(() => { loadReport() }, [])
+
+  const fileOp = async (folder, name, op) => {
+    // 삭제·영구 삭제는 확인을 거친다. 특히 매뉴얼 삭제는 색인과
+    // 어긋나므로 그 사실을 먼저 말한다.
+    if (op === 'delete') {
+      const extra = folder === 'manuals'
+        ? '\n\n매뉴얼은 색인을 다시 만들어야 검색에서도 빠집니다.' : ''
+      if (!window.confirm(`${name} 을(를) 삭제합니다.\n앱에서 더 이상 읽지 않으며, 파일은 .deleted 로 남아 되살릴 수 있습니다.${extra}`)) return
+    }
+    if (op === 'purge') {
+      if (!window.confirm(`${name} 을(를) 영구 삭제합니다.\n되돌릴 수 없습니다.`)) return
+    }
+    setErr('')
+    try {
+      await post(`/ingest/file-op?folder=${folder}&name=${encodeURIComponent(name)}&op=${op}`, {})
+      await loadReport()
+    } catch (e) { setErr(String(e.message || e)) }
+  }
+
+  // 재생성 상태 폴링. 돌고 있을 때만 1초 간격으로 본다.
+  const poll = async () => {
+    try {
+      const d = await get('/ingest/status')
+      setSt(d)
+      if (!d.running && pollRef.current) {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+        loadReport()
+      }
+    } catch { /* 다음 턴에 다시 */ }
+  }
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
+
+  const upload = async () => {
+    const files = fileRef.current?.files
+    if (!files || files.length === 0) { setErr('파일을 먼저 고르십시오'); return }
+    // 종류와 확장자가 어긋난 채 보내면 서버가 400 으로 거부하는데,
+    // 그 사실을 사용자가 놓치기 쉽다. 보내기 전에 여기서 말한다.
+    const wantPdf = kind === 'manual' || kind === 'drawing'
+    for (const f of files) {
+      const isPdf = f.name.toLowerCase().endsWith('.pdf')
+      if (wantPdf !== isPdf) {
+        setErr(`선택한 종류(${kindInfo?.label})와 파일(${f.name})의 형식이 다릅니다 — 위의 종류 선택을 확인하십시오`)
+        return
+      }
+    }
+    setBusy(true); setErr('')
+    const done = []
+    try {
+      for (const f of files) {
+        const res = await fetch(
+          `${API}/ingest/upload?kind=${kind}&name=${encodeURIComponent(f.name)}`,
+          { method: 'POST', body: f })
+        const d = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(d.detail || res.statusText)
+        done.push(`${d.saved}${d.replaced ? ' (기존 파일은 .prev 로 보존)' : ''}`)
+      }
+      setUploaded(done)
+      fileRef.current.value = ''
+      await loadReport()
+    } catch (e) { setErr(String(e.message || e)) }
+    setBusy(false)
+  }
+
+  const rebuild = async () => {
+    setErr('')
+    try {
+      await post('/ingest/rebuild', {})
+      setSt({ running: true, stage: '시작', done: 0, total: 0 })
+      pollRef.current = setInterval(poll, 1000)
+    } catch (e) { setErr(String(e.message || e)) }
+  }
+
+  const kindInfo = INGEST_KINDS.find(x => x.k === kind)
+  const pct = st && st.total > 0 ? Math.round(100 * st.done / st.total) : 0
+
+  return (
+    <>
+      <div className="main-header">
+        <h1>Plant Maintenance Copilot <span>· 자료 반입</span><FreeBadge show={free} /></h1>
+      </div>
+
+      {/* 넣기 */}
+      <div className="panel">
+        <div className="panel-head">자료 넣기</div>
+        <div className="panel-body">
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <select value={kind} onChange={e => setKind(e.target.value)}
+              style={{
+                height: 34, padding: '0 10px',
+                background: 'var(--bg)', color: 'var(--fg)',
+                border: '1px solid var(--line-strong, #3b4a5e)',
+                borderRadius: 6, fontSize: '0.85rem', cursor: 'pointer',
+              }}>
+              {INGEST_KINDS.map(x => (
+                <option key={x.k} value={x.k}>{x.label}</option>
+              ))}
+            </select>
+            <input type="file" ref={fileRef}
+              multiple={kind === 'manual' || kind === 'drawing' || kind === 'interlock'}
+              accept={kind === 'manual' || kind === 'drawing' ? '.pdf' : '.xlsx'}
+              style={{ fontSize: '0.85rem' }} />
+            <button className="btn" onClick={upload} disabled={busy || (st && st.running)}>
+              {busy ? '올리는 중…' : '올리기'}
+            </button>
+          </div>
+          {err && (
+            <div style={{ color: 'var(--bad, #f87171)', fontSize: '0.84rem', marginTop: 8 }}>
+              {err}
+            </div>
+          )}
+          <div style={{ fontSize: '0.78rem', color: 'var(--faint)', marginTop: 8 }}>
+            {kindInfo?.hint}. 같은 자리에 파일이 있으면 덮어쓰기 전에 .prev 로 한 벌 남깁니다.
+          </div>
+          {uploaded.length > 0 && (
+            <div style={{ fontSize: '0.82rem', marginTop: 8 }}>
+              반입됨: {uploaded.join(' · ')}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 들어 있는 자료 */}
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="panel-head">들어 있는 자료</div>
+        <div className="panel-body">
+          {!files && <div style={{ color: 'var(--faint)' }}>읽는 중…</div>}
+          {files && <FolderFiles files={files} onOp={fileOp} busy={st && st.running} />}
+        </div>
+      </div>
+
+      {/* 색인 재생성 */}
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="panel-head">색인 재생성</div>
+        <div className="panel-body">
+          <div style={{ fontSize: '0.82rem', color: 'var(--faint)', marginBottom: 10, lineHeight: 1.5 }}>
+            매뉴얼을 넣거나 바꿨을 때만 필요합니다. 리스트류(IO·계기·TB·인터락)는
+            올리는 즉시 조회에 반영됩니다. 재생성은 몇 분이 걸리며, 도는 동안
+            검색 결과가 잠시 예전 색인으로 나올 수 있습니다.
+            도는 동안에는 조치 생성·도우미 사용을 피하십시오 — 로컬 실행에서는
+            같은 GPU 를 써서 임베딩이 중단될 수 있습니다.
+          </div>
+          <button className="btn" onClick={rebuild} disabled={st && st.running}>
+            {st && st.running ? '재생성 중…' : '색인 다시 만들기'}
+          </button>
+          {st && (st.running || st.stage) && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontSize: '0.82rem', marginBottom: 6 }}>
+                단계: {st.stage}
+                {st.total > 0 && ` — 임베딩 ${st.done}/${st.total} (${pct}%)`}
+                {st.finished_at && ` · ${st.finished_at} 완료`}
+              </div>
+              {st.total > 0 && (
+                <div style={{ height: 8, borderRadius: 999, background: 'rgba(148,163,184,0.18)' }}>
+                  <div style={{
+                    height: 8, borderRadius: 999, width: `${pct}%`,
+                    background: 'var(--accent, #22d3ee)', transition: 'width .4s',
+                  }} />
+                </div>
+              )}
+              {st.error && (
+                <div style={{ fontSize: '0.82rem', color: 'var(--bad, #f87171)', marginTop: 6 }}>
+                  실패 — {st.error}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 점검 리포트 */}
+      <div className="panel" style={{ marginTop: 14 }}>
+        <div className="panel-head" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>반입 점검</span>
+          <button className="btn" onClick={loadReport} style={{ width: 'auto', padding: '4px 12px', fontSize: '0.78rem' }}>
+            다시 점검
+          </button>
+        </div>
+        <div className="panel-body">
+          {err && <div style={{ color: 'var(--bad, #f87171)', fontSize: '0.85rem' }}>{err}</div>}
+          {!report && !err && <div style={{ color: 'var(--faint)' }}>점검 중…</div>}
+          {report && <IngestReport r={report} />}
+        </div>
+      </div>
+    </>
+  )
+}
+
+function RowStat({ name, d }) {
+  // 파일 하나의 읽기 결과 한 줄. 판정 대신 사실만 — 몇 행, 못 읽은 열.
+  if (!d) return null
+  if (d.present === false) {
+    return <div className="step-detail" style={{ color: 'var(--faint)' }}>· {name} — 없음</div>
+  }
+  if (d.error) {
+    return <div className="step-detail" style={{ color: 'var(--warn-ink, #d9a441)' }}>
+      · {name} — 읽기 실패: {d.error}</div>
+  }
+  const std = d.standard
+  return (
+    <div className="step-detail">
+      · {d.file || name} — {d.rows}행
+      {d.free_form && ` (${d.note})`}
+      {d.header_row && !d.free_form && `, ${d.header_row}행이 헤더`}
+      {std && (
+        <span style={{ color: std.matched === std.expected && std.order_ok ? 'var(--match, #34d399)' : 'var(--warn-ink, #d9a441)' }}>
+          {' '}· 표준 열 {std.matched}/{std.expected}
+          {std.missing.length > 0 && ` · 빠짐: ${std.missing.join(', ')}`}
+          {std.unrecognized.length > 0 && ` · 인식 못함: ${std.unrecognized.join(', ')}`}
+          {!std.order_ok && std.matched === std.expected && ' · 열 순서가 표준과 다름'}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function IngestReport({ r }) {
+  const cr = r.cross || {}
+  const mans = r.manuals || {}
+  const il = r.interlock || {}
+  return (
+    <>
+      <div className="step-title">문서별 읽기</div>
+      <RowStat name="IO List" d={r.io_list} />
+      <RowStat name="계기 리스트" d={r.instrument_list} />
+      <RowStat name="TB List" d={r.tb_list} />
+      {il.present === false
+        ? <div className="step-detail" style={{ color: 'var(--faint)' }}>· 인터락 — 없음</div>
+        : il.error
+          ? <div className="step-detail" style={{ color: 'var(--warn-ink, #d9a441)' }}>· 인터락 — 읽기 실패: {il.error}</div>
+          : <div className="step-detail">· {(il.files || []).join(', ')} — 규칙 {il.rules}건
+              {il.unparsed > 0 && (
+                <span style={{ color: 'var(--warn-ink, #d9a441)' }}>
+                  {' '}· 미파싱 {il.unparsed}건 (원문 보존 — 임의 해석하지 않습니다)
+                </span>
+              )}
+              {typeof il.input_tags === 'number' && ` · 입력 조건 태그 ${il.input_tags}건`}
+            </div>}
+
+      <div className="step-title" style={{ marginTop: 14 }}>매뉴얼 ↔ 기종 연결</div>
+      {(mans.models || []).map((m, i) => (
+        <div className="step-detail" key={i}>
+          · {m.model} (계기 {m.tags}대) — {m.manual
+            ? m.manual
+            : <span style={{ color: 'var(--warn-ink, #d9a441)' }}>
+                연결된 매뉴얼 없음 — 이 기종의 알람 조회는 근거 부족(ABSTAIN)이 됩니다
+              </span>}
+        </div>
+      ))}
+      {(mans.orphan_files || []).map((n, i) => (
+        <div className="step-detail" key={`o${i}`} style={{ color: 'var(--warn-ink, #d9a441)' }}>
+          · {n} — 계기 리스트의 어느 기종과도 이어지지 않습니다.
+          IO 카드·공용 문서라면 정상이고, 계기 매뉴얼이라면 잘못
+          올렸거나 계기 리스트에 그 기종이 없는 경우입니다.
+        </div>
+      ))}
+
+      <div className="step-title" style={{ marginTop: 14 }}>문서 사이 태그 맞물림</div>
+      {cr.error
+        ? <div className="step-detail" style={{ color: 'var(--warn-ink, #d9a441)' }}>대조 실패: {cr.error}</div>
+        : <>
+            <div className="step-detail">
+              · IO {cr.counts?.io}점 · 계기 {cr.counts?.spec}대 · 인터락 입력 {cr.counts?.interlock_input} / 출력 {cr.counts?.interlock_output}
+            </div>
+            {Object.entries(cr.finding_counts || {}).map(([k, n]) => (
+              <div className="step-detail" key={k} style={{ color: 'var(--warn-ink, #d9a441)' }}>
+                · {k} {n}건
+                {(cr.findings?.[k] || []).slice(0, 5).map(f =>
+                  ` — ${f.tag}(${f.missing_from} 에 없음)`).join('')}
+              </div>
+            ))}
+            {(!cr.total || cr.total === 0) && (
+              <div className="step-detail">· 지적 없음</div>
+            )}
+            {cr.note && (
+              <div style={{ fontSize: '0.76rem', color: 'var(--faint)', marginTop: 8, lineHeight: 1.5 }}>
+                {cr.note}
+              </div>
+            )}
+          </>}
+    </>
+  )
+}
+
 
 function FreeBadge({ show }) {
   // 자유 모드 표시는 화면마다 제목 옆에 붙인다. 모드는 챗봇을 포함해

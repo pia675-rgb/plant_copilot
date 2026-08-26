@@ -655,9 +655,12 @@ def c_io_list_header():
     except ImportError:
         return False, "openpyxl 없음"
     from tools.make_io_list import STANDARD_ORDER
-    ws = openpyxl.load_workbook(config.IO_LIST, read_only=True,
-                                data_only=True).active
-    rows = list(ws.iter_rows(values_only=True))
+    wb = openpyxl.load_workbook(config.IO_LIST, read_only=True,
+                                data_only=True)
+    try:
+        rows = list(wb.active.iter_rows(values_only=True))
+    finally:
+        wb.close()
     hi = next((i for i, r in enumerate(rows)
                if r and "TAG" in [str(c).strip() if c else "" for c in r]), None)
     if hi is None:

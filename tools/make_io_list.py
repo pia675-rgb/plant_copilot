@@ -177,8 +177,10 @@ def _s(v):
 
 
 def read_sheet(path):
-    ws = load_workbook(path, read_only=True, data_only=True).active
+    _wb = load_workbook(path, read_only=True, data_only=True)
+    ws = _wb.active
     rows = list(ws.iter_rows(values_only=True))
+    _wb.close()
     hi = next(i for i, r in enumerate(rows)
               if r and "TAG" in [_s(c).upper() for c in r])
     hdr = [_s(c).upper() for c in rows[hi]]
