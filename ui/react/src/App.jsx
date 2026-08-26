@@ -36,7 +36,7 @@ export default function App() {
   const [tags, setTags] = useState([])
   const [tagQ, setTagQ] = useState('')
   const [tag, setTag] = useState('AIT-4002')
-  const [alarm, setAlarm] = useState('acid residual low')
+  const [alarm, setAlarm] = useState('')
   const [code, setCode] = useState('')
   // lexical 은 한글 질의를 구조적으로 못 푼다. 시연 기본값으로 두면
   // 가장 약한 구성이 첫 화면이 된다. 서버 기본값과 맞춘다.
@@ -211,7 +211,8 @@ export default function App() {
             <h3>알람 조건</h3>
             <div className="field">
               <label>알람 문구 / 증상</label>
-              <input value={alarm} onChange={e => setAlarm(e.target.value)} />
+              <input value={alarm} onChange={e => setAlarm(e.target.value)}
+                placeholder="예: acid residual low · 산 잔량 10% 미만 경고" />
             </div>
             <div className="field">
               <label>계기 화면 코드 (선택)</label>
