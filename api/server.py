@@ -606,6 +606,38 @@ def instrument_detail(tag: str):
     }
 
 
+# 주의: 아래 /api/history/{tag} 보다 먼저 등록해야 한다 — 뒤에 두면
+# 'stats' 가 태그로 잡힌다 (등록 순서 매칭).
+@app.get("/api/history/stats")
+def history_stats(top: int = Query(8, ge=3, le=20)):
+    """태그별 고장 이력 집계 — 말썽 많은 순 상위 N.
+
+    전 태그를 다 그리면 화면이 감당을 못 하므로 상위만 주고 나머지는
+    합계로 접는다. 매뉴얼 일치 구분을 함께 주는 이유: 건수가 많은
+    것과 매뉴얼과 자주 어긋나는 것은 다른 신호이고, 후자가 더 급하다.
+    """
+    rows = load_history()
+    by = {}
+    for r in rows:
+        t = r.get("tag") or "?"
+        d = by.setdefault(t, {"tag": t, "total": 0,
+                              "일치": 0, "부분일치": 0, "불일치": 0,
+                              "last": ""})
+        d["total"] += 1
+        m = r.get("manual_match") or "부분일치"
+        if m in d:
+            d[m] += 1
+        if (r.get("date") or "") > d["last"]:
+            d["last"] = r.get("date") or ""
+    ranked = sorted(by.values(), key=lambda x: (-x["total"], x["tag"]))
+    head, rest = ranked[:top], ranked[top:]
+    return {"total_records": len(rows),
+            "total_tags": len(ranked),
+            "top": head,
+            "rest_tags": len(rest),
+            "rest_records": sum(x["total"] for x in rest)}
+
+
 @app.get("/api/history/{tag}")
 def history_by_tag(tag: str):
     hist = [h for h in load_history() if h.get("tag") == tag]
@@ -2386,6 +2418,7 @@ def ingest_edit_release(request: Request):
         _edit_lease["owner"] = ""
         _edit_lease["until"] = 0.0
     return {"ok": True}
+
 
 
 @app.get("/api/ingest/report")

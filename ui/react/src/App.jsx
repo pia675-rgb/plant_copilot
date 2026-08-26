@@ -297,6 +297,7 @@ export default function App() {
             botPending={botPending}
             onBotHandled={() => setBotPending(null)}
             onAlarmChange={setAlarm}
+            onPickTag={setTag}
           />
         )}
         {tab === 'interlock' && (
@@ -341,7 +342,72 @@ export default function App() {
 /* ══════════════════════════════════════════════════════════
    알람 조회 (v1 메인 화면)
    ══════════════════════════════════════════════════════════ */
-function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onAlarmChange, onResult }) {
+/* 태그별 조치 이력 통계 — 말썽 많은 순 상위만.
+ *
+ * 세는 것은 조회 횟수가 아니라 「조치 결과 입력」으로 저장된 작업
+ * 기록(WO) 건수다. 조회는 흔적을 남기지 않는다. 오경보 판정도 사람이
+ * 출동해 확인한 기록이므로 포함된다 — 그래서 이름이 "고장 건수" 가
+ * 아니라 "조치 이력" 이다. 판정하지 않고 세기만 한다. */
+function HistoryStats({ onPickTag }) {
+  const [st, setSt] = useState(null)
+  useEffect(() => {
+    get('/history/stats').then(setSt).catch(() => setSt(null))
+  }, [])
+  if (!st || !st.top?.length) return null
+  const max = st.top[0].total
+  const SEG = [
+    ['불일치', 'var(--bad, #f87171)'],
+    ['부분일치', '#d9a441'],
+    ['일치', 'var(--match, #34d399)'],
+  ]
+  return (
+    <div className="panel" style={{ marginBottom: 16 }}>
+      <div className="panel-head" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
+        <span>조치 이력 많은 태그</span>
+        <span style={{ fontSize: '0.74rem', color: 'var(--faint)', fontWeight: 400 }}>
+          저장된 작업 기록 {st.total_records}건 기준 · 조회 횟수 아님 · 오경보 포함
+        </span>
+      </div>
+      <div className="panel-body">
+        {st.top.map(row => (
+          <div key={row.tag}
+            onClick={() => onPickTag?.(row.tag)}
+            title={`${row.tag} 선택 — 일치 ${row.일치} · 부분일치 ${row.부분일치} · 불일치 ${row.불일치}`}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '4px 2px', cursor: 'pointer',
+            }}>
+            <span style={{ width: 86, fontFamily: 'monospace', fontSize: '0.82rem' }}>
+              {row.tag}
+            </span>
+            <span style={{ flex: 1, display: 'flex', height: 14, borderRadius: 4, overflow: 'hidden', background: 'rgba(148,163,184,0.10)' }}>
+              {SEG.map(([k, color]) => row[k] > 0 && (
+                <span key={k} style={{
+                  width: `${(row[k] / max) * 100}%`,
+                  background: color, opacity: 0.85,
+                }} />
+              ))}
+            </span>
+            <span style={{ width: 76, fontSize: '0.78rem', color: 'var(--faint)', textAlign: 'right' }}>
+              {row.total}건 · {row.last?.slice(2) || ''}
+            </span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: '0.74rem', color: 'var(--faint)' }}>
+          <span>
+            <span style={{ color: 'var(--bad, #f87171)' }}>■</span> 매뉴얼과 불일치{' '}
+            <span style={{ color: '#d9a441' }}>■</span> 부분일치{' '}
+            <span style={{ color: 'var(--match, #34d399)' }}>■</span> 일치
+          </span>
+          {st.rest_tags > 0 && <span>그 외 {st.rest_tags}개 태그 · {st.rest_records}건</span>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onAlarmChange, onResult, onPickTag }) {
   const [inst, setInst] = useState(null)
   const [diag, setDiag] = useState(null)
   const [advice, setAdvice] = useState(null)
@@ -367,13 +433,12 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
   const [loading, setLoading] = useState(false)
   const [advLoading, setAdvLoading] = useState(false)
   const [repLoading, setRepLoading] = useState(false)
-  // 4D 리포트 기입란 — D3(확정 원인)·D4(실시 조치·부품·소요·담당).
-  // API 는 처음부터 이 값들을 받고 있었는데 화면에 넣을 자리가 없어
-  // 늘 빈 채로 나갔고, PDF 에는 '(조치 후 기입)' 만 찍혔다.
-  const [repOpen, setRepOpen] = useState(false)
-  const [rep, setRep] = useState({
-    tech: '', confirmed_cause: '', final_action: '', parts: '', duration_min: '',
-  })
+  // 4D 리포트의 D3(확정 원인)·D4(실시 조치)는 「조치 결과 입력」에서
+  // 저장한 값을 그대로 쓴다. 예전에는 별도의 4D 기입란이 있어 같은
+  // 내용을 두 번 입력해야 했다 — 실제 원인과 확정 원인, 조치 내용과
+  // 실시 조치는 같은 것이다. 저장 전에 PDF 를 뽑으면 '(조치 후 기입)'
+  // 으로 남아, 종이로 뽑아 현장에서 손으로 채우는 흐름도 그대로 된다.
+  const [fb4d, setFb4d] = useState(null)
   const [error, setError] = useState(null)
   const [citeOpen, setCiteOpen] = useState(null)
   const [dwgOpen, setDwgOpen] = useState(null)
@@ -386,6 +451,7 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
     setInst(null)
     setDiag(null)
     setAdvice(null)
+    setFb4d(null)   // 다른 태그의 조치 결과가 리포트에 실리지 않게
     setCiteOpen(null)
     setDwgOpen(null)
     setError(null)
@@ -507,11 +573,11 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tag, alarm, code, mode,
-          tech: rep.tech.trim(),
-          confirmed_cause: rep.confirmed_cause.trim(),
-          final_action: rep.final_action.trim(),
-          parts: rep.parts.trim() || '-',
-          duration_min: rep.duration_min === '' ? null : Number(rep.duration_min),
+          tech: fb4d?.tech || '',
+          confirmed_cause: fb4d?.confirmed_cause || '',
+          final_action: fb4d?.final_action || '',
+          parts: fb4d?.parts || '-',
+          duration_min: fb4d?.duration_min ?? null,
           // 화면에 떠 있는 조치 순서를 그대로 넘긴다. 리포트가 서버에서
           // 조치를 다시 만들면 화면과 다른 문장이 나올 수 있고, LLM 을
           // 한 번 더 부르느라 즉시 나오지도 않는다. 이력 카드는 근거이지
@@ -583,60 +649,11 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
           onClick={runAdvice} disabled={advLoading || !alarm.trim()}>
           {advLoading ? '생성 중…' : '조치 순서 생성'}
         </button>
-        <button className="btn" style={{ width: 'auto', padding: '8px 16px' }}
-          onClick={() => setRepOpen(v => !v)} disabled={!tag}>
-          {repOpen ? '4D 기입란 접기' : '4D 기입란'}
-        </button>
         <button className="btn" style={{ width: 'auto', padding: '8px 16px', borderColor: 'var(--safety)', color: 'var(--safety)' }}
           onClick={runReport} disabled={repLoading || !tag}>
           {repLoading ? 'PDF 생성 중…' : '4D 리포트 PDF'}
         </button>
       </div>
-
-      {/* 4D 기입란 — 비워 두면 PDF 에 '(조치 후 기입)' 으로 남는다.
-          조치 전에 리포트를 뽑아 현장에서 손으로 채우는 방식도 그대로 된다.
-          입력칸은 반드시 .field 로 감싼다 — 맨 input 은 앱 배색을 못 받아
-          흰 배경에 밝은 글자가 얹혀 글씨가 안 보인다. */}
-      {repOpen && (
-        <div className="panel" style={{ marginBottom: 16, padding: 12 }}>
-          <div style={{ fontSize: 12, color: 'var(--fg-3)', marginBottom: 10 }}>
-            조치 후 확인된 내용을 적으면 PDF 의 D3·D4 에 그대로 들어갑니다.
-            비워 두면 '(조치 후 기입)' 으로 남습니다.
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div className="field" style={{ gridColumn: '1 / -1' }}>
-              <label>D3 확정 원인</label>
-              <input value={rep.confirmed_cause}
-                onChange={e => setRep({ ...rep, confirmed_cause: e.target.value })}
-                placeholder="예: 센서 다이어프램 스케일 고착" />
-            </div>
-            <div className="field" style={{ gridColumn: '1 / -1' }}>
-              <label>D4 실시 조치</label>
-              <input value={rep.final_action}
-                onChange={e => setRep({ ...rep, final_action: e.target.value })}
-                placeholder="예: 센서 교체 후 영점 재교정" />
-            </div>
-            <div className="field">
-              <label>사용 부품</label>
-              <input value={rep.parts}
-                onChange={e => setRep({ ...rep, parts: e.target.value })}
-                placeholder="예: 12126957 (센서 카트리지)" />
-            </div>
-            <div className="field">
-              <label>소요 시간 (분)</label>
-              <input value={rep.duration_min} inputMode="numeric"
-                onChange={e => setRep({ ...rep, duration_min: e.target.value.replace(/[^0-9]/g, '') })}
-                placeholder="예: 45" />
-            </div>
-            <div className="field">
-              <label>담당</label>
-              <input value={rep.tech}
-                onChange={e => setRep({ ...rep, tech: e.target.value })}
-                placeholder="예: 홍길동" />
-            </div>
-          </div>
-        </div>
-      )}
 
       {error && <div className="error-box">{error}</div>}
 
@@ -654,6 +671,10 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
           )}
         </>
       )}
+
+      {/* 조회 전 초기 화면 — 어디부터 볼지 알려주는 이력 통계.
+          조회가 실행되면 자리를 비켜 준다. */}
+      {!diag && !loading && <HistoryStats onPickTag={onPickTag} />}
 
       {/* 2열: 매뉴얼 | 현장 이력 */}
       <div className="two-col">
@@ -851,11 +872,12 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
           style={{ cursor: 'pointer' }}
           onClick={() => setFbOpen(!fbOpen)}
         >
-          {fbOpen ? '▾' : '▸'} 조치 결과 입력 — 다음 조회부터 근거로 사용됩니다
+          {fbOpen ? '▾' : '▸'} 조치 결과 입력 — 다음 조회의 근거가 되고, 4D 리포트 D3·D4 에 실립니다
         </div>
         {fbOpen && (
           <div className="panel-body">
-            <FeedbackForm tag={tag} alarm={alarm} onSaved={() => {
+            <FeedbackForm tag={tag} alarm={alarm} onSaved={(saved) => {
+              if (saved) setFb4d(saved)
               get(`/instrument/${encodeURIComponent(tag)}`).then(setInst)
             }} />
           </div>
@@ -1430,10 +1452,19 @@ function FeedbackForm({ tag, alarm, onSaved }) {
         parts,
         tech,
       })
-      setMsg(`저장됨: ${res.record.wo_no}`)
+      setMsg(`저장됨: ${res.record.wo_no} — 4D 리포트 D3·D4 에도 이 내용이 들어갑니다`)
+      // 4D 리포트가 쓸 수 있게 저장한 값을 위로 올린다. 실제 원인이
+      // 곧 D3 확정 원인이고 조치 내용이 곧 D4 실시 조치다 — 같은 것을
+      // 두 번 입력하게 하지 않는다.
+      onSaved?.({
+        confirmed_cause: root,
+        final_action: action,
+        parts,
+        duration_min: Number(mins) || 0,
+        tech,
+      })
       setRoot('')
       setAction('')
-      onSaved?.()
     } catch (e) {
       setMsg(e.message)
     } finally {
