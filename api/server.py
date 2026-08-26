@@ -2256,6 +2256,92 @@ def _reset_caches():
     _copilots.clear()
 
 
+
+# ── 반입 편집 권한 + 동시 잠금 ──────────────────────────────
+#
+# 배포는 여러 사람이 같이 보는 한 대의 서버다. 한 사람의 시험이
+# 모두의 화면을 바꾼다. 그래서 두 겹으로 잠근다.
+#
+#   1) 열쇠(권한) — COPILOT_INGEST_KEY 가 설정되어 있으면, 자료를
+#      바꾸는 조작(업로드·삭제·재생성)은 열쇠가 맞아야 한다.
+#      목록·받기·점검은 누구나 볼 수 있다. 기능을 감추는 것이
+#      아니라 바꾸는 손만 제한한다.
+#   2) 편집 임대(동시 잠금) — 열쇠가 맞아도 한 번에 한 사람만
+#      편집한다. 임대는 시간이 지나면 저절로 풀린다(기본 5분,
+#      조작마다 연장). 브라우저를 닫고 사라진 편집자가 잠금을
+#      영원히 쥐는 상황을 만들지 않기 위해서다.
+#
+# 열쇠가 설정되지 않은 로컬 실행에서는 둘 다 비활성 — 지금처럼
+# 자유롭게 쓴다.
+
+_edit_lease = {"owner": "", "until": 0.0}
+_LEASE_SEC = 300
+
+
+def _ingest_key():
+    return (os.environ.get("COPILOT_INGEST_KEY") or "").strip()
+
+
+def _lease_state():
+    import time
+    alive = _edit_lease["owner"] and _edit_lease["until"] > time.time()
+    return {
+        "protected": bool(_ingest_key()),
+        "locked_by_other": False,   # 호출자 기준으로 아래에서 채움
+        "editing": bool(alive),
+        "owner_hint": (_edit_lease["owner"][:4] + "…") if alive else "",
+        "remain": max(0, int(_edit_lease["until"] - time.time())) if alive else 0,
+    }
+
+
+def _require_edit(request: Request):
+    """자료를 바꾸는 조작 앞에 세우는 문. 열쇠 → 임대 순서로 본다."""
+    import time
+    key = _ingest_key()
+    if not key:
+        return                       # 로컬 — 잠금 없음
+    got = (request.headers.get("X-Ingest-Key") or "").strip()
+    if got != key:
+        raise HTTPException(401, "수정 열쇠가 필요합니다. 반입 화면 상단에 "
+                                 "열쇠를 입력하십시오.")
+    # 편집자 식별은 열쇠+브라우저가 보낸 세션표 (없으면 접속 주소)
+    who = (request.headers.get("X-Ingest-Session") or
+           (request.client.host if request.client else "?"))
+    now = time.time()
+    if _edit_lease["owner"] and _edit_lease["until"] > now             and _edit_lease["owner"] != who:
+        raise HTTPException(423, "다른 편집자가 작업 중입니다 (%d초 후 "
+                            "자동 해제). 잠시 뒤 다시 시도하십시오."
+                            % int(_edit_lease["until"] - now))
+    _edit_lease["owner"] = who
+    _edit_lease["until"] = now + _LEASE_SEC
+
+
+@app.get("/api/ingest/edit-state")
+def ingest_edit_state(request: Request):
+    import time
+    st = _lease_state()
+    who = (request.headers.get("X-Ingest-Session") or
+           (request.client.host if request.client else "?"))
+    st["locked_by_other"] = bool(
+        st["editing"] and _edit_lease["owner"] != who)
+    # 열쇠 검증도 여기서 해 준다 — 화면이 입력 즉시 맞는지 보여주게.
+    got = (request.headers.get("X-Ingest-Key") or "").strip()
+    st["key_ok"] = (not st["protected"]) or (got == _ingest_key())
+    return st
+
+
+@app.post("/api/ingest/edit-release")
+def ingest_edit_release(request: Request):
+    """편집을 마친 사람이 임대를 바로 돌려준다. 시간 만료를 기다리지
+    않아도 되게 하는 예의 장치일 뿐, 안 눌러도 5분이면 풀린다."""
+    who = (request.headers.get("X-Ingest-Session") or
+           (request.client.host if request.client else "?"))
+    if _edit_lease["owner"] == who:
+        _edit_lease["owner"] = ""
+        _edit_lease["until"] = 0.0
+    return {"ok": True}
+
+
 @app.get("/api/ingest/report")
 def ingest_report():
     # 점검 전에 읽어 둔 캐시를 버린다. 사용자가 화면을 거치지 않고
@@ -2271,6 +2357,7 @@ def ingest_report():
 async def ingest_upload(request: Request,
                         kind: str = Query(...),
                         name: str = Query(...)):
+    _require_edit(request)
     """
     본문 = 파일 바이트 그대로. multipart 를 쓰지 않는 이유는 의존성
     (python-multipart) 을 하나 늘리지 않기 위해서다 — 배포 이미지와
@@ -2343,7 +2430,8 @@ def _rebuild_worker():
 
 
 @app.post("/api/ingest/rebuild")
-def ingest_rebuild():
+def ingest_rebuild(request: Request):
+    _require_edit(request)
     if _rebuild["running"]:
         raise HTTPException(409, "이미 재생성 중입니다")
     _rebuild.update(running=True, stage="시작", done=0, total=0,
@@ -2429,8 +2517,10 @@ def ingest_download(folder: str = Query(...), name: str = Query(...)):
 
 
 @app.post("/api/ingest/file-op")
-def ingest_file_op(folder: str = Query(...), name: str = Query(...),
+def ingest_file_op(request: Request,
+                   folder: str = Query(...), name: str = Query(...),
                    op: str = Query(...)):
+    _require_edit(request)
     if _rebuild["running"]:
         raise HTTPException(409, "색인 재생성 중에는 파일을 바꿀 수 없습니다")
     path = _ingest_path(folder, name)

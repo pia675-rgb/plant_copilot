@@ -2255,6 +2255,27 @@ function IngestView({ free }) {
   const pollRef = React.useRef(null)
 
   const [files, setFiles] = useState(null)
+  // 편집 열쇠·세션. 열쇠는 저장하지 않는다 — 화면을 닫으면 사라진다.
+  const [editKey, setEditKey] = useState('')
+  const [edit, setEdit] = useState(null)
+  const sessRef = React.useRef(
+    'w' + Math.random().toString(36).slice(2, 10))
+  const hdrs = () => ({
+    'X-Ingest-Key': editKey, 'X-Ingest-Session': sessRef.current })
+
+  const loadEdit = async (k) => {
+    try {
+      const res = await fetch(`${API}/ingest/edit-state`, {
+        headers: { 'X-Ingest-Key': k ?? editKey,
+                   'X-Ingest-Session': sessRef.current } })
+      setEdit(await res.json())
+    } catch { /* 다음에 */ }
+  }
+  useEffect(() => {
+    loadEdit()
+    const t = setInterval(loadEdit, 15000)
+    return () => clearInterval(t)
+  }, [editKey])
 
   const loadReport = async () => {
     setErr('')
@@ -2277,7 +2298,10 @@ function IngestView({ free }) {
     }
     setErr('')
     try {
-      await post(`/ingest/file-op?folder=${folder}&name=${encodeURIComponent(name)}&op=${op}`, {})
+      const res = await fetch(
+        `${API}/ingest/file-op?folder=${folder}&name=${encodeURIComponent(name)}&op=${op}`,
+        { method: 'POST', headers: { ...hdrs(), 'Content-Type': 'application/json' }, body: '{}' })
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || res.statusText)
       await loadReport()
     } catch (e) { setErr(String(e.message || e)) }
   }
@@ -2315,7 +2339,7 @@ function IngestView({ free }) {
       for (const f of files) {
         const res = await fetch(
           `${API}/ingest/upload?kind=${kind}&name=${encodeURIComponent(f.name)}`,
-          { method: 'POST', body: f })
+          { method: 'POST', body: f, headers: hdrs() })
         const d = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(d.detail || res.statusText)
         done.push(`${d.saved}${d.replaced ? ' (기존 파일은 .prev 로 보존)' : ''}`)
@@ -2330,7 +2354,12 @@ function IngestView({ free }) {
   const rebuild = async () => {
     setErr('')
     try {
-      await post('/ingest/rebuild', {})
+      {
+        const res = await fetch(`${API}/ingest/rebuild`, {
+          method: 'POST',
+          headers: { ...hdrs(), 'Content-Type': 'application/json' }, body: '{}' })
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || res.statusText)
+      }
       setSt({ running: true, stage: '시작', done: 0, total: 0 })
       pollRef.current = setInterval(poll, 1000)
     } catch (e) { setErr(String(e.message || e)) }
@@ -2347,7 +2376,36 @@ function IngestView({ free }) {
 
       {/* 넣기 */}
       <div className="panel">
-        <div className="panel-head">자료 넣기</div>
+        <div className="panel-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+          <span>자료 넣기</span>
+          {edit && edit.protected && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 400 }}>
+              <span style={{ fontSize: '0.76rem', color: edit.key_ok ? 'var(--match, #34d399)' : 'var(--faint)' }}>
+                {edit.key_ok
+                  ? (edit.locked_by_other
+                      ? `다른 편집자 작업 중 · ${edit.remain}초 후 해제`
+                      : '편집 가능')
+                  : '보기 전용 — 수정하려면 열쇠 입력'}
+              </span>
+              <input type="password" value={editKey} placeholder="수정 열쇠"
+                onChange={e => setEditKey(e.target.value)}
+                style={{
+                  width: 110, height: 26, padding: '0 8px',
+                  background: 'var(--bg)', color: 'var(--fg)',
+                  border: '1px solid var(--line-strong, #3b4a5e)',
+                  borderRadius: 6, fontSize: '0.78rem',
+                }} />
+              {edit.key_ok && edit.editing && !edit.locked_by_other && (
+                <button className="btn"
+                  style={{ width: 'auto', padding: '2px 10px', fontSize: '0.74rem' }}
+                  onClick={async () => {
+                    await fetch(`${API}/ingest/edit-release`, { method: 'POST', headers: hdrs() })
+                    loadEdit()
+                  }}>편집 마침</button>
+              )}
+            </span>
+          )}
+        </div>
         <div className="panel-body">
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <select value={kind} onChange={e => setKind(e.target.value)}
