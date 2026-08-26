@@ -1714,9 +1714,14 @@ def rule_intent(msg: str, cur_tag: str = None):
         return {"type": "followup", "tag": tag, "question": msg,
                 "want": "advice"}
 
-    # "…에 대해 설명해줘" 의 '해줘' 가 조회 명령으로 걸려 화면 태그로
-    # 알람 조회를 납치한 일이 있었다. 설명·정의를 묻는 문장은 뺀다.
-    _asking = re.search(r"설명|뭐야|뭔가요|무엇|사용법|어떤\s*기능", low)
+    # "…에 대해 설명해줘" 의 '해줘', "…재생해줘" 의 '해줘' 가 조회
+    # 명령으로 걸려 화면 태그로 알람 조회를 납치한 일이 있었다.
+    # 설명·정의를 묻는 문장과, 조회가 아닌 동사(재생·시뮬레이션 등
+    # 이 도구에 없는 기능 요청 포함)는 뺀다 — 모델로 넘어가면 새
+    # 프롬프트 규칙이 "그런 기능은 없다" 고 사양한다.
+    _asking = re.search(r"설명|뭐야|뭔가요|무엇|사용법|어떤\s*기능"
+                        r"|시뮬레이션|재생|불러|틀어|노래|게임|만들어",
+                        low)
     if (re.search(r"알람|조회|검색|고장", low) and not _asking) \
             or (tag and re.search(r"해줘|보여", low) and not _asking):
         alarm = re.sub(r"\b([A-Za-z]{1,8}-[A-Za-z0-9]{1,8})\b", " ", msg)
