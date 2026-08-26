@@ -1657,7 +1657,22 @@ def rule_intent(msg: str, cur_tag: str = None):
                 "1) 알람 조회: 태그 선택 → 증상 입력 → 알람 조회\n"
                 "2) 원문/도면: 결과에서 원문 보기·도면 보기\n"
                 "3) 인터락: 인터락 조회 탭에서 출력 태그\n"
-                "4) 자연어 예: AIT-4002 low acid 알람 조회해줘"
+                "4) 자료 반입: 자료 반입 탭에서 파일 올리기 → 반입 점검 확인\n"
+                "5) 자유 모드: 사이드바 토글 — 근거 없는 모델 답변이 라벨과 함께 표시\n"
+                "6) 자연어 예: AIT-4002 low acid 알람 조회해줘"
+            ),
+        }
+    if re.search(r"자료\s*반입|반입|파일\s*(올리|넣|업로드)|업로드", low):
+        return {
+            "type": "chat",
+            "reply": (
+                "자료 반입은 「자료 반입」 탭에서 합니다.\n"
+                "1) 종류 선택(IO List·계기·TB·인터락·매뉴얼·도면) → 파일 올리기\n"
+                "2) 올리면 즉시 반입 점검 리포트 — 몇 행을 읽었는지, "
+                "못 읽은 열, 매뉴얼-기종 연결, 태그 맞물림\n"
+                "3) 매뉴얼을 바꿨으면 색인 다시 만들기 (진행률 표시)\n"
+                "같은 자리 파일은 덮어쓰기 전에 .prev 로 보존되고, "
+                "삭제는 2단계(삭제 → 영구 삭제)입니다."
             ),
         }
     # 화면에 이미 결과가 떠 있는 상태에서의 후속 질문은 명령이 아니다.
@@ -1699,7 +1714,11 @@ def rule_intent(msg: str, cur_tag: str = None):
         return {"type": "followup", "tag": tag, "question": msg,
                 "want": "advice"}
 
-    if re.search(r"알람|조회|검색|고장", low) or (tag and re.search(r"해줘|보여", low)):
+    # "…에 대해 설명해줘" 의 '해줘' 가 조회 명령으로 걸려 화면 태그로
+    # 알람 조회를 납치한 일이 있었다. 설명·정의를 묻는 문장은 뺀다.
+    _asking = re.search(r"설명|뭐야|뭔가요|무엇|사용법|어떤\s*기능", low)
+    if (re.search(r"알람|조회|검색|고장", low) and not _asking) \
+            or (tag and re.search(r"해줘|보여", low) and not _asking):
         alarm = re.sub(r"\b([A-Za-z]{1,8}-[A-Za-z0-9]{1,8})\b", " ", msg)
         alarm = re.sub(r"알람|조회|해줘|해주세요|검색|좀|관련", " ", alarm, flags=re.I)
         alarm = re.sub(r"\s+", " ", alarm).strip() or "alarm"
@@ -1826,12 +1845,14 @@ def chat_help(req: ChatRequest):
     if rule.get("type") in ACTIONABLE:
         return finalize(rule, "rule")
 
-    # 규칙이 "목록에 없는 태그" 를 이미 확정했으면 QA/LLM 으로 넘기지 않는다.
-    # 넘기면 매뉴얼 검색·대화 모델이 'Main Feed Control Panel' 같은
-    # 그럴듯한 판넬 이름을 지어낸다. 없는 것은 없다고 말하는 것이 답이다.
+    # 규칙이 구체적인 답(chat, generic 아님)을 냈으면 그대로 확정한다.
+    # QA/LLM 으로 넘기면 정해진 사실 — "그 태그는 목록에 없다",
+    # "자료 반입은 이 탭에서 한다" — 를 모델이 덮어쓰거나 지어낸다.
+    # 실제로 "자료 반입에 대해 설명해줘" 가 QA 로 넘어가 "근거를 찾지
+    # 못했습니다" 로 덮인 일이 있었다. generic(아무것도 못 알아들음)
+    # 만 아래 QA·LLM 층으로 내려보낸다.
     if (rule.get("type") == "chat" and rule.get("reply")
-            and re.search(r"없습니다|없어|목록에\s*없|리스트에\s*없",
-                          rule.get("reply", ""))):
+            and not rule.get("generic")):
         return finalize(rule, "rule")
 
     # 후속 질문 — 화면에 떠 있는 결과를 근거로 답한다.
@@ -1933,13 +1954,20 @@ def chat_help(req: ChatRequest):
     # 지킨다: 조회 결과(판넬 위치·인터락 조건·매뉴얼 페이지)를 지어내지
     # 않는다, 기술 판단에는 문서 근거가 아님을 밝힌다.
     free_clause = (
-        "질문이나 대화이면 type=chat 으로 두고 reply 에 한국어로 자유롭게 "
-        "답하십시오. 일반적인 정비 지식·개념 설명·잡담도 됩니다. 다만 "
-        "두 가지는 지키십시오. (1) 이 도구의 조회 결과 — 특정 태그의 판넬 "
-        "위치, 인터락 조건, 매뉴얼 페이지 — 를 지어내지 마십시오. 그런 "
-        "질문에는 해당 조회 기능을 안내하십시오. (2) 기술적 판단을 담은 "
-        "답에는 문서 근거가 아니라 일반 지식이라는 점을 한 줄로 "
-        "밝히십시오."
+        "지금 자유 모드가 켜져 있습니다 (모드를 물으면 켜져 있다고 "
+        "답하십시오). 질문이나 대화이면 type=chat 으로 두고 reply 에 "
+        "한국어로 자유롭게 답하십시오. 일반적인 정비 지식·개념 설명은 "
+        "됩니다. 다만 다음은 지키십시오. "
+        "(1) 이 도구의 조회 결과 — 특정 태그의 판넬 위치, 인터락 조건, "
+        "매뉴얼 페이지 — 를 지어내지 마십시오. 그런 질문에는 해당 조회 "
+        "기능을 안내하십시오. "
+        "(2) 기술적 판단을 담은 답에는 문서 근거가 아니라 일반 지식이라는 "
+        "점을 한 줄로 밝히십시오. "
+        "(3) reply 는 대화 답변일 뿐 아무것도 실행하지 않습니다 — "
+        "'조회하겠습니다', '확인해보겠습니다' 처럼 실행을 약속하는 문장을 "
+        "쓰지 마십시오. 실행이 필요하면 type 을 해당 명령으로 정하십시오. "
+        "(4) 노래·게임·역할극 등 정비 도구 범위 밖의 요청은 할 수 있는 "
+        "척하지 말고, 정비 지원 도구라 어렵다고 한 줄로 사양하십시오."
         if req.free else
         "명령이 아니라 질문이나 인사이면 type=chat 으로 두고 reply 에 "
         "한국어로 자연스럽게 답하십시오. 기능을 물으면 위 목록을 바탕으로 "
@@ -1966,7 +1994,8 @@ def chat_help(req: ChatRequest):
         '"action":"OPEN|CLOSE|START|STOP or null","openSource":false,'
         '"reply":"short Korean confirmation"}\n'
         "Rules: do not invent tags; if tag missing ask in reply with type=chat. "
-        "For alarm search type=diagnose. For P&ID type=drawing. For interlock type=interlock."
+        "For alarm search type=diagnose. For P&ID type=drawing. For interlock type=interlock. "
+        "reply 는 아무것도 실행하지 않으니 실행을 약속하는 문장을 쓰지 마십시오. 범위 밖 요청(노래 등)은 한 줄로 사양하십시오."
     )
     user = "current_tab=%s current_tag=%s\nuser: %s" % (req.tab, req.tag, text)
 

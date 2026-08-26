@@ -265,7 +265,7 @@ export default function App() {
       <button className="nav-reopen" onClick={() => setNavOpen(true)}
         title="사이드바 보이기 (Ctrl+B)" aria-label="사이드바 보이기">›</button>
 
-      <main className="main">
+      <main className={`main ${freeMode ? 'free-frame' : ''}`}>
         {/* 강등 배너 — 탭·모드와 무관하게 항상 보인다.
             벡터 검색이 꺼지면 대부분의 질의가 거절로 끝나는데, 거절은
             정상 동작처럼 보여서 원인을 짚을 수 없다. 실제로 "모든 태그가
@@ -1930,7 +1930,9 @@ function helpReply() {
     '② 근거 확인 — 매뉴얼·코드표 / 현장 이력 두 칸\n' +
     '③ 원문·도면 — 원문 보기, 도면 보기 (휠 확대)\n' +
     '④ 4D 리포트 — PDF 다운로드\n' +
-    '⑤ 인터락 조회 — 탭 전환 후 XV/LCV 등 출력 태그\n\n' +
+    '⑤ 인터락 조회 — 탭 전환 후 XV/LCV 등 출력 태그\n' +
+    '⑥ 자료 반입 — 파일 올리기 → 반입 점검 리포트 확인\n' +
+    '⑦ 자유 모드 — 사이드바 토글, 근거 없는 답변은 라벨 표시\n\n' +
     '저에게 자연어로 시킬 수도 있습니다.\n' +
     '예: 「AIT-4002 low acid 알람 조회해줘」'
   )
@@ -1946,6 +1948,17 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
     },
   ])
   const [engine, setEngine] = useState('rule')
+  // 응답을 기다리는 동안의 상태. 0 이면 대기, 아니면 요청 시작 시각.
+  // 규칙 응답은 1초 안에 오고 모델 응답은 수십 초가 걸리는데, 그동안
+  // 화면이 조용하면 죽은 것과 구분이 안 된다.
+  const [thinking, setThinking] = useState(0)
+  const [nowTick, setNowTick] = useState(0)
+  useEffect(() => {
+    if (!thinking) return
+    const t = setInterval(() => setNowTick(Date.now()), 500)
+    return () => clearInterval(t)
+  }, [thinking])
+  const thinkSec = thinking ? Math.floor(((nowTick || Date.now()) - thinking) / 1000) : 0
   const listRef = React.useRef(null)
 
   useEffect(() => {
@@ -1966,6 +1979,7 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
     if (!text.trim()) return
     push('user', text)
     setInput('')
+    setThinking(Date.now())
     let intent = null
     try {
       intent = await post('/chat', {
@@ -1983,6 +1997,8 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
       intent = parseBotIntent(text, tags)
       if (intent.type === 'help') intent.reply = helpReply()
       intent.reply = (intent.reply || '') + '\n(오프라인 해석 — 서버에 연결하지 못했습니다)'
+    } finally {
+      setThinking(0)
     }
     if (!intent) return
     if (intent.type === 'help' && !intent.reply) intent.reply = helpReply()
@@ -2060,12 +2076,22 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
           </div>
           <div className="helpbot-head">
             <div className="helpbot-brand">
-              <div className="helpbot-avatar" aria-hidden>
+              <div
+                className={`helpbot-avatar ${thinking ? 'pulsing' : ''} ${free ? 'free' : ''}`}
+                aria-hidden
+              >
                 <BotIcon size={36} />
               </div>
               <div>
                 <div className="helpbot-title">Copilot Assistant</div>
-                <div className="helpbot-sub">가이드 · 자연어 실행 · {engine}</div>
+                <div className="helpbot-sub">
+                  가이드 · 자연어 실행 · {engine}
+                  {free && (
+                    <span style={{ color: '#d9a441', fontWeight: 600 }}>
+                      {' '}· 자유 모드
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <button type="button" className="helpbot-x" onClick={() => setOpen(false)} aria-label="닫기">
@@ -2097,6 +2123,23 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
                 </div>
               </div>
             ))}
+            {thinking > 0 && (
+              <div className="helpbot-row bot">
+                <div className="helpbot-mini-av" aria-hidden>
+                  <BotIcon size={22} />
+                </div>
+                <div className="helpbot-msg bot helpbot-thinking">
+                  <span className="hb-wave" aria-hidden>
+                    <i /><i /><i /><i /><i />
+                  </span>
+                  <span className="hb-stage">
+                    {thinkSec < 2
+                      ? '요청 처리 중'
+                      : `모델 답변 생성 중 · ${thinkSec}초`}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="helpbot-chips">

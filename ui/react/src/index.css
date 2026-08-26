@@ -1561,3 +1561,91 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
 .rack-module.fam-ao { border-left: 3px solid #c4844a; }
 .rack-module.fam-xx { border-left: 3px solid #6a727a; }
 
+
+/* ── 도우미 생각 중 표시 ─────────────────────────────────────
+   모델 응답은 수십 초가 걸린다. 그동안 화면이 조용하면 죽은 것과
+   구분이 안 된다. 아바타 맥동(파문)과 파형 말풍선으로 "지금 무거운
+   일을 하고 있다"를 글자 없이도 보이게 한다. 색은 모드를 따른다 —
+   근거 모드는 청록, 자유 모드는 주황. 몸짓 하나에 "AI 가 돌고 있다"
+   와 "근거 없는 답이 올 수 있다" 가 함께 실린다. */
+.helpbot-avatar { --pulse-c: 34, 211, 238; }           /* 청록 */
+.helpbot-avatar.free { --pulse-c: 217, 164, 65; }      /* 주황 */
+.helpbot-avatar.pulsing { overflow: visible; }
+.helpbot-avatar.pulsing::before,
+.helpbot-avatar.pulsing::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid rgba(var(--pulse-c), 0.55);
+  animation: hbPulse 1.6s ease-out infinite;
+  pointer-events: none;
+}
+.helpbot-avatar.pulsing::after { animation-delay: 0.8s; }
+.helpbot-avatar { position: relative; }
+
+.helpbot-fab { --pulse-c: 34, 211, 238; }
+.helpbot-fab.free { --pulse-c: 217, 164, 65; }
+.helpbot-fab.pulsing::before,
+.helpbot-fab.pulsing::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid rgba(var(--pulse-c), 0.55);
+  animation: hbPulse 1.6s ease-out infinite;
+  pointer-events: none;
+}
+.helpbot-fab.pulsing::after { animation-delay: 0.8s; }
+
+@keyframes hbPulse {
+  0%   { transform: scale(1);    opacity: 0.9; }
+  70%  { transform: scale(1.55); opacity: 0; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+/* 생각 중 말풍선 — 파형 */
+.helpbot-thinking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hb-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+}
+.hb-wave i {
+  width: 3px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--accent, #22d3ee);
+  animation: hbWave 1.1s ease-in-out infinite;
+}
+.hb-wave i:nth-child(2) { animation-delay: 0.12s; }
+.hb-wave i:nth-child(3) { animation-delay: 0.24s; }
+.hb-wave i:nth-child(4) { animation-delay: 0.36s; }
+.hb-wave i:nth-child(5) { animation-delay: 0.48s; }
+@keyframes hbWave {
+  0%, 100% { height: 5px;  opacity: 0.55; }
+  50%      { height: 15px; opacity: 1; }
+}
+.hb-stage {
+  font-size: 0.78rem;
+  color: var(--faint);
+}
+
+/* 파문이 창 밖으로 나갈 때 잘리지 않게 */
+.helpbot-brand { overflow: visible; }
+
+/* ── 자유 모드 화면 테 ───────────────────────────────────────
+   제목 옆 배지는 스크롤하면 사라진다. 모드는 화면 전체에 걸리는
+   상태이므로, 본문 가장자리를 주황 테로 둘러 어디를 보고 있어도
+   시야에 걸리게 한다. 녹화 표시등과 같은 문법 — 자리를 차지하지
+   않고 상태만 알린다. */
+.main.free-frame {
+  box-shadow:
+    inset 0 0 0 2px rgba(217, 164, 65, 0.75),
+    inset 0 0 26px rgba(217, 164, 65, 0.12);
+}
