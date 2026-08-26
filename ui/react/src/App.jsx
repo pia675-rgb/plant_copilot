@@ -2006,10 +2006,54 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
     { label: '원본 리스트', q: 'LCV-01 인터락 원본 보여줘' },
   ]
 
+  // 창 높이 조절. 근거 인용이 붙은 답변은 길어서 기본 높이로는 한
+  // 답변을 보려고 계속 스크롤해야 한다. 그렇다고 늘 크면 화면을 가린다.
+  // 사용자가 그때그때 잡아 늘리게 하되 한도를 둔다.
+  const H_MIN = 320
+  const hMax = () => Math.max(H_MIN, Math.min(900, window.innerHeight - 72))
+  const [panelH, setPanelH] = useState(() =>
+    Math.min(560, Math.max(H_MIN, window.innerHeight - 72)))
+
+  function startResize(e) {
+    e.preventDefault()
+    const y0 = e.clientY
+    const h0 = panelH
+    const max = hMax()
+    const move = ev => {
+      // 위로 끌면 커진다. 창이 아래에 붙어 있으므로 방향을 뒤집는다.
+      const next = h0 + (y0 - ev.clientY)
+      setPanelH(Math.max(H_MIN, Math.min(max, next)))
+    }
+    const up = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
   return (
     <div className={`helpbot ${open ? 'open' : ''}`}>
       {open && (
-        <div className="helpbot-panel">
+        <div
+          className="helpbot-panel"
+          style={{ height: Math.min(panelH, hMax()) }}
+        >
+          <div
+            onPointerDown={startResize}
+            onDoubleClick={() => setPanelH(Math.min(560, hMax()))}
+            title="끌어서 높이 조절 · 두 번 누르면 기본 크기"
+            style={{
+              height: 14, flex: '0 0 14px', cursor: 'ns-resize',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              touchAction: 'none',
+            }}
+          >
+            <div style={{
+              width: 38, height: 4, borderRadius: 999,
+              background: 'rgba(148,163,184,0.45)',
+            }} />
+          </div>
           <div className="helpbot-head">
             <div className="helpbot-brand">
               <div className="helpbot-avatar" aria-hidden>

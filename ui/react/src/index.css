@@ -1061,8 +1061,11 @@ button, input, select, textarea { font-family: inherit; color: inherit; }
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
 }
 .helpbot-panel {
-  width: min(400px, calc(100vw - 28px));
-  height: min(560px, calc(100vh - 96px));
+  /* 폭은 근거 인용의 파일명이 길어 조금 넓혔다. 높이는 화면에서
+     드래그로 조절하므로(인라인 style 이 이 값을 덮는다) 여기 값은
+     스크립트가 뜨기 전의 기본값이다. */
+  width: min(430px, calc(100vw - 28px));
+  height: min(560px, calc(100vh - 72px));
   background: var(--bg);
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.18);
