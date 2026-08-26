@@ -1662,6 +1662,18 @@ def rule_intent(msg: str, cur_tag: str = None):
                 "6) 자연어 예: AIT-4002 low acid 알람 조회해줘"
             ),
         }
+    # 공정 화면(오프라인 시뮬레이션)의 시나리오 재생. 화면은 P-5101A
+    # 인터락 뷰에 붙어 있는 기존 기능이고, 챗봇은 그리로 안내·실행만
+    # 한다. 시뮬레이션 화면이 있는 태그는 현재 P-5101A 하나다.
+    if re.search(r"시나리오\s*재생|시뮬레이션.*(재생|가동|실행|열|보여)"
+                 r"|공정\s*화면", low):
+        return {"type": "interlock", "tag": "P-5101A", "tab": "interlock",
+                "action": "OPEN", "openGraphic": True,
+                "playScenario": bool(re.search(r"재생|가동|실행", low)),
+                "reply": "P-5101A 공정 화면(오프라인 시뮬레이션)을 열어 "
+                         "시나리오를 재생합니다. 실제 공정 상태가 아닌 "
+                         "시연 화면입니다."}
+
     if re.search(r"자료\s*반입|반입|파일\s*(올리|넣|업로드)|업로드", low):
         return {
             "type": "chat",

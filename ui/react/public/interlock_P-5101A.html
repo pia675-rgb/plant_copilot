@@ -403,6 +403,12 @@ function scnStop(){
 function scnStart(){
   scn = {i:-1, t:0}; scnBtn.textContent = "■ 정지"; scnBtn.dataset.on = "ok";
 }
+// 부모 앱(챗봇 명령)이 재생을 시킬 수 있다. 같은 서버에서 내려주는
+// 페이지끼리만 받는다 (origin 검사).
+window.addEventListener("message", (e)=>{
+  if (e.origin !== window.location.origin) return;
+  if (e.data === "play-scenario" && !scn) scnStart();
+});
 scnBtn.addEventListener("click", ()=> scn ? scnStop() : scnStart());
 // 사람이 직접 만지면 재생을 멈춘다 — 조작권은 사람에게 있다.
 ["lit","xv","ol","es","mcc","vfd","reset"].forEach(id=>{

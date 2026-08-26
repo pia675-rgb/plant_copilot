@@ -1495,10 +1495,19 @@ function InterlockView({ tag, action, asInput, botPending, onBotHandled, free })
   // 공정 화면(작화 전사본)이 준비된 태그만. 없는 태그는 패널 자체를 띄우지 않는다.
   const GRAPHIC_PAGES = { 'P-5101A': '/interlock_P-5101A.html?embed=1' }
   const [graphicOpen, setGraphicOpen] = useState(false)  // 기본은 접힘
+  const graphicRef = React.useRef(null)
+  // 챗봇 명령("시나리오 재생해줘")이 공정 화면의 재생 버튼까지 잇는다.
+  // 화면(iframe)이 뜬 뒤에 신호를 보내야 하므로 예약해 두었다가
+  // iframe onLoad 에서 보낸다.
+  const [playWhenReady, setPlayWhenReady] = useState(false)
 
   useEffect(() => {
     if (!botPending) return
     if (botPending.type === 'interlock' || botPending.type === 'interlock_source') {
+      if (botPending.openGraphic) {
+        setGraphicOpen(true)
+        setPlayWhenReady(!!botPending.playScenario)
+      }
       const run = async () => {
         setLoading(true)
         setError(null)
@@ -1629,7 +1638,15 @@ function InterlockView({ tag, action, asInput, botPending, onBotHandled, free })
               {graphicOpen && (
                 <div className="panel-body" style={{ padding: 0 }}>
                   <iframe src={GRAPHIC_PAGES[data.output.tag]}
+                    ref={graphicRef}
                     title={`${data.output.tag} 공정 화면`}
+                    onLoad={() => {
+                      if (!playWhenReady) return
+                      setPlayWhenReady(false)
+                      // 같은 서버에서 내려주는 페이지라 postMessage 로 잇는다.
+                      graphicRef.current?.contentWindow?.postMessage(
+                        'play-scenario', window.location.origin)
+                    }}
                     style={{ width: '100%', height: 640, border: 0, display: 'block' }} />
                 </div>
               )}
