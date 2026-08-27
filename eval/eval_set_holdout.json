@@ -1,13 +1,13 @@
 {
   "meta": {
-    "author": "도남진 (검증 담당)",
-    "purpose": "검색 평가셋 확장 — 개발자가 만들지 않은 문항으로 일반화 확인",
+    "author": "도남진 (검증 담당) — 영문 대조군",
+    "purpose": "한국어 홀드아웃 10문항을 같은 내용의 영문으로 다시 물은 대조군. 한국어판에서 낮은 점수가 나온 원인이 한국어→영문 구간에 있는지 확인한다.",
     "rules": [
-      "1. eval_set_v2.json 을 열어보지 말 것. 기존 문항의 표현을 따라가게 된다.",
-      "2. 벤더 매뉴얼 PDF 를 보고 문항을 만들 것. 시스템에 먼저 물어보지 말 것.",
-      "3. 현장 정비원이 실제로 쓸 법한 한국어로 쓸 것. 영문 용어를 떠올리지 말 것.",
-      "4. 만든 뒤 한 번만 채점하고, 그 결과를 보고 문항을 고치지 말 것.",
-      "5. 근거가 없는 문항(abstain)을 반드시 섞을 것. 지어내는지 보는 유일한 방법이다."
+      "이 평가셋은 eval_set_holdout.json 의 대조군이다. 한국어판을 고친 것이 아니라 별개 측정이다.",
+      "한국어판은 채점 후 수정하지 않았으며 원본 그대로 보존한다.",
+      "문항의 내용·정답·기대 동작은 한국어판과 동일하고 질의 언어만 다르다.",
+      "syn 유형은 원래 한글→영문 도달을 재는 것이므로, 영문판에서 이 유형은 en(영문→영문)을 재는 것이 된다.",
+      "따라서 영문판의 점수를 도구의 성능으로 읽어서는 안 된다. 두 판의 차이만 읽는다."
     ],
     "how_to_find_expected": [
       "코드표 항목: docs/holdout/참고_코드표.txt 에 306건이 정리되어 있습니다.",
@@ -17,25 +17,25 @@
     ],
     "run": "set COPILOT_DATA_DIR=%CD%\\demo_data && set COPILOT_INDEX_DIR=%CD%\\demo_index && set COPILOT_DERIVED_DIR=%CD%\\demo_derived && python -m eval.run_eval_v2 --eval eval/eval_set_holdout.json --systems hybrid --md eval/scorecard_holdout.md",
     "guide": "docs/holdout/홀드아웃_작성안내.md",
-    "count": "10문항 (syn 4 · body 2 · typo 1 · abstain 3)",
-    "note_on_edit": "태그 표기와 코드표 id 표기만 이 데이터 세트에 맞게 고쳤습니다. 문항 문장·정답 항목·기대 동작은 작성자가 쓴 그대로입니다."
+    "count": "10문항 (한국어판과 1:1 대응)",
+    "pair_with": "eval/eval_set_holdout.json (한국어 원본, 2/10)"
   },
   "questions": [
     {
       "id": "H01",
       "type": "syn",
       "tag": "AIT-4002",
-      "alarm": "Acid reagent bottle is almost empty, warning came up",
+      "alarm": "산 시약 통이 거의 바닥나서 경고 떠",
       "expect_top3": [
         "M9E-300"
       ],
-      "note": "Synonym test: Acid container volume <10% expressed as 'acid reagent bottle is almost empty'"
+      "note": "Acid container volume <10% 를 '산 시약 통이 거의 바닥났어'로 표현한 동의어 시험"
     },
     {
       "id": "H02",
       "type": "body",
       "tag": "AIT-4002",
-      "alarm": "How do I replace the UV lamp?",
+      "alarm": "자외선 램프 어떻게 교체해?",
       "expect_kind": "manual_text",
       "expect_section_any": [
         "To replace the UV Lamp",
@@ -47,63 +47,63 @@
       "id": "H03",
       "type": "typo",
       "tag": "AIT-4002",
-      "alarm": "Oxidzer reagent is almost gone, waring showed up, do I need to replace it?",
+      "alarm": "산회제 시약 양이 거의 없다고 경고마 나왔어 교체해야 하나",
       "expect_top3": [
         "M9E-400"
       ],
-      "note": "Typos: oxidizer→oxidzer, warning→waring"
+      "note": "산화제→산회제, 경고가→경고마 오타"
     },
     {
       "id": "H04",
       "type": "abstain",
       "tag": "AIT-4002",
-      "alarm": "Cooling fan inside the analyzer is running really loud, what's the fan replacement interval?",
+      "alarm": "분석기 안에서 냉각팬이 너무 시끄럽게 돌아가는데 팬 교체 주기 알려줘",
       "expect_abstain": true,
-      "note": "No content in the manual about cooling fan replacement interval or noise"
+      "note": "매뉴얼에 냉각팬 교체 주기나 소음 관련 내용 없음"
     },
     {
       "id": "H05",
       "type": "abstain",
       "tag": "AIT-4002",
-      "alarm": "Where is the setting that automatically stops analysis when sample temperature goes over 45 degrees?",
+      "alarm": "샘플 온도가 45도 넘으면 자동으로 분석 멈추는 설정 어디에 있어?",
       "expect_abstain": true,
-      "note": "Manual has no automatic stop function at sample temperature of 45 degrees"
+      "note": "매뉴얼에 샘플 온도 45도 자동정지 기능 없음"
     },
     {
       "id": "H06",
       "type": "syn",
       "tag": "AIT-5003",
-      "alarm": "UV lamp life is done, warning says I need to replace it right now",
+      "alarm": "자외선등 수명 다 돼서 지금 바로 갈아야 된다고 경고 뜸",
       "expect_top3": [
         "M9E-502"
       ],
-      "note": "Synonym test: UV lamp has expired expressed as 'UV lamp life is done, need to replace it right now'"
+      "note": "UV lamp has expired 를 '자외선등 수명 다 돼서 갈아야 된다'로 표현"
     },
     {
       "id": "H07",
       "type": "syn",
       "tag": "AIT-6002",
-      "alarm": "Resin filter life is almost over, warning came up",
+      "alarm": "레진 필터 수명이 거의 끝나가서 경고 나와",
       "expect_top3": [
         "M9E-700"
       ],
-      "note": "Synonym test: Resin bed remaining life <15 days expressed as 'resin filter life is almost over'"
+      "note": "Resin bed remaining life <15 days 를 '레진 필터 수명이 거의 끝나가서'로 표현"
     },
     {
       "id": "H08",
       "type": "syn",
       "tag": "AIT-5008",
-      "alarm": "IC sample pump hose life warning popped up, when do I need to change it?",
+      "alarm": "IC 쪽 샘플 펌프 호스 수명 경고 떴는데 언제 갈아야 해?",
       "expect_top3": [
         "M9E-600"
       ],
-      "note": "Synonym test: IC Sample Pump tube life <15 days expressed as 'IC sample pump hose life warning'"
+      "note": "IC Sample Pump tube life <15 days 를 'IC 쪽 샘플 펌프 호스 수명 경고'로 표현"
     },
     {
       "id": "H09",
       "type": "body",
       "tag": "AIT-4002",
-      "alarm": "How do I bleed the air after first installing the DI water pump?",
+      "alarm": "DI 물 펌프 처음 설치하고 나서 공기 빼는 작업 어떻게 해?",
       "expect_kind": "manual_text",
       "expect_section_any": [
         "Step 8: Prime the DI Pump",
@@ -116,9 +116,9 @@
       "id": "H10",
       "type": "abstain",
       "tag": "AIT-5003",
-      "alarm": "Is there a battery backup that keeps the analyzer running for about an hour after power is turned off?",
+      "alarm": "분석기 전원 끄고 나서 배터리로 한 시간 정도 더 돌아가는 비상전원 기능 있어?",
       "expect_abstain": true,
-      "note": "Manual has no emergency battery backup power function at all"
+      "note": "매뉴얼에 비상 배터리 백업 전원 기능 전혀 없음"
     }
   ]
 }
