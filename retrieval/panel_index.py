@@ -245,6 +245,95 @@ class PanelIndex:
             })
         return out
 
+    # ── 알람 폭주 역추적 ────────────────────────────────────
+    #
+    # 카드 하나가 죽으면 그 카드에 물린 태그 전부가 동시에 LOOP ERROR 를
+    # 띄운다. 알람 한 건씩 조회하면 태그 수만큼 서로 다른 계기 매뉴얼이
+    # 근거로 나온다 — 전부 오답이다. 진짜 원인은 카드 1장이다.
+    #
+    # 아래 둘은 common_cause()(설계 점검: 한 인터락의 조건이 같은 카드에
+    # 몰려 있는가)와 같은 자료를 반대 방향으로 쓴다 — 동시 알람 태그
+    # 묶음에서 공통 상위 노드를 찾는 사후 진단이다. 판정은 전부 IO List
+    # 조회로 결정되며 LLM 을 쓰지 않는다.
+
+    def siblings(self, tag):
+        """같은 카드(슬롯)에 물린 다른 태그 — 알람 폭주의 1차 용의선."""
+        r = self._by_tag.get(tag)
+        if not r:
+            return None
+        card = self._card_key(r)
+        rows = self._by_card.get(card) or []
+        others = sorted(x["TAG"] for x in rows if x["TAG"] != tag)
+        return {
+            "tag": tag,
+            "card": card,
+            "panel": r["PANEL"],
+            "rack": r["RACK"],
+            "slot": r["SLOT"],
+            "ch": r["CH"],
+            "siblings": others,
+        }
+
+    def common_cause_of(self, tags):
+        """동시 알람 태그 목록 → 공통 상위 노드 역추적.
+
+        판정 계층: card(슬롯) → rack → panel → plc → scattered.
+        미등재 태그는 unknown 으로 분리해 보고한다 — 조용히 빼면
+        '전부 같은 카드'라는 판정이 실제보다 강해 보인다.
+        """
+        tags = [t for t in dict.fromkeys(tags) if t]
+        rows, unknown = [], []
+        for t in tags:
+            r = self._by_tag.get(t)
+            (rows if r else unknown).append(r or t)
+        out = {"tags": tags, "known": len(rows), "unknown": unknown,
+               "level": "scattered", "node": None, "note": "",
+               "uncovered": []}
+        if len(rows) < 2:
+            out["note"] = ("공통 원인 판정에는 등재된 태그가 2개 이상 "
+                           "필요합니다 (등재 %d)" % len(rows))
+            return out
+
+        def uniq(vals):
+            s = {str(v) for v in vals}
+            return list(s)[0] if len(s) == 1 else None
+
+        card = uniq(self._card_key(r) for r in rows)
+        rack = uniq((r["PLC"], r["PANEL"], r.get("PN(DP)", ""), r["RACK"])
+                    for r in rows)
+        panel = uniq((r["PLC"], r["PANEL"]) for r in rows)
+        plc = uniq(r["PLC"] for r in rows)
+        if card:
+            out["level"], out["node"] = "card", card
+            all_rows = self._by_card.get(card) or []
+            out["uncovered"] = sorted(x["TAG"] for x in all_rows
+                                      if x["TAG"] not in set(tags))
+            out["note"] = ("동시 알람 %d점이 모두 카드 %s 소속 — 카드 "
+                           "공통 원인(전원·백플레인·카드 자체)을 개별 "
+                           "계기보다 먼저 점검. SSL 진단(11H 등) 확인."
+                           % (len(rows), card))
+            if out["uncovered"]:
+                out["note"] += (" 같은 카드의 미알람 태그 %s 상태가 "
+                                "반례가 될 수 있음 — 함께 확인."
+                                % ", ".join(out["uncovered"]))
+        elif rack:
+            out["level"] = "rack"
+            out["node"] = "%s/%s/R%s" % (rack[1], rack[0], rack[3])
+            out["note"] = ("동시 알람이 같은 랙의 여러 슬롯에 분포 — 랙 "
+                           "전원·버스 계통을 먼저 점검.")
+        elif panel:
+            out["level"], out["node"] = "panel", panel[1]
+            out["note"] = ("동시 알람이 같은 판넬의 여러 랙에 분포 — 판넬 "
+                           "전원·접지 계통을 먼저 점검.")
+        elif plc:
+            out["level"], out["node"] = "plc", plc
+            out["note"] = ("동시 알람이 같은 PLC 의 여러 판넬에 분포 — "
+                           "PLC·네트워크 계통을 먼저 점검.")
+        else:
+            out["note"] = ("공통 상위 노드 없음 — 개별 원인으로 각각 "
+                           "조회할 것.")
+        return out
+
     def by_card(self, card):
         rows = self._by_card.get(card)
         if not rows:

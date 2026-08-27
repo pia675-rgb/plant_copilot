@@ -227,9 +227,25 @@ def build_4d_pdf(payload: dict) -> bytes:
             "[v] 2. 관련 루프 수동 감시 / 필요 시 절차에 따른 안전 조치",
             "[v] 3. 동일 판넬·카드 연관 알람 여부 확인",
         ]
+    sib = payload.get("card_siblings") or {}
+    if sib.get("siblings"):
+        # "동일 카드 연관 알람 확인"을 구체 태그로 채운다. 카드가
+        # 죽으면 이 태그들이 동시에 운다 — 동시 알람이면 개별 계기
+        # 진단보다 카드 공통 원인이 먼저다.
+        d2_lines.append(
+            "※ 동일 카드(%s) 동반 태그: %s — 동시 알람 시 카드 "
+            "공통 원인 우선 점검" % (
+                sib.get("card") or "-",
+                ", ".join(sib["siblings"][:6])))
     d2_lines.append("※ 실제 작업은 정비 절차서 및 LOTO를 준수한다")
 
     d3_lines = []
+    if not manuals:
+        # 없는 근거를 비슷한 문서로 채우지 않는다 — "매뉴얼이 이 알람을
+        # 다루지 않는다"는 것 자체가 원인 절의 정보다. 이때 원인 판단은
+        # 아래 현장 이력만으로 서고, 그 사실이 문서에 그대로 보인다.
+        d3_lines.append("• 매뉴얼 근거: 없음 — 해당 알람을 다루는 "
+                        "매뉴얼 항목을 찾지 못함 (이력 기준으로 판단)")
     for m in manuals[:2]:
         name = m.get("name") or m.get("id") or ""
         desc = (m.get("description") or "").replace("●", "·").replace("•", "·")

@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config  # noqa: E402
 from ingest.build_index import load as load_index  # noqa: E402
 from retrieval.bm25 import BM25  # noqa: E402
+from retrieval import alarm_rules  # noqa: E402
 from retrieval import fusion  # noqa: E402
 
 MODES = ("lexical", "hybrid", "full")
@@ -216,22 +217,38 @@ class Retriever:
         device = device or self.device_of(tag)
         top_k = top_k or config.FINAL_TOP_K
 
+        # SCADA 알람 라우팅 — 알람명(HH/LL/LOOP/CMD)과 SSL 코드는
+        # 매뉴얼에 존재하지 않는 어휘라 그대로 던지면 못 찾거나 엉뚱한
+        # 절차 문서와 겹친다. 유형이 잡히면 매뉴얼·코드표의 실제
+        # 어휘를 확장어로 붙여 검색하고, 원문은 코드 조회에만 쓴다.
+        # 자연어 질의는 type=None — 종전과 완전히 같은 경로다.
+        route = alarm_rules.classify(query)
+        self.last_route = route if route.get("type") else None
+        # 알람명 자체는 검색어에서 뺀다. 정보량이 없어서만이 아니다 —
+        # 같은 낱말이 다른 뜻으로 존재한다. M9e 매뉴얼의 "loop"은
+        # 신호 루프가 아니라 DI Loop(수처리 배관)여서, LOOP ERROR 를
+        # 그대로 섞으면 Shipping Bracket 제거 절차가 원인 후보로 올라온다.
+        q_search = query
+        if route["expand"]:
+            q_search = " ".join(route["expand"])
+        self.last_query = q_search   # 채점·화면은 실제 검색어를 본다
+
         exact = self.bm25.exact_code(query, device=device)
-        lex = self.bm25.search(query, device=device)
+        lex = self.bm25.search(q_search, device=device)
 
         if self.mode == "lexical" or self.dense is None:
             hits = [(r, s, {"bm25": i + 1, "bm25_score": float(s),
                             "found_by": 1})
                     for i, (r, s) in enumerate(lex)]
         else:
-            den = self.dense.search(query, device=device)
+            den = self.dense.search(q_search, device=device)
             hits = [(r, s, w)
                     for r, s, w in fusion.rrf([lex, den],
                                               names=["bm25", "dense"])]
 
         if self.mode == "full" and self.rerank_active and hits:
             keep = {r["id"]: w for r, _s, w in hits}   # 융합 단계 신호 보존
-            reranked = fusion.rerank(query, hits, top_k=top_k + len(exact))
+            reranked = fusion.rerank(q_search, hits, top_k=top_k + len(exact))
             new = []
             for i, (r, s) in enumerate(reranked):
                 w = dict(keep.get(r["id"], {}))
@@ -245,7 +262,8 @@ class Retriever:
         seen = {r["id"] for r in exact}
         out = [(r, 999.0, {"exact_code": 1, "found_by": 1}) for r in exact]
         out += [(r, s, w) for r, s, w in hits if r["id"] not in seen]
-        out = self._cap_card(out, device)
+        out = self._cap_card(out, device,
+                             card_primary=route["card_primary"])
         out = self._fold_shared(out)
         return self._diversify(out, top_k, device)
 
@@ -312,7 +330,7 @@ class Retriever:
             out.append((rec, score, trace))
         return out
 
-    def _cap_card(self, ranked, device):
+    def _cap_card(self, ranked, device, card_primary=False):
         """카드(ET200SP) 근거가 상위를 독식하지 않게 한 자리로 제한한다.
 
         카드 매뉴얼은 어느 태그로 물어도 통과시킨다 — 배선·채널 문제는
@@ -325,6 +343,43 @@ class Retriever:
         기기 키가 지정된 조회에서, 그 기기의 근거가 하나라도 있으면 카드는
         한 건만 남긴다. 기기 근거가 없으면 카드가 유일한 단서이므로 그대로 둔다.
         """
+        if card_primary:
+            # 루프·SSL 계열 알람은 카드가 주 근거다. 분석기 전원이
+            # 나가면 계기는 아무 코드도 못 낸다 — 그 상실을 진단하는
+            # 것은 카드다. 이 경우 카드를 한 건으로 줄이면 정답을
+            # 지운다. 제한 규칙 자체는 계측 알람에서 여전히 맞다.
+            #
+            # 다만 독식도 막는다. 정비원은 카드 진단과 계기 쪽 원인
+            # 후보(예: The Analyzer Will Not Power On)를 함께 본다.
+            # 확보 창 안에 계기 근거가 없고 뒤에 있으면 마지막 자리와
+            # 바꾼다 — 순위 재조정이 아니라 결과 구성 정책이며,
+            # 이 분기는 SCADA 알람 유형에서만 발화한다(평가 문항
+            # 448개 발화 0건, selfcheck 가드).
+            win = int(getattr(config, "FINAL_TOP_K", 5))
+            card = str(getattr(config, "CARD_DEVICE", "") or "").upper()
+            keys = [device] if isinstance(device, str) else list(device or [])
+            keys = [str(k).upper() for k in keys if str(k).strip()]
+
+            def _owned(r):
+                rd = str(r.get("device") or "").upper()
+                return (bool(rd) and rd != card
+                        and any(rd == k or k in rd or rd in k
+                                for k in keys))
+
+            if keys and not any(_owned(r) for r, _s, _w in ranked[:win]):
+                pick = next((i for i, (r, _s, _w) in enumerate(ranked)
+                             if i >= win and _owned(r)), None)
+                # 자리를 내주는 쪽은 창 안 마지막 카드 **본문**이다.
+                # 코드표 항목(error_code)을 밀어내면 "무엇이 문제인지"
+                # 층이 사라진다 — 확보하려던 것을 확보하다 잃는 꼴.
+                spots = [i for i, (r, _s, _w) in enumerate(ranked[:win])
+                         if str(r.get("device") or "").upper() == card
+                         and r.get("kind") == "manual_text"]
+                if pick is not None and spots:
+                    ranked = list(ranked)
+                    ranked.insert(spots[-1], ranked.pop(pick))
+                    del ranked[win - 1 if spots[-1] < win - 1 else win]
+            return ranked
         card = str(getattr(config, "CARD_DEVICE", "") or "").upper()
         if not card or not device:
             return ranked

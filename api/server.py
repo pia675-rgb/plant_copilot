@@ -757,6 +757,17 @@ def diagnose(req: DiagnoseRequest):
             except Exception as _e:                         # noqa: BLE001
                 print("[diagnose] summary_ko 생략:", _e)
 
+        # 같은 카드 동반 태그 — 알람 폭주의 1차 용의선. 판넬 색인이
+        # 없어도 조회는 살아야 하므로 실패는 조용히 None 으로 둔다.
+        card_siblings = None
+        try:
+            _p = get_panel()
+            if _p:
+                card_siblings = _p.siblings(io_tag or req.tag) \
+                    or _p.siblings(req.tag)
+        except Exception:                                   # noqa: BLE001
+            card_siblings = None
+
         return {
             "decision": out.get("decision"),
             "grade": out.get("grade"),
@@ -770,6 +781,7 @@ def diagnose(req: DiagnoseRequest):
             "pid_tag": search_tag,
             "io_tag": io_tag,
             "query": out.get("query") or req.alarm,
+            "card_siblings": card_siblings,
         }
     except Exception as e:
         raise HTTPException(500, str(e))
@@ -1082,6 +1094,17 @@ def report_4d(req: ReportRequest):
                 steps.append("매뉴얼 근거 확인: %s"
                              % (rec.get("title") or rec.get("id") or "점검 항목"))
 
+        # 같은 카드 동반 태그 — 리포트 D2 의 "동일 판넬·카드 연관 알람
+        # 확인" 항목을 구체 태그로 채운다. 판넬 색인이 없어도 리포트는
+        # 나와야 하므로 실패는 None 으로 삼킨다.
+        _sib = None
+        try:
+            _p = get_panel()
+            if _p:
+                _sib = _p.siblings(req.tag)
+        except Exception:                                   # noqa: BLE001
+            _sib = None
+
         import datetime as _dt
         now = _dt.datetime.now()
         payload = {
@@ -1105,6 +1128,7 @@ def report_4d(req: ReportRequest):
             "history": history,
             "advice_steps": steps,
             "confirmed_cause": req.confirmed_cause or "",
+            "card_siblings": _sib,
             "final_action": req.final_action or "",
             "parts": req.parts or "-",
             "duration_min": req.duration_min,
@@ -1276,6 +1300,22 @@ def common_cause():
     """한 인터락의 조건 태그가 같은 카드에 몰려 있는지 — 설계 검토 항목."""
     px = _need_panel()
     return px.common_cause()
+
+
+@app.get("/api/common-cause-of")
+def common_cause_of(tags: str = Query(
+        ..., description="쉼표 구분 태그 목록 — 예: AIT-4002,AIT-3002")):
+    """동시 알람 태그 묶음의 공통 상위 노드 역추적 (card→rack→panel→plc).
+
+    /api/common-cause 가 설계 점검(한 인터락의 조건이 같은 카드에 몰려
+    있는가)이라면, 이쪽은 사후 진단이다 — 알람 폭주가 왔을 때 태그별로
+    N번 조회하는 대신 묶음 한 번으로 카드/랙/판넬 층을 가른다.
+    """
+    p = _need_panel()
+    items = [x.strip() for x in tags.split(",") if x.strip()]
+    if not items:
+        raise HTTPException(400, "태그가 비어 있습니다")
+    return p.common_cause_of(items)
 
 
 @app.get("/api/panel-of/{tag}")

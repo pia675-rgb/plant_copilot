@@ -103,8 +103,23 @@ class BM25:
         return [(self.records[i], s) for s, i in scores[:top_k]]
 
     def exact_code(self, query, device=None):
-        """계기 화면 코드 완전일치 — 검색이 아니라 조회 경로."""
-        nums = {x.upper() for x in re.findall(r"[0-9]{2,6}[A-Fa-f]?", query or "")}
+        """계기 화면 코드·카드 SSL 코드 완전일치 — 검색이 아니라 조회 경로.
+
+        코드는 두 표기 체계가 섞여 있다. 계기 화면 코드는 십진수(300,
+        4001)이고, 카드 진단 코드는 Siemens SSL 관례의 16진수+H 접미사
+        (5H, 8H, 1FH, 10EH)다. 이전 패턴 [0-9]{2,6}[A-Fa-f]? 는 H 를
+        16진 문자로 취급하지 않아 카드 코드 24종 전부를 놓쳤다 —
+        "코드 조회가 있다"고 말하면서 카드 코드는 한 건도 조회되지
+        않는 상태였다. 한 자리 코드(5H)와 중간에 16진 문자가 오는
+        코드(10EH)까지 잡도록 패턴을 분리한다."""
+        q = query or ""
+        # 태그 표기(AIT-4002, WO-2026-029)의 숫자부는 코드가 아니다.
+        # 조회 질의에 태그가 섞이면 4002 가 계기 코드 4002 와 완전일치해
+        # System Error 가 근거 최상단에 오른다 — 태그 패턴을 먼저 지운다.
+        q = re.sub(r"\b[A-Za-z]{1,5}(?:-[0-9]{2,6}[A-Za-z]?)+\b", " ", q)
+        nums = {x.upper() for x in re.findall(r"[0-9]{2,6}[A-Fa-f]?", q)}
+        nums |= {x.upper()
+                 for x in re.findall(r"\b[0-9][0-9A-Fa-f]{0,3}[Hh]\b", q)}
         if not nums:
             return []
         out = []

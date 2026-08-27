@@ -112,6 +112,96 @@ def c_degrade_visible():
     return True, "강등 %s / 사유·영향 노출됨" % ", ".join(h["degraded"])
 
 
+def c_ssl_code_lookup():
+    """카드 SSL 코드(H 접미사)가 실제로 조회되는가.
+
+    이전 정규식은 H 를 16진 문자로 취급하지 않아 카드 코드 24종
+    전부가 조회 불가였다 — "코드 조회가 있다"고 말하면서 카드
+    코드는 한 건도 못 찾는 상태. 대표 형태별로 확인한다."""
+    from retrieval.pipeline import Retriever
+    r = Retriever(mode="lexical")
+    for code in ("5H", "11H", "1FH", "10EH"):
+        hits = r.bm25.exact_code(code)
+        if not any((h.get("code") or "").upper() == code for h in hits):
+            return False, "SSL 코드 %s 조회 실패" % code
+    # 태그 숫자부 오인 방지 — AIT-4002 의 4002 는 코드가 아니다
+    hits = r.bm25.exact_code("AIT-4002 BAD PV")
+    if hits:
+        return False, "태그 숫자부(4002)를 코드로 오인: %s" % [
+            h.get("code") for h in hits]
+    return True, "SSL 4형태 조회, 태그 오인 없음"
+
+
+def c_alarm_rules_inert():
+    """알람 라우팅이 평가 문항에서 발화하지 않는가.
+
+    라우팅은 SCADA 알람 어휘(HH/LL/LOOP/CMD/SSL)에서만 켜져야
+    한다. 자연어 평가 문항에서 발화하면 확장어가 평가 점수를
+    몰래 움직인다 — 평가셋 맞춤 금지 원칙의 자동 가드."""
+    import glob
+    import json as _json
+    from retrieval.alarm_rules import classify
+    base = os.path.dirname(os.path.abspath(__file__))
+    fired, total = [], 0
+    for fp in glob.glob(os.path.join(base, "eval_set*.json")):
+        d = _json.load(open(fp, encoding="utf-8"))
+        items = d if isinstance(d, list) else \
+            d.get("items") or d.get("questions") or []
+        for it in items:
+            q = it.get("q") or it.get("question") or it.get("query") or ""
+            total += 1
+            if classify(q)["type"]:
+                fired.append(q[:40])
+    if fired:
+        return False, "평가 문항 %d개에서 라우팅 발화: %s" % (
+            len(fired), fired[:3])
+    return True, "평가 %d문항 발화 0건" % total
+
+
+def c_io_channel_unique():
+    """같은 카드(판넬·스테이션·랙·슬롯)에 채널 번호가 겹치지 않는가.
+
+    물리적으로 불가능한 배선이다. 데모 데이터 생성 단계에서 채널
+    중복이 들어온 적이 있고(7건), 카드 단위 그룹핑을 보여주는 순간
+    IO List 를 여는 사람 눈에 바로 걸린다."""
+    from retrieval.panel_index import PanelIndex
+    p = PanelIndex()
+    dup = []
+    for card, rows in p._by_card.items():
+        seen = {}
+        for r in rows:
+            ch = str(r.get("CH") if r.get("CH") is not None else "")
+            if ch == "":
+                continue
+            if ch in seen:
+                dup.append("%s CH%s: %s/%s"
+                           % (card, ch, seen[ch], r["TAG"]))
+            seen[ch] = r["TAG"]
+    if dup:
+        return False, "채널 중복 %d건 — %s" % (len(dup), dup[:3])
+    return True, "카드 %d장 채널 유일" % len(p._by_card)
+
+
+def c_flood_reverse():
+    """알람 폭주 역추적이 계층을 올바르게 가르는가."""
+    from retrieval.panel_index import PanelIndex
+    p = PanelIndex()
+    sib = p.siblings("AIT-4002")
+    if not sib or not sib.get("siblings"):
+        return False, "AIT-4002 동반 태그 조회 실패"
+    full = [sib["tag"]] + sib["siblings"]
+    r1 = p.common_cause_of(full)
+    if r1.get("level") != "card":
+        return False, "카드 전체인데 판정 %s" % r1.get("level")
+    r2 = p.common_cause_of(full[:3])
+    if r2.get("level") != "card" or not r2.get("uncovered"):
+        return False, "부분 알람에서 미알람 반례가 비어 있음"
+    r3 = p.common_cause_of([full[0], "XX-9999"])
+    if r3.get("unknown") != ["XX-9999"]:
+        return False, "미등재 태그가 조용히 사라짐"
+    return True, "card 판정·미알람 반례·미등재 분리 확인"
+
+
 def c_diversify_off():
     """측정에서 기각된 설정이 켜져 있지 않은가."""
     if config.DIVERSIFY != "off":
@@ -1471,6 +1561,10 @@ def main():
     run("근거 없을 때 거절", c_abstain_works)
     run("강등 가시성 [주입]", c_degrade_visible)
     run("다양성 설정", c_diversify_off, critical=False)
+    run("SSL 코드 조회 [주입]", c_ssl_code_lookup)
+    run("알람 라우팅 격리 [주입]", c_alarm_rules_inert)
+    run("IO 채널 유일성 [주입]", c_io_channel_unique)
+    run("알람 폭주 역추적 [주입]", c_flood_reverse)
     run("임베딩 캐시 신원 [주입]", c_cache_identity)
     run("환각 차단 [주입]", c_advisor_rejects_fake)
     run("챗봇·조치 경로 일치", c_chat_gateway)

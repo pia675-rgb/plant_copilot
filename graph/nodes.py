@@ -75,6 +75,21 @@ def make_retrieve(retriever):
         tr = list(state.get("trace", []))
         tr.append("retrieve(%d회): '%s' → %d건" %
                   (state.get("attempts", 0) + 1, q, len(ev)))
+        route = getattr(retriever, "last_route", None)
+        if route:
+            # 채점(어휘 적중률)은 실제로 검색한 질의를 본다. 알람명
+            # "LOOP ERROR"는 매뉴얼 어휘가 아니므로 그걸로 적중률을
+            # 재면 정답을 찾아 놓고 스스로 거절한다. 라우팅은 평가
+            # 문항에서 발화하지 않는다(selfcheck 가드) — 평가 점수에
+            # 닿지 않는 분기다.
+            q = getattr(retriever, "last_query", q) or q
+        if route and not state.get("attempts"):
+            tr.append("alarm-route: %s — 확장 [%s]%s%s" % (
+                route["type"],
+                ", ".join(route["expand"]) or "없음",
+                " · 카드 제한 해제" if route["card_primary"] else "",
+                (" · SSL " + ",".join(route["ssl_codes"]))
+                if route["ssl_codes"] else ""))
 
         # 이 태그의 기종에 벤더 매뉴얼이 있는가.
         # 없으면 아무리 닮은 청크를 찾아와도 그건 답이 아니다.
