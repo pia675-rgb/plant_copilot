@@ -96,7 +96,9 @@ def investigate(tags, panel, retriever, codes=None, alarm=None):
     level = common.get("level")
     if level == "card":
         concl = common.get("note") or ""
-        if uncovered:
+        # 판넬 색인의 note 가 이미 반례를 언급하면 덧붙이지 않는다 —
+        # 같은 말이 두 번 나오면 읽는 사람이 다른 태그인 줄 안다.
+        if uncovered and not any(u in concl for u in uncovered):
             concl += (" 단, 같은 카드의 %s 는 알람이 없어 반례가 될 수 "
                       "있습니다 — 함께 확인." % ", ".join(uncovered))
     elif level in ("rack", "panel", "plc"):

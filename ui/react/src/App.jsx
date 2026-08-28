@@ -1560,15 +1560,17 @@ function FloodPanel() {
           공통 조상 판정 → 안 운 동반 태그(반례) → 진단 코드 근거 → 결론
           순으로 조사하고, 밟은 단계가 전부 아래에 남습니다.
         </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div className="field" style={{
+          display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 0,
+          paddingRight: 72 }}>
           <input value={tags} onChange={e => setTags(e.target.value)}
                  placeholder="AIT-4002, AIT-3002, FIT-2009"
-                 style={{ flex: '2 1 240px' }} />
+                 style={{ flex: '2 1 240px', width: 'auto' }} />
           <input value={codes} onChange={e => setCodes(e.target.value)}
                  placeholder="진단 코드 (선택) — 11H"
-                 style={{ flex: '1 1 140px' }} />
+                 style={{ flex: '1 1 140px', width: 'auto' }} />
           <button className="btn" onClick={run} disabled={busy || !tags.trim()}
-                  style={{ width: 'auto', padding: '4px 14px' }}>
+                  style={{ width: 'auto', padding: '4px 14px', flex: '0 0 auto' }}>
             조사
           </button>
         </div>
