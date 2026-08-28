@@ -1419,7 +1419,178 @@ function PanelView({ tag, panelSel, cardSel, onPickTag, free }) {
 
         </>
       )}
+
+      <FloodPanel />
     </>
+  )
+}
+
+
+function RepairPanel({ hdrs, onApplied }) {
+  // 반입 수리 보조 (패치 28). 제안은 서버가 계산하고, 반영은 여기서
+  // 고른 것만 열쇠와 함께 보낸다 — 자동 전체 반영 버튼은 만들지 않는다.
+  const [plan, setPlan] = useState(null)
+  const [sel, setSel] = useState(() => new Set())
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const [result, setResult] = useState(null)
+
+  const load = async () => {
+    setBusy(true); setErr(''); setResult(null); setSel(new Set())
+    try { setPlan(await get('/ingest/repair-plan')) }
+    catch (e) { setErr(String(e.message || e)) }
+    setBusy(false)
+  }
+
+  const toggle = (id) => setSel(prev => {
+    const n = new Set(prev)
+    n.has(id) ? n.delete(id) : n.add(id)
+    return n
+  })
+
+  const applySel = async () => {
+    if (!sel.size) return
+    setBusy(true); setErr('')
+    try {
+      const res = await fetch(`${API}/ingest/repair-apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...hdrs() },
+        body: JSON.stringify({ ids: [...sel] }),
+      })
+      const j = await res.json()
+      if (!res.ok) throw new Error(j.detail || `HTTP ${res.status}`)
+      setResult(j)
+      onApplied && onApplied()
+      // 반영 후 제안을 새로 계산 — 남은 것이 0이어야 정상이다
+      setPlan(await get('/ingest/repair-plan'))
+      setSel(new Set())
+    } catch (e) { setErr(String(e.message || e)) }
+    setBusy(false)
+  }
+
+  const props_ = plan?.proposals || []
+  return (
+    <div className="panel" style={{ marginTop: 14 }}>
+      <div className="panel-head" style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span>수리안 — 점검이 짚은 것 중 고칠 수 있는 형태</span>
+        <button className="btn" onClick={load} disabled={busy}
+                style={{ width: 'auto', padding: '4px 12px', fontSize: '0.78rem' }}>
+          {plan ? '다시 계산' : '수리안 보기'}
+        </button>
+      </div>
+      <div className="panel-body">
+        {err && <div style={{ color: 'var(--bad, #f87171)', fontSize: '0.85rem' }}>{err}</div>}
+        {!plan && !busy && !err && (
+          <div style={{ color: 'var(--faint)', fontSize: '0.85rem' }}>
+            버튼을 누르면 현재 자료를 검사해 수리안을 계산합니다. 읽기만 하며 파일은 바꾸지 않습니다.
+          </div>
+        )}
+        {busy && <div style={{ color: 'var(--faint)' }}>계산 중…</div>}
+        {plan && !busy && (
+          <>
+            <div style={{ fontSize: '0.82rem', color: 'var(--faint)', marginBottom: 8 }}>
+              제안 {plan.counts.total}건 — 자동 반영 가능 {plan.counts.auto} · 수동 확인 {plan.counts.manual}.
+              자동 항목만 선택할 수 있고, 반영에는 수정 열쇠가 필요합니다.
+              반영 전 이전 판이 .prev 로 보존됩니다.
+            </div>
+            {props_.length === 0 && (
+              <div className="panel-note">지적 없음 — 고칠 것이 없습니다.</div>
+            )}
+            {props_.map(pp => (
+              <div key={pp.id} style={{
+                display: 'flex', gap: 8, alignItems: 'flex-start',
+                padding: '6px 0', borderTop: '1px solid var(--line, #333)' }}>
+                <input type="checkbox" disabled={!pp.auto}
+                       checked={sel.has(pp.id)} onChange={() => toggle(pp.id)}
+                       style={{ marginTop: 3 }} />
+                <div style={{ fontSize: '0.84rem' }}>
+                  <div>{pp.before}
+                    {pp.after && <span style={{ color: 'var(--match, #34d399)' }}> → {pp.after}</span>}
+                    {!pp.auto && <span style={{ color: 'var(--warn-ink, #d9a441)' }}> (수동)</span>}
+                  </div>
+                  <div style={{ color: 'var(--faint)', fontSize: '0.78rem' }}>{pp.rationale}</div>
+                </div>
+              </div>
+            ))}
+            {plan.counts.auto > 0 && (
+              <button className="btn" onClick={applySel} disabled={busy || !sel.size}
+                      style={{ marginTop: 10 }}>
+                선택 {sel.size}건 반영 (열쇠 필요)
+              </button>
+            )}
+            {result && (
+              <div className="caveat" style={{ marginTop: 8 }}>
+                반영 {result.applied.length}건 · 건너뜀 {result.skipped.length}건
+                · 채널 중복 {result.before.channel_dup} → {result.after.channel_dup}
+                {result.prev && <> · 이전 판 {result.prev}</>}
+                <div>{result.note}</div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function FloodPanel() {
+  // 동시 알람 조사 (패치 28). SCADA 미연결이라 태그는 사람이 넣는다 —
+  // 그 입력 이후의 조사 절차(공통 조상→반례→코드 근거→결론)를 대신한다.
+  const [tags, setTags] = useState('')
+  const [codes, setCodes] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const [r, setR] = useState(null)
+
+  const run = async () => {
+    setBusy(true); setErr(''); setR(null)
+    try {
+      const q = new URLSearchParams({ tags, codes })
+      setR(await get(`/investigate-flood?${q}`))
+    } catch (e) { setErr(String(e.message || e)) }
+    setBusy(false)
+  }
+
+  return (
+    <div className="panel" style={{ marginTop: 14 }}>
+      <div className="panel-head">동시 알람 조사 — 여러 태그가 같이 울 때</div>
+      <div className="panel-body">
+        <div style={{ fontSize: '0.8rem', color: 'var(--faint)', marginBottom: 6 }}>
+          SCADA 알람 목록에서 동시에 뜬 태그를 쉼표로 옮겨 넣으십시오.
+          공통 조상 판정 → 안 운 동반 태그(반례) → 진단 코드 근거 → 결론
+          순으로 조사하고, 밟은 단계가 전부 아래에 남습니다.
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <input value={tags} onChange={e => setTags(e.target.value)}
+                 placeholder="AIT-4002, AIT-3002, FIT-2009"
+                 style={{ flex: '2 1 240px' }} />
+          <input value={codes} onChange={e => setCodes(e.target.value)}
+                 placeholder="진단 코드 (선택) — 11H"
+                 style={{ flex: '1 1 140px' }} />
+          <button className="btn" onClick={run} disabled={busy || !tags.trim()}
+                  style={{ width: 'auto', padding: '4px 14px' }}>
+            조사
+          </button>
+        </div>
+        {err && <div style={{ color: 'var(--bad, #f87171)', fontSize: '0.85rem', marginTop: 8 }}>{err}</div>}
+        {busy && <div style={{ color: 'var(--faint)', marginTop: 8 }}>조사 중…</div>}
+        {r && (
+          <div style={{ marginTop: 10 }}>
+            {(r.steps || []).map(st => (
+              <div key={st.n} className="step-detail">
+                {st.n}. {st.what} — {st.result}
+              </div>
+            ))}
+            <div className="caveat" style={{ marginTop: 8 }}>{r.conclusion}</div>
+            {(r.code_evidence || []).map((e, i) => (
+              <div key={i} className="step-detail" style={{ color: 'var(--match, #34d399)' }}>
+                코드 근거: {e.title} — {e.cite}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -2597,6 +2768,9 @@ function IngestView({ free }) {
           {report && <IngestReport r={report} />}
         </div>
       </div>
+
+      {/* 수리안 — 패치 28 */}
+      <RepairPanel hdrs={hdrs} onApplied={loadReport} />
     </>
   )
 }

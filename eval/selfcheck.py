@@ -182,6 +182,88 @@ def c_io_channel_unique():
     return True, "카드 %d장 채널 유일" % len(p._by_card)
 
 
+def c_repair_roundtrip():
+    """수리안 왕복 [주입] — 중복·헤더 오기를 픽스처에 심고 제안→반영→재점검."""
+    import shutil, tempfile, os, hashlib
+    from ingest import repair
+    src = str(config.IO_LIST)
+    orig = hashlib.md5(open(src, 'rb').read()).hexdigest()
+    fx = os.path.join(tempfile.gettempdir(), 'sc_repair_fx.xlsx')
+    shutil.copy2(src, fx)
+    wb, ws, hdr, cm = repair._load_sheet(fx)
+    for c in ('PLC', 'PN(DP)', 'RACK', 'SLOT', 'CH'):
+        ws.cell(row=hdr + 2, column=cm[c],
+                value=ws.cell(row=hdr + 1, column=cm[c]).value)
+    ws.cell(row=hdr + 5, column=cm['CH'], value=0)   # 0 은 유효 채널
+    ws.cell(row=hdr + 6, column=cm['CH'], value=0)
+    for c in ('PLC', 'PN(DP)', 'RACK', 'SLOT'):
+        ws.cell(row=hdr + 6, column=cm[c],
+                value=ws.cell(row=hdr + 5, column=cm[c]).value)
+    ws.cell(row=hdr, column=cm['SIGNAL TYPE1'], value='SIGNL TYPE1')
+    wb.save(fx); wb.close()
+    plan = repair.propose(io_path=fx, include_cross=False)
+    auto = [q for q in plan['proposals'] if q.get('auto')]
+    if len(auto) < 3:
+        return False, '주입 3건(중복2·헤더1)인데 자동 제안 %d건' % len(auto)
+    out = repair.apply([q['id'] for q in auto], io_path=fx)
+    left = repair.propose(io_path=fx, include_cross=False)['counts']['auto']
+    if left != 0:
+        return False, '반영 후에도 자동 제안 %d건 잔존' % left
+    if not os.path.exists(fx + '.prev'):
+        return False, '.prev 보존이 없음'
+    if hashlib.md5(open(src, 'rb').read()).hexdigest() != orig:
+        return False, '원본 IO List 가 바뀜 — 픽스처 격리 실패'
+    return True, '주입 3건 제안·반영·재점검 0건 / .prev 보존 / 원본 무손상'
+
+
+def c_repair_key_gate():
+    """수리 반영 열쇠 [주입] — 열쇠 없이 apply 가 열리면 실패."""
+    import os
+    from fastapi.testclient import TestClient
+    import api.server as srv
+    old = os.environ.get('COPILOT_INGEST_KEY')
+    os.environ['COPILOT_INGEST_KEY'] = 'sc-test-key'
+    try:
+        c = TestClient(srv.app)
+        r = c.post('/api/ingest/repair-apply', json={'ids': ['x']})
+        if r.status_code != 401:
+            return False, '무열쇠 요청이 %d — 401 이어야 함' % r.status_code
+        r = c.post('/api/ingest/repair-apply', json={'ids': ['x']},
+                   headers={'X-Ingest-Key': 'sc-test-key'})
+        if r.status_code != 200:
+            return False, '유열쇠 요청이 %d' % r.status_code
+    finally:
+        if old is None:
+            os.environ.pop('COPILOT_INGEST_KEY', None)
+        else:
+            os.environ['COPILOT_INGEST_KEY'] = old
+        try:
+            srv._edit_lease['owner'] = None   # 가드가 잡은 임대 반납
+        except Exception:
+            pass
+    return True, '무열쇠 401 · 유열쇠 통과 (반영 대상 없음)'
+
+
+def c_flood_investigate():
+    """동시 알람 조사 [주입] — 4태그+11H 로 판정·반례·코드 근거·단계."""
+    from retrieval.panel_index import PanelIndex
+    from retrieval.pipeline import Retriever
+    from retrieval.flood import investigate
+    r = investigate(['AIT-4002', 'AIT-3002', 'FIT-2009', 'AIT-2002'],
+                    panel=PanelIndex(), retriever=Retriever(mode='lexical'),
+                    codes=['11H'])
+    if (r.get('common') or {}).get('level') != 'card':
+        return False, '판정 %s — card 여야 함' % (r.get('common') or {}).get('level')
+    if 'FIT-2004' not in (r.get('conclusion') or ''):
+        return False, '반례(FIT-2004)가 결론에 없음'
+    titles = ' '.join(e.get('title', '') for e in r.get('code_evidence') or [])
+    if 'Supply voltage missing' not in titles:
+        return False, '11H 코드 근거가 없음'
+    if len(r.get('steps') or []) < 5:
+        return False, '조사 단계 %d — 5단계 이상이어야 함' % len(r.get('steps') or [])
+    return True, 'card 판정·반례 명시·코드 근거·%d단계 기록' % len(r['steps'])
+
+
 def c_flood_reverse():
     """알람 폭주 역추적이 계층을 올바르게 가르는가."""
     from retrieval.panel_index import PanelIndex
@@ -1565,6 +1647,9 @@ def main():
     run("알람 라우팅 격리 [주입]", c_alarm_rules_inert)
     run("IO 채널 유일성 [주입]", c_io_channel_unique)
     run("알람 폭주 역추적 [주입]", c_flood_reverse)
+    run("수리안 왕복 [주입]", c_repair_roundtrip)
+    run("수리 반영 열쇠 [주입]", c_repair_key_gate)
+    run("동시 알람 조사 [주입]", c_flood_investigate)
     run("임베딩 캐시 신원 [주입]", c_cache_identity)
     run("환각 차단 [주입]", c_advisor_rejects_fake)
     run("챗봇·조치 경로 일치", c_chat_gateway)

@@ -18,7 +18,7 @@ import sys
 from typing import Any, Dict, List, Optional
 
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Body, FastAPI, HTTPException, Query, Request
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -1325,6 +1325,57 @@ def panel_of_tag(tag: str):
     if not d:
         raise HTTPException(404, "계기 리스트에 %s 가 없습니다." % tag)
     return d
+
+
+@app.get("/api/investigate-flood")
+def investigate_flood(tags: str = Query(..., description="쉼표 구분 태그"),
+                      codes: str = Query("", description="쉼표 구분 SSL 코드"),
+                      alarm: str = Query("", description="알람명(선택)"),
+                      mode: str = Query(DEFAULT_MODE)):
+    """동시 알람 조사 오케스트레이션 (패치 28).
+
+    common-cause-of 가 판정 한 번이라면, 이쪽은 조사 절차 전체다 —
+    공통 조상 → 반례(미알람 동반 태그) → 코드·알람명 근거 수집 → 결론.
+    밟은 단계가 steps 로 남는다. 결론 문장은 규칙 조립이며 LLM 을 쓰지
+    않는다.
+    """
+    from retrieval.flood import investigate
+    p = _need_panel()
+    tag_list = [x.strip() for x in tags.split(",") if x.strip()]
+    code_list = [x.strip() for x in codes.split(",") if x.strip()]
+    if not tag_list:
+        raise HTTPException(400, "태그가 비어 있습니다")
+    return investigate(tag_list, panel=p, retriever=get_retriever(mode),
+                       codes=code_list or None, alarm=alarm or None)
+
+
+@app.get("/api/ingest/repair-plan")
+def ingest_repair_plan():
+    """수리안 목록 — 읽기만 하므로 열쇠 불필요 (패치 28)."""
+    from ingest import repair
+    return repair.propose()
+
+
+@app.post("/api/ingest/repair-apply")
+def ingest_repair_apply(request: Request, body: dict = Body(...)):
+    """선택한 자동 수리안 반영 — 자료를 바꾸므로 열쇠·임대를 거친다.
+
+    반영 전 .prev 보존, 반영 후 재점검 수치를 함께 돌려준다 (패치 28).
+    """
+    _require_edit(request)
+    ids = [str(x) for x in (body.get("ids") or [])]
+    if not ids:
+        raise HTTPException(400, "반영할 제안 id 가 없습니다")
+    from ingest import repair
+    out = repair.apply(ids)
+    # 자료가 바뀌었으니 파생 캐시 표시 — 재생성 안내는 기존 반입 흐름과 동일
+    out["note"] = ("IO List 가 바뀌었습니다. 판넬 조회는 즉시 반영되며, "
+                   "색인 재생성은 필요 없습니다(문서 본문이 아니라 배선 "
+                   "정보이므로). 이전 판은 %s 로 보존되었습니다."
+                   % (out.get("prev") or "보존 없음(반영 0건)"))
+    global _panel, _panel_error
+    _panel, _panel_error = None, None      # 다음 조회에서 다시 읽는다
+    return out
 
 
 
