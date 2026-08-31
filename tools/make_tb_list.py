@@ -62,6 +62,29 @@ def _card_kind(io_type, points):
         "%s%d-4W" % (grp, size)
 
 
+# 아날로그 주소 배치. 한 PLC 안에서 유일해야 한다.
+#   슬롯 하나가 쓰는 폭 — 16채널 × 2바이트 = 32. 여유를 두어 64.
+#   랙 하나가 쓰는 폭 — 슬롯 16장 × 64 = 1024. 여유를 두어 2048.
+SLOT_SPAN = 64
+RACK_SPAN = 2048
+STATION_SPAN = RACK_SPAN * 8          # 랙 8개 분
+
+
+def _addr_base(pn, rack):
+    """스테이션(PN(DP))·랙을 주소 구간으로 바꾼다.
+
+    한 PLC 안에서 주소는 유일해야 한다. 로컬 랙(PN 없음)은 500 대,
+    분산 스테이션은 PN 번호마다 1000 씩 띄우고 랙마다 200 씩 띄운다.
+    슬롯·채널이 쓰는 폭(슬롯 10 · 채널 2)보다 충분히 크게 잡아 겹치지
+    않게 한다.
+    """
+    pn_d = re.sub(r"[^0-9]", "", str(pn or ""))
+    rk_d = re.sub(r"[^0-9]", "", str(rack or ""))
+    pn_n = int(pn_d) if pn_d else 0
+    rk_n = int(rk_d) if rk_d else 0
+    return 500 + pn_n * STATION_SPAN + rk_n * RACK_SPAN
+
+
 def collect(points):
     """
     TAG → 배선 을 (판넬 → 카드 → 채널) 로 묶는다.
@@ -80,6 +103,10 @@ def collect(points):
             "ch": _s(r.get("CH")),
             "terminal": _s(r.get("TERMINAL")),
             "io_type": _s(r.get("IO TYPE")) or _s(r.get("SIGNAL")),
+            # 주소 계산에 필요하다. 슬롯·채널만으로 만들면 다른 판넬의
+            # 같은 자리와 주소가 겹친다 (패치 30에서 겪은 결함).
+            "pn": _s(r.get("PN(DP)")),
+            "rack": _s(r.get("RACK")),
         })
     for panel in by_panel:
         for key in by_panel[panel]:
@@ -121,16 +148,34 @@ def build(by_panel, out_path):
                 r = 4 + i
                 if grp in ("DI", "DO"):
                     # [단자블록] [주소] [ ] [태그]
-                    ws.cell(r, col, "N%03d" % (int(slot or 0) * 10 + 1))
+                    #
+                    # 단자블록 이름도 카드마다 달라야 한다. 슬롯만 쓰면
+                    # 한 판넬의 디지털 점이 전부 같은 이름(N011)을 달았다.
+                    # 스테이션·랙을 앞에 붙이고 채널로 자리를 가른다.
+                    blk = (_addr_base(ch.get("pn"), ch.get("rack")) - 500
+                           + int(slot or 0) * SLOT_SPAN
+                           + (int(ch["ch"]) if ch["ch"].isdigit() else 0))
+                    ws.cell(r, col, "N%04d" % blk)
                     ws.cell(r, col + 1, "%s%s.%s"
                             % ("I" if grp == "DI" else "Q", slot,
                                ch["ch"] or "0"))
                     ws.cell(r, col + 3, ch["tag"])
                 else:
                     # [ ] [단자 +] [주소] [태그]  — 아날로그는 +/- 두 행
-                    base = "IW%d" % (500 + int(slot or 0) * 10
-                                     + (int(ch["ch"]) if ch["ch"].isdigit()
-                                        else 0) * 2)
+                    #
+                    # 주소는 PLC 안에서 유일해야 한다. 슬롯·채널만 쓰면
+                    # 다른 스테이션·랙의 같은 자리와 겹쳤다 — 실제로
+                    # IW582+ 한 번호에 다섯 태그가 붙어 있었다.
+                    # 스테이션(PN(DP))과 랙을 앞자리에 넣어 카드 단위로
+                    # 갈라 준다.
+                    #
+                    # 슬롯 간격은 채널이 쓰는 폭보다 커야 한다. 간격 10에
+                    # 16채널(폭 32)을 담으면 옆 슬롯을 침범한다 — S4/CH6 과
+                    # S5/CH1 이 같은 주소가 됐다. 슬롯당 64 바이트를 준다.
+                    base = "IW%d" % (
+                        _addr_base(ch.get("pn"), ch.get("rack"))
+                        + int(slot or 0) * SLOT_SPAN
+                        + (int(ch["ch"]) if ch["ch"].isdigit() else 0) * 2)
                     ws.cell(r, col + 1, base + "+")
                     ws.cell(r, col + 2, base)
                     ws.cell(r, col + 3, ch["tag"])

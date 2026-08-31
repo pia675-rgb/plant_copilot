@@ -244,6 +244,32 @@ def c_repair_key_gate():
     return True, '무열쇠 401 · 유열쇠 통과 (반영 대상 없음)'
 
 
+def c_terminal_unique():
+    """단자 번호 유일성 [주입] — 한 PLC 안에서 주소가 겹치지 않는가.
+
+    IW582+ 한 번호에 다섯 태그가 붙어 있었다. 주소를 슬롯·채널만으로
+    만들어 다른 스테이션·랙의 같은 자리와 겹쳤기 때문이다. 배선을
+    조회하는 도구가 배선이 불가능한 값을 내놓고 있었다 (패치 30).
+    """
+    from collections import defaultdict
+    from retrieval.panel_index import PanelIndex
+    px = PanelIndex()
+    by = defaultdict(list)
+    for r in px.rows:
+        t = str(r.get('TERMINAL') or '').strip().upper()
+        if t:
+            by[t].append('%s/%s' % (r.get('PANEL'), r.get('TAG')))
+    if not by:
+        return False, '단자 번호가 하나도 없습니다'
+    dups = {k: v for k, v in by.items() if len(v) > 1}
+    if dups:
+        k, v = sorted(dups.items())[0]
+        return False, '단자 %d종 중복 — 예: %s 에 %d건 (%s)' % (
+            len(dups), k, len(v), ', '.join(v[:4]))
+    return True, '단자 %d점 전부 유일 (한 PLC 기준)' % sum(
+        len(v) for v in by.values())
+
+
 def c_terminal_lookup():
     """단자 번호 역조회 [주입] — 화면이 보여준 값을 되물으면 답하는가.
 
@@ -1773,6 +1799,7 @@ def main():
     run("인터락 후속 질문 [주입]", c_followup_interlock)
     run("기능 질문 라우팅 [주입]", c_feature_question)
     run("단자 번호 역조회 [주입]", c_terminal_lookup)
+    run("단자 번호 유일성 [주입]", c_terminal_unique)
     run("임베딩 캐시 신원 [주입]", c_cache_identity)
     run("환각 차단 [주입]", c_advisor_rejects_fake)
     run("챗봇·조치 경로 일치", c_chat_gateway)
