@@ -313,13 +313,23 @@ class FeedbackRequest(BaseModel):
 
 
 class ChatContext(BaseModel):
-    """화면에 떠 있는 조회 결과. 후속 질문에 답하려면 이것이 필요하다."""
+    """화면에 떠 있는 조회 결과. 후속 질문에 답하려면 이것이 필요하다.
+
+    알람 조회 근거(evidence)만 담던 것이 패치 29 에서 문제가 됐다.
+    인터락을 조회한 뒤 후속 질문을 하면 챗봇이 직전 알람 근거로 답을
+    만들어, 사용자가 보는 화면과 다른 주제의 답이 나왔다. 그래서 어느
+    탭의 결과인지(tab)와 인터락 응답 원본(interlock)을 함께 받는다.
+    """
     tag: Optional[str] = None
     alarm: str = ""
     decision: Optional[str] = None
     grade: Optional[float] = None
     evidence: List[dict] = []
     steps: List[dict] = []
+    # 화면이 어느 탭인지. 후속 질문을 어느 결과로 답할지 가른다.
+    tab: Optional[str] = None
+    # 인터락 조회 응답 그대로. 서술은 규칙으로 하며 LLM 을 쓰지 않는다.
+    interlock: Optional[dict] = None
 
 
 class ChatRequest(BaseModel):
@@ -1692,13 +1702,19 @@ def panel_intent(msg, low, cur_tag=None):
     # ── 판넬명만 나온 경우 ────────────────────────────────
     if panel and re.search(r"판\s*넬|panel|무엇|뭐|물려|계기", low):
         d = px.by_panel(panel)
-        loc = d["location"] or {}
+        if not d:
+            return {"type": "chat",
+                    "reply": "%s 판넬을 배선 자료에서 찾지 못했습니다." % panel}
+        loc = d.get("location") or {}
+        # by_panel 의 키가 by_tb → by_terminal 로 바뀌었는데 이 줄만 옛
+        # 이름을 읽어, 판넬명으로 챗봇 조회하면 죽었다 (패치 29b에서 발견).
+        tbs = d.get("by_terminal") or {}
         return {"type": "panel", "tab": "panel", "panel": panel,
                 "reply": "%s — %s 그리드 %s, 계기 %d점 (%s)"
                          % (panel, loc.get("area", "위치 정보 없음"),
-                            loc.get("grid", "-"), d["points"],
+                            loc.get("grid", "-"), d.get("points", 0),
                             ", ".join("%s %d" % (k, len(v))
-                                      for k, v in d["by_tb"].items()))}
+                                      for k, v in tbs.items()) or "단자 정보 없음")}
     return None
 
 
@@ -1744,7 +1760,74 @@ def smalltalk_intent(msg, low):
     return None
 
 
-def rule_intent(msg: str, cur_tag: str = None):
+# 기능에 대한 질문("판넬 조회로 뭘 알 수 있지?")과 기능을 쓰라는
+# 명령("판넬 조회해줘")은 다르다. 이 구분이 없던 동안 질문이 명령
+# 규칙까지 흘러가 알람 조회가 실행됐다 — 묻는 사람에게 답 대신 행동이
+# 나갔다 (패치 29b). 질문 표지가 있으면 명령보다 먼저 안내로 답한다.
+_FEATURE_Q = re.compile(
+    r"(어떤|무슨|뭔)\s*(기능|것|걸)|기능(이|이야|이지|인가|일까|인지)"
+    r"|뭘\s*(알|보여|할|해)|무엇을\s*(알|보여|할)|어떤\s*걸?\s*알"
+    r"|알\s*수\s*있(지|나|어|을까)|어떻게\s*(쓰|사용)|사용\s*(법|방법)"
+    r"|뭐(야|지|예요|에요|인가요|죠)|뭔가요|뭐가\s*(나와|보여|달라)")
+
+_FEATURE_HELP = [
+    (r"판넬|카드\s*조회|배선",
+     "판넬 조회는 계기가 어디에 어떻게 물려 있는지를 봅니다.\n"
+     "· 태그가 어느 판넬·어느 카드·몇 번 채널인지, 단자 번호까지\n"
+     "· 같은 카드에 물린 다른 계기 — 카드 한 장이 죽으면 함께 우는 것들\n"
+     "· 카드가 죽었을 때 영향을 받는 인터락 (의존 관계만, 트립 단정 없음)\n"
+     "· 배치도에서 그 판넬의 위치\n"
+     "화면 맨 아래 「동시 알람 조사」로 여러 태그의 공통 원인도 짚습니다.\n"
+     "예: CUB-A 판넬 조회해줘 / AIT-4002 어느 판넬이야"),
+    (r"인터락|interlock",
+     "인터락 조회는 설비가 왜 멈췄는지(못 움직이는지)를 리스트에서 찾아 "
+     "보여줍니다.\n"
+     "· 동작(정지·기동 등)별 조건과 세트포인트, 지연 시간\n"
+     "· 래치 여부 — 수동(MANUAL)은 사람이 리셋해야 풀립니다\n"
+     "· 역방향 — 이 계기가 어느 설비를 세우는지\n"
+     "· 「원본 보기」로 리스트 원문 대조\n"
+     "예: P-5101A 인터락 조회해줘 / LIT-4003 이 걸린 인터락"),
+    (r"알람\s*조회|알람\s*기능|진단",
+     "알람 조회는 태그와 증상으로 벤더 매뉴얼 근거를 찾아 옵니다.\n"
+     "· 근거마다 문서명·페이지 — 원문 보기로 확인\n"
+     "· 현장 조치 이력이 있으면 함께, 매뉴얼과 다르면 경고\n"
+     "· 근거가 부족하면 답하지 않고 거절(ABSTAIN)합니다\n"
+     "· 조치 순서 생성 → 결과 기록 → 4D 리포트로 이어집니다\n"
+     "예: AIT-4002 loop error 알람 조회해줘"),
+    (r"반입|업로드|파일\s*(올리|넣)",
+     "자료 반입은 새 매뉴얼·리스트를 넣는 화면입니다.\n"
+     "· 올리면 즉시 점검 — 읽은 행 수, 표준 열, 매뉴얼-기종 연결, "
+     "태그 맞물림\n"
+     "· 「수리안」이 고칠 수 있는 것을 제안 — 자동은 정답이 계산되는 "
+     "것만, 반영 전 이전 판 보존\n"
+     "· 수정에는 열쇠가 필요합니다 (보기는 누구나)\n"
+     "매뉴얼을 바꾸면 색인 재생성이 필요합니다."),
+    (r"도면|p\s*&\s*i\s*d|pid",
+     "도면 보기는 태그가 실린 P&ID·결선도·배치도를 엽니다.\n"
+     "알람 조회 결과나 판넬 조회에서 바로 열 수 있고, "
+     "챗봇으로도 됩니다. 예: AIT-1001 도면 보여줘"),
+    (r"공정\s*화면|시뮬레이션|시나리오",
+     "공정 화면은 인터락 동작을 눈으로 보는 오프라인 모의 화면입니다.\n"
+     "실제 공정과 연결되어 있지 않으며, 조건·세트포인트·지연 시간은 "
+     "전부 인터락 리스트에서 읽은 값입니다.\n"
+     "P-5101A 인터락 조회 화면에서 「펼치기」, 또는 "
+     "\"시나리오 재생해줘\" 라고 말하면 됩니다."),
+    (r"자유\s*모드|근거\s*모드|모드",
+     "근거 모드(기본)는 등록된 문서에 있는 것만 답하고, 없으면 없다고 "
+     "합니다.\n자유 모드는 근거가 없어도 모델의 일반 지식으로 답하되 "
+     "「추측」 라벨이 붙고 화면 테두리가 주황색이 됩니다.\n"
+     "추측은 조치 순서·4D 리포트·이력에 섞이지 않습니다. "
+     "조회 명령의 결과는 모드와 무관하게 같습니다."),
+    (r"조치|4\s*d|리포트",
+     "조치 순서 생성은 조회된 근거로 점검 순서를 만듭니다 — 근거가 없는 "
+     "단계는 만들지 않습니다.\n조치가 끝나면 실제 원인을 기록하고, "
+     "그 기록은 다음 사람의 조회에 근거로 뜹니다.\n"
+     "4D 리포트는 작업지시서에 첨부할 PDF 로, 근거가 없으면 "
+     "\"매뉴얼 근거: 없음\" 이라고 적습니다."),
+]
+
+
+def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
     """
     규칙 기반 의도 분석.
 
@@ -1755,10 +1838,63 @@ def rule_intent(msg: str, cur_tag: str = None):
     """
     low = msg.lower()
 
+    # 기능 질문 — 명령이 아니라 안내다. 인사말 규칙보다도 먼저 본다.
+    # "자료 반입은 무슨 기능이야?" 가 잡담의 '기능 목록' 답변에 걸려
+    # 뭉툭한 답이 나가던 것을 여기서 끊는다. 문장에 태그가 직접 적혀
+    # 있으면 그 태그를 조회하려는 뜻일 수 있으니 명령 쪽으로 넘긴다.
+    if _FEATURE_Q.search(low) and not find_tag(msg)[0]:
+        for pat, reply in _FEATURE_HELP:
+            if re.search(pat, low):
+                return {"type": "chat", "reply": reply}
+
     # 인사·감사는 조회 의도가 아니다. 예시 목록도 매뉴얼 검색도 아니다.
     st = smalltalk_intent(msg, low)
     if st:
         return st
+
+    # 단자 번호로 태그를 되찾는다 (패치 29c).
+    #
+    # 판넬 조회가 "IW512+ 1" 처럼 단자 번호를 보여주는데, 그것을 되물으면
+    # 답하지 못했다. 도구가 방금 화면에 띄운 값을 모르는 셈이었다.
+    # 자료(by_terminal)에는 있으니 규칙으로 잇는다.
+    mterm = re.search(r"\b([iqm][wbd]\s?\d{1,4})\s*\+?", low)
+    if mterm and re.search(r"태그|뭐|무엇|뭔|어디|누구|어느", low):
+        want = re.sub(r"\s+", "", mterm.group(1)).upper()
+        px = get_panel()
+        if px is None:
+            return {"type": "chat",
+                    "reply": "배선 자료를 읽지 못해 단자 조회를 할 수 없습니다."}
+        found = []
+        for prow in px.panels():
+            pname = prow.get("panel") if isinstance(prow, dict) else prow
+            d = px.by_panel(pname) or {}
+            for term, tags in (d.get("by_terminal") or {}).items():
+                if re.sub(r"[^A-Z0-9]", "", str(term).upper()) == want:
+                    for t2 in tags:
+                        found.append((pname, term, t2))
+        if not found:
+            return {"type": "chat",
+                    "reply": "%s 단자를 배선 자료에서 찾지 못했습니다. "
+                             "단자 번호를 확인해 주세요." % want}
+        # 문장에 판넬명이 함께 있으면 그 판넬로 좁힌다. 단자 번호는
+        # 판넬마다 되풀이되므로, 좁히지 않으면 남의 판넬까지 딸려 온다.
+        pm = re.search(r"\b((?:cub|rio|jb|lcp)-[a-z0-9]+)\b", low)
+        if pm:
+            want_p = pm.group(1).upper()
+            narrowed = [f for f in found if str(f[0]).upper() == want_p]
+            if narrowed:
+                found = narrowed
+
+        if len(found) == 1:
+            pn, term, t2 = found[0]
+            return {"type": "panel", "tab": "panel", "tag": t2,
+                    "reply": "%s 단자는 %s 입니다 (%s 판넬 · 단자 %s)."
+                             % (want, t2, pn, term)}
+        return {"type": "chat",
+                "reply": "%s 단자에 %d건이 걸려 있습니다 — %s"
+                         % (want, len(found),
+                            ", ".join("%s(%s)" % (t2, pn)
+                                      for pn, _, t2 in found[:6]))}
 
     # 판넬 의도를 태그 판정보다 먼저 본다 (표기가 겹치므로)
     pintent = panel_intent(msg, low, cur_tag)
@@ -1818,6 +1954,19 @@ def rule_intent(msg: str, cur_tag: str = None):
     # 질문이므로 규칙에서 빼고 질의응답으로 넘긴다.
     if re.search(r"(조회된|검색된|나온|방금|위의|이|그|저)\s*(내용|결과|것|거)"
                  r"|결과를?\s*(보고|바탕|기반)|앞서|아까", low):
+        return {"type": "followup", "tag": tag, "question": msg}
+
+    # 지시 대명사가 없는 설명 요청도 후속 질문이다 (패치 29).
+    #
+    # "말로 풀어서 설명해줘" 처럼 가리키는 말이 없으면 위 규칙에 안 걸려
+    # 매뉴얼 검색으로 흘렀다. 인터락을 조회한 뒤 이렇게 물으면 직전 알람
+    # 근거로 엉뚱한 답이 나왔다. 조회 대상(태그·인터락 같은 낱말)이 없고
+    # 설명을 청하는 문장이면, 화면에 떠 있는 결과에 대한 질문으로 본다.
+    if re.search(r"(설명|알려|해석|정리)\s*(해|해서|을|를)?\s*"
+                 r"(줄|주|달|부탁|가능|해)", low) \
+            and not re.search(r"인터락|interlock|도면|p\s*&\s*i\s*d|pid"
+                              r"|판넬|panel|반입|업로드|사용법|사용 방법", low) \
+            and not find_tag(msg)[0]:
         return {"type": "followup", "tag": tag, "question": msg}
 
     if re.search(r"도면|p\s*&\s*i\s*d|pid|p&id", low):
@@ -1964,9 +2113,12 @@ def chat_help(req: ChatRequest):
         # 물음표 하나로 도메인 질문이라고 보면 안 된다. "인사 안 해주고
         # 예시를 들어주네?" 같은 말이 매뉴얼 검색으로 넘어가 "근거를 찾지
         # 못했습니다" 가 나온다. 의문사·요청어가 실제로 있어야 한다.
-        if re.search(r"(어떻게|왜|무엇|뭐가|뭔|어디|언제|얼마|방법|절차|"
+        # "뭐지·뭐야" 처럼 흔한 말꼬리가 빠져 있어, 자유 모드인데도 모델에
+        # 물어보지 않고 안내문만 돌려주는 일이 있었다 (패치 29c).
+        if re.search(r"(어떻게|왜|무엇|뭐|뭔|어디|언제|얼마|방법|절차|"
                      r"주기|원인|의미|뜻|차이|기준|규격|사양|알려|설명|"
-                     r"인가요|하나요|되나요|일까|인지|점검|조치|확인)", t):
+                     r"인가요|하나요|되나요|일까|인지|점검|조치|확인|"
+                     r"누구|몇|가능한|되는지|맞나|맞는지)", t):
             return True
         return False
 
@@ -1981,7 +2133,9 @@ def chat_help(req: ChatRequest):
     # 규칙이 실행 가능한 의도를 뽑아내면 그것을 쓰고, 규칙이 못 알아들은
     # 표현에 한해 LLM 에 물어본다. 이 순서가 시연에서도 안전하다 —
     # 같은 문장에 같은 동작이 나온다.
-    rule = rule_intent(text, req.tag) or {}
+    rule = rule_intent(text, req.tag,
+                       (req.context.tab if req.context else None)
+                       or req.tab) or {}
     if rule.get("type") in ACTIONABLE:
         return finalize(rule, "rule")
 
@@ -2003,6 +2157,22 @@ def chat_help(req: ChatRequest):
     if rule.get("type") == "followup":
         ctx = req.context
         ev = (ctx.evidence if ctx else None) or []
+
+        # 인터락 결과가 화면에 떠 있으면 그것으로 답한다. 알람 근거로
+        # 답하면 사용자가 보는 것과 다른 주제가 나온다 (패치 29).
+        il = (ctx.interlock if ctx else None) or None
+        on_interlock_tab = bool(ctx and (ctx.tab or "") == "interlock")
+        if il and (on_interlock_tab or not ev):
+            from retrieval.interlock_describe import describe, citations
+            return {"type": "chat", "engine": "followup-interlock",
+                    "reply": describe(il), "grounded": True,
+                    "citations": citations(il)}
+        if on_interlock_tab and not il:
+            return finalize({"type": "chat",
+                             "reply": "인터락 조회 결과가 화면에 없습니다. "
+                                      "태그와 동작을 골라 조회한 뒤 다시 "
+                                      "물어봐 주세요."}, "rule")
+
         if not ev:
             return finalize({"type": "chat",
                              "reply": "아직 조회 결과가 없습니다. 먼저 "

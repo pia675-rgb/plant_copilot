@@ -304,6 +304,7 @@ export default function App() {
           <InterlockView
             key={`il-${tag}-${ilAction}-${asInput}`}
             tag={tag} action={ilAction} asInput={asInput} free={freeMode}
+            onResult={setScreen}
             botPending={botPending}
             onBotHandled={() => setBotPending(null)}
           />
@@ -1688,11 +1689,17 @@ function FeedbackForm({ tag, alarm, onSaved }) {
 /* ══════════════════════════════════════════════════════════
    인터락
    ══════════════════════════════════════════════════════════ */
-function InterlockView({ tag, action, asInput, botPending, onBotHandled, free }) {
+function InterlockView({ tag, action, asInput, botPending, onBotHandled, free, onResult }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [data, setData] = useState(null)
   const [sourceBlock, setSourceBlock] = useState(null)
+  // 조회 결과를 챗봇이 볼 수 있게 위로 올린다. 이것이 없던 동안
+  // 후속 질문("말로 설명해줘")이 직전 알람 근거로 답했다 (패치 29).
+  React.useEffect(() => {
+    if (!onResult) return
+    onResult(data ? { tag, tab: 'interlock', interlock: data, evidence: [] } : null)
+  }, [data, tag])
   const [sourceOpen, setSourceOpen] = useState(false)
   const [sourceLoading, setSourceLoading] = useState(false)
   const [sourceError, setSourceError] = useState(null)

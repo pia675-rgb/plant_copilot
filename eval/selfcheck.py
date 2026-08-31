@@ -244,6 +244,126 @@ def c_repair_key_gate():
     return True, '무열쇠 401 · 유열쇠 통과 (반영 대상 없음)'
 
 
+def c_terminal_lookup():
+    """단자 번호 역조회 [주입] — 화면이 보여준 값을 되물으면 답하는가.
+
+    판넬 조회가 "IW512+ 1" 처럼 단자 번호를 보여주는데, 그것을 되물으면
+    안내문만 돌려주었다. 자료(by_terminal)에는 있는 값이었다 (패치 29c).
+    """
+    from api.server import rule_intent, get_panel
+    px = get_panel()
+    if px is None:
+        return False, '판넬 색인을 읽지 못했습니다'
+    # 자료에서 실재하는 단자 하나를 골라 되묻는다
+    term = tag = None
+    for prow in px.panels():
+        pn = prow.get('panel') if isinstance(prow, dict) else prow
+        d = px.by_panel(pn) or {}
+        for k, v in (d.get('by_terminal') or {}).items():
+            if len(v) == 1:
+                term, tag = k, v[0]
+                break
+        if term:
+            break
+    if not term:
+        return True, '단자가 1건뿐인 항목이 없어 시험 건너뜀'
+    q = '%s 태그명은 뭐지?' % str(term).rstrip('+-')
+    r = rule_intent(q, None, 'panel') or {}
+    rep = r.get('reply') or ''
+    if tag not in rep:
+        return False, "'%s' → '%s' — %s 가 답에 없음" % (q, rep[:40], tag)
+    # 없는 단자는 지어내지 않는다
+    r2 = rule_intent('IW9999 태그명은 뭐지?', None, 'panel') or {}
+    if '찾지 못했' not in (r2.get('reply') or ''):
+        return False, '없는 단자에 답을 지어냈습니다'
+    return True, '%s → %s / 없는 단자는 거절' % (term, tag)
+
+
+def c_feature_question():
+    """기능 질문 라우팅 [주입] — 질문이 명령으로 오인되지 않는가 (패치 29b).
+
+    "판넬 조회로 뭘 알 수 있지?" 가 알람 조회 명령으로 실행되던 것을
+    막는다. 질문은 안내로, 명령은 명령으로. 그리고 판넬명 챗봇 조회가
+    옛 키 이름(by_tb)으로 죽던 것도 함께 확인한다.
+    """
+    from api.server import rule_intent
+    qs = [
+        ('판넬 조회로 나는 어떤걸 알 수 있지?', '판넬 조회는'),
+        ('인터락 조회는 뭘 보여줘?', '인터락 조회는'),
+        ('알람 조회는 어떻게 쓰는거야?', '알람 조회는'),
+        ('자료 반입은 무슨 기능이야?', '자료 반입은'),
+        ('자유 모드가 뭐야?', '근거 모드(기본)'),
+    ]
+    for m, head in qs:
+        r = rule_intent(m, 'P-5101A', 'interlock') or {}
+        if r.get('type') != 'chat' or not (r.get('reply') or '').startswith(head):
+            return False, "'%s' → %s / '%s...' — 기능 안내가 아님" % (
+                m[:20], r.get('type'), (r.get('reply') or '')[:20])
+    cmds = [
+        ('P-5101A 인터락 조회해줘', 'interlock'),
+        ('AIT-4002 loop error 알람 조회해줘', 'diagnose'),
+        ('CUB-A 판넬 조회해줘', 'panel'),      # 크래시 회귀 확인 겸
+        ('사용법 알려줘', 'help'),
+    ]
+    for m, want in cmds:
+        try:
+            t = (rule_intent(m, None, 'alarm') or {}).get('type')
+        except Exception as e:                              # noqa: BLE001
+            return False, "'%s' 처리 중 예외 %s" % (m[:20], type(e).__name__)
+        if t != want:
+            return False, "'%s' → %s (기대 %s)" % (m[:20], t, want)
+    return True, '질문 5종 안내 · 명령 4종 유지 · 판넬명 조회 무사'
+
+
+def c_followup_interlock():
+    """인터락 후속 질문 [주입] — 화면 결과로 답하는가 (패치 29).
+
+    이 검사가 없던 동안, 인터락을 조회한 뒤 "말로 설명해줘" 라고 물으면
+    직전 알람 조회의 매뉴얼 근거로 답이 나왔다. 사용자가 보는 화면과
+    챗봇이 보는 것이 달랐다. 그래서 두 가지를 함께 본다 — 설명 요청이
+    후속 질문으로 라우팅되는가, 그 답이 인터락 결과에서 나오는가.
+    """
+    from fastapi.testclient import TestClient
+    import api.server as srv
+    c = TestClient(srv.app)
+
+    # 1) 라우팅 — 지시 대명사 없는 설명 요청도 후속 질문이어야 한다
+    for m in ('말로 풀어서 설명 부탁해', '자세히 설명해줘'):
+        t = (srv.rule_intent(m, 'P-5101A', 'interlock') or {}).get('type')
+        if t != 'followup':
+            return False, "'%s' 판정 %s — followup 이어야 함" % (m, t)
+    # 조회 명령·사용법은 여전히 원래 경로로 가야 한다
+    for m, want in (('P-5101A 인터락 조회해줘', 'interlock'),
+                    ('사용법 알려줘', 'help'),
+                    ('AIT-4002 알람 조회해줘', 'diagnose')):
+        t = (srv.rule_intent(m, 'P-5101A', 'interlock') or {}).get('type')
+        if t != want:
+            return False, "'%s' 판정 %s — %s 이어야 함" % (m, t, want)
+
+    # 2) 답의 출처 — 알람 근거가 함께 있어도 인터락으로 답해야 한다
+    il = c.post('/api/interlock',
+                json={'tag': 'P-5101A', 'action': 'STOP'}).json()
+    if not il.get('found'):
+        return False, '인터락 조회 자체가 실패'
+    r = c.post('/api/chat', json={
+        'message': '말로 풀어서 설명 부탁해', 'tag': 'P-5101A',
+        'tab': 'interlock', 'use_llm': False,
+        'context': {'tag': 'P-5101A', 'tab': 'interlock', 'interlock': il,
+                    'evidence': [{'id': 'x', 'title': 'M300 Alarm',
+                                  'cite': 'p.36'}]}}).json()
+    if r.get('engine') != 'followup-interlock':
+        return False, 'engine %s — 알람 근거로 답하고 있음' % r.get('engine')
+    rep = r.get('reply') or ''
+    if 'IL-5101A-01' not in rep:
+        return False, '인터락 번호가 답에 없음'
+    if 'M300' in rep or 'Alarm/Clean' in rep:
+        return False, '알람 매뉴얼 내용이 섞였음'
+    # 래치 표기를 리스트 그대로 말하는가 (MANUAL 만 사람이 리셋)
+    if '사람이 리셋' not in rep:
+        return False, 'MANUAL 리셋 표기가 답에 없음'
+    return True, '설명 요청 라우팅·인터락 근거 답변·래치 표기 일치'
+
+
 def c_flood_investigate():
     """동시 알람 조사 [주입] — 4태그+11H 로 판정·반례·코드 근거·단계."""
     from retrieval.panel_index import PanelIndex
@@ -1650,6 +1770,9 @@ def main():
     run("수리안 왕복 [주입]", c_repair_roundtrip)
     run("수리 반영 열쇠 [주입]", c_repair_key_gate)
     run("동시 알람 조사 [주입]", c_flood_investigate)
+    run("인터락 후속 질문 [주입]", c_followup_interlock)
+    run("기능 질문 라우팅 [주입]", c_feature_question)
+    run("단자 번호 역조회 [주입]", c_terminal_lookup)
     run("임베딩 캐시 신원 [주입]", c_cache_identity)
     run("환각 차단 [주입]", c_advisor_rejects_fake)
     run("챗봇·조치 경로 일치", c_chat_gateway)
