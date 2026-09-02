@@ -1718,6 +1718,13 @@ function InterlockView({ tag, action, asInput, botPending, onBotHandled, free, o
       if (botPending.openGraphic) {
         setGraphicOpen(true)
         setPlayWhenReady(!!botPending.playScenario)
+        // 멈춰 달라는 명령은 이미 떠 있는 화면에 바로 보낸다. 재생과 달리
+        // onLoad 를 기다릴 필요가 없다 — 기다리면 이미 열린 화면에서는
+        // 영영 전달되지 않는다 (패치 33).
+        if (botPending.stopScenario) {
+          graphicRef.current?.contentWindow?.postMessage(
+            'stop-scenario', window.location.origin)
+        }
       }
       const run = async () => {
         setLoading(true)

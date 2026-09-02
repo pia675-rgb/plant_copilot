@@ -1924,6 +1924,18 @@ def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
     # 공정 화면(오프라인 시뮬레이션)의 시나리오 재생. 화면은 P-5101A
     # 인터락 뷰에 붙어 있는 기존 기능이고, 챗봇은 그리로 안내·실행만
     # 한다. 시뮬레이션 화면이 있는 태그는 현재 P-5101A 하나다.
+    # 시나리오를 멈춰 달라는 말이 먼저다. "정지" 라는 낱말이 인터락 동작
+    # (STOP)과 겹쳐서, 아래 인터락 규칙이 먼저 걸리면 "시나리오 정지" 가
+    # P-5101A 정지 인터락 조회로 흘렀다. 실제로 그랬다 (패치 33).
+    if re.search(r"(시나리오|시뮬레이션|재생|공정\s*화면)[^\n]*"
+                 r"(정지|멈춰|멈춤|중지|스톱|stop)"
+                 r"|(정지|멈춰|멈춤|중지)[^\n]*(시나리오|시뮬레이션|재생)", low):
+        return {"type": "interlock", "tag": "P-5101A", "tab": "interlock",
+                "action": "OPEN", "openGraphic": True,
+                "stopScenario": True, "playScenario": False,
+                "reply": "공정 화면의 시나리오 재생을 멈춥니다. "
+                         "화면의 값은 멈춘 시점 그대로 남습니다."}
+
     if re.search(r"시나리오\s*재생|시뮬레이션.*(재생|가동|실행|열|보여)"
                  r"|공정\s*화면", low):
         return {"type": "interlock", "tag": "P-5101A", "tab": "interlock",
@@ -2295,16 +2307,25 @@ def chat_help(req: ChatRequest):
         "- 인터락 조회: 밸브·펌프가 왜 안 움직이는지, 동작 조건을 "
         "인터락·퍼미시브·시퀀스로 나누어 보여주고 엑셀 원본과 대조합니다.\n"
         "- 도면: 태그가 표시된 P&ID 위치와 배선 정보를 보여줍니다.\n"
-        "- 4D 리포트: 조회 결과를 PDF 보고서로 출력합니다.\n\n"
+        "- 4D 리포트: 조회 결과를 PDF 보고서로 출력합니다.\n"
+        "- 공정 화면(P-5101A): 오프라인 모의 화면을 열고, 시나리오를 "
+        "재생하거나 재생 중인 것을 멈춥니다. 실제 공정이 아닙니다.\n\n"
         "사용자 메시지를 UI 명령 JSON 으로 해석하십시오. " + free_clause + "\n"
         "Reply language: Korean.\n"
         "Schema:\n"
         '{"type":"diagnose|drawing|interlock|interlock_source|advice|help|chat|navigate",'
         '"tag":"AIT-4002 or null","tab":"alarm|interlock","alarm":"symptom text or null",'
         '"action":"OPEN|CLOSE|START|STOP or null","openSource":false,'
+        '"openGraphic":false,"playScenario":false,"stopScenario":false,'
         '"reply":"short Korean confirmation"}\n'
         "Rules: do not invent tags; if tag missing ask in reply with type=chat. "
         "For alarm search type=diagnose. For P&ID type=drawing. For interlock type=interlock. "
+        "공정 화면을 열어 달라면 type=interlock, tag=P-5101A, openGraphic=true 로 "
+        "두십시오. 재생은 playScenario=true, 재생을 멈춰 달라는 말(정지·멈춰·중지)은 "
+        "stopScenario=true 로 두고 playScenario 는 false 로 두십시오. "
+        "여기서 '정지'는 시나리오 재생을 멈추라는 뜻이며, 펌프 정지 인터락 조회와 "
+        "다릅니다. 어느 쪽인지 분명하지 않으면 실행하지 말고 type=chat 으로 "
+        "무엇을 원하는지 되물으십시오. "
         "reply 는 아무것도 실행하지 않으니 실행을 약속하는 문장을 쓰지 마십시오. 범위 밖 요청(노래 등)은 한 줄로 사양하십시오."
     )
     user = "current_tab=%s current_tag=%s\nuser: %s" % (req.tab, req.tag, text)

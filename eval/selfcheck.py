@@ -244,6 +244,52 @@ def c_repair_key_gate():
     return True, '무열쇠 401 · 유열쇠 통과 (반영 대상 없음)'
 
 
+def c_scenario_stop():
+    """시나리오 정지 명령 [주입] — 멈춰 달라는 말이 조회로 새지 않는가.
+
+    "시나리오 정지해주세요" 가 P-5101A **정지 인터락 조회**로 흘렀다.
+    "정지" 라는 낱말이 인터락 동작(STOP)과 겹쳐서다. 챗봇으로 시작한
+    일을 챗봇으로 끝내지 못했다 (패치 33).
+    """
+    import os
+    from api.server import rule_intent
+    for m in ('시나리오 정지해주세요', '재생 멈춰줘', '시뮬레이션 중지',
+              '아 시나리오 재생한걸 정지해달란 이야기였어요'):
+        r = rule_intent(m, 'P-5101A', 'interlock') or {}
+        if not r.get('stopScenario'):
+            return False, "'%s' → %s / stop=%s" % (
+                m[:22], r.get('type'), r.get('stopScenario'))
+        if r.get('playScenario'):
+            return False, "'%s' 가 재생도 함께 켠다" % m[:22]
+    # 재생·조회는 원래대로
+    r = rule_intent('시나리오 재생해줘', 'P-5101A', 'interlock') or {}
+    if not r.get('playScenario') or r.get('stopScenario'):
+        return False, '재생 명령이 망가졌습니다'
+    r = rule_intent('P-5101A 정지 인터락 조회해줘', None, 'alarm') or {}
+    if r.get('type') != 'interlock' or r.get('action') != 'STOP':
+        return False, '정지 인터락 조회가 %s/%s 로 샜습니다' % (
+            r.get('type'), r.get('action'))
+    # 화면 쪽 — 그래픽 페이지가 stop-scenario 를 받는가
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for rel in ('ui/react/public/interlock_P-5101A.html',
+                'ui/react/dist/interlock_P-5101A.html'):
+        p2 = os.path.join(here, rel)
+        if not os.path.isfile(p2):
+            continue
+        with open(p2, encoding='utf-8') as f:
+            if 'stop-scenario' not in f.read():
+                return False, '%s 가 stop-scenario 를 받지 않습니다' % rel
+    # LLM 이 고를 수 있는 도구 목록에도 시나리오 제어가 있어야 한다.
+    # 규칙이 못 잡은 표현은 LLM 이 받는데, 그 스키마에 정지가 없으면
+    # 가장 가까운 것(인터락 STOP)을 고른다. 실제로 그렇게 샜다.
+    import api.server as _srv, inspect
+    src = inspect.getsource(_srv.chat_help)
+    for token in ('stopScenario', 'playScenario', '공정 화면'):
+        if token not in src:
+            return False, 'LLM 명령 스키마에 %s 가 없습니다' % token
+    return True, '정지 4종 인식 / 재생·조회 유지 / 화면 수신 / LLM 스키마 포함'
+
+
 def c_preflight_gate():
     """환경 점검 게이트 [주입] — 실패를 표시하고도 통과시키지 않는가.
 
@@ -1852,6 +1898,7 @@ def main():
     run("단자 번호 역조회 [주입]", c_terminal_lookup)
     run("단자 번호 유일성 [주입]", c_terminal_unique)
     run("환경 점검 게이트 [주입]", c_preflight_gate)
+    run("시나리오 정지 명령 [주입]", c_scenario_stop)
     run("임베딩 캐시 신원 [주입]", c_cache_identity)
     run("환각 차단 [주입]", c_advisor_rejects_fake)
     run("챗봇·조치 경로 일치", c_chat_gateway)

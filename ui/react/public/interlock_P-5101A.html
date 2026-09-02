@@ -408,6 +408,10 @@ function scnStart(){
 window.addEventListener("message", (e)=>{
   if (e.origin !== window.location.origin) return;
   if (e.data === "play-scenario" && !scn) scnStart();
+  // 멈춰 달라는 말도 받는다. 재생만 되고 멈출 수 없으면
+  // 사람이 화면을 직접 눌러야 하고, 그러면 챗봇으로 시작한 일을
+  // 챗봇으로 끝내지 못한다 (패치 33).
+  if (e.data === "stop-scenario" && scn) scnStop();
 });
 scnBtn.addEventListener("click", ()=> scn ? scnStop() : scnStart());
 // 사람이 직접 만지면 재생을 멈춘다 — 조작권은 사람에게 있다.
