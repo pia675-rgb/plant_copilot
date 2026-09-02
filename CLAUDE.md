@@ -29,7 +29,7 @@ Plant Maintenance Copilot · Plant Copilot Lab
 run_demo.bat
 :: 평가 (45문항·홀드아웃·인터락·판넬·이력)
 run_eval_demo.bat
-:: 자기 점검 53항목
+:: 자기 점검 54항목
 run_check_demo.bat
 :: 색인 재생성
 run_rebuild_demo.bat
@@ -62,7 +62,7 @@ v1 원본(76점)으로 **조용히** 갈아탄다. 결과가 절반만 맞는 �
 | 인터락 | **67/67** | 같음 |
 | 판넬·배선 | **211/211** | `python -m eval.run_eval_panel --md eval/scorecard_panel.md --mutate` |
 | 조치 이력 | **100/100** | `run_eval_demo.bat` |
-| 자기 점검 | **53항목 전건** | `run_check_demo.bat` |
+| 자기 점검 | **54항목 전건** | `run_check_demo.bat` |
 
 **문항별 OX 패턴까지 같아야 회귀가 없는 것이다.** 총점만 같고 패턴이
 다르면 어딘가 무너지고 어딘가 우연히 맞은 것이다.
@@ -160,7 +160,7 @@ v1 원본(76점)으로 **조용히** 갈아탄다. 결과가 절반만 맞는 �
 
 ## 7. 자기 점검 가드를 쓰는 법
 
-`eval/selfcheck.py` 53항목. **`[주입]` 표시가 붙은 것은 일부러 고장을
+`eval/selfcheck.py` 54항목. **`[주입]` 표시가 붙은 것은 일부러 고장을
 심고 검사가 그것을 잡는지 본다.** 검사가 통과만 하는 것으로는 부족하다 —
 고장났을 때 실패하는지도 봐야 한다.
 
