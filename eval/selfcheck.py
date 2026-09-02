@@ -287,7 +287,24 @@ def c_scenario_stop():
     for token in ('stopScenario', 'playScenario', '공정 화면'):
         if token not in src:
             return False, 'LLM 명령 스키마에 %s 가 없습니다' % token
-    return True, '정지 4종 인식 / 재생·조회 유지 / 화면 수신 / LLM 스키마 포함'
+    # 화면이 없는 태그를 물으면 있는 화면을 열어 주면 안 된다.
+    # 사용자는 그 태그의 화면을 보고 있다고 믿는다 (패치 33b).
+    for m in ('LCV-01 공정 화면 재생해줘', 'AIT-4002 시나리오 재생해줘',
+              'LCV-01 시나리오 정지'):
+        r = rule_intent(m, None, 'interlock') or {}
+        if r.get('type') != 'chat' or r.get('tag'):
+            return False, "'%s' 가 없는 화면을 열었습니다 (tag=%s)" % (
+                m[:22], r.get('tag'))
+        if '없습니다' not in (r.get('reply') or ''):
+            return False, "'%s' 응답에 없다는 말이 없습니다" % m[:22]
+    # 화면이 있는 태그는 그대로 열린다
+    r = rule_intent('P-5101A 공정 화면 열어줘', None, 'interlock') or {}
+    if r.get('tag') != 'P-5101A' or not r.get('openGraphic'):
+        return False, 'P-5101A 화면이 열리지 않습니다'
+    if r.get('playScenario'):
+        return False, '열기만 시켰는데 재생까지 켭니다'
+    return True, ('정지 4종 · 없는 화면 거절 3종 · 열기/재생 구분 · '
+                  'LLM 스키마 포함')
 
 
 def c_preflight_gate():

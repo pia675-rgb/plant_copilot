@@ -1827,6 +1827,22 @@ _FEATURE_HELP = [
 ]
 
 
+# 공정 화면(오프라인 모의)이 있는 태그. 화면 파일이 실제로 있는 것만
+# 적는다 — 목록에 없는 태그를 물었는데 있는 화면을 열어 주면, 사용자는
+# 그 태그의 화면을 보고 있다고 믿는다. 지어내는 것보다 나쁘다 (패치 33b).
+GRAPHIC_TAGS = ("P-5101A",)
+
+
+def _graphic_tag(msg, cur_tag):
+    """문장이 가리키는 공정 화면 태그. 없으면 (None, 물어본 태그)."""
+    asked = find_tag(msg)[0] or None
+    if asked:
+        return (asked if asked in GRAPHIC_TAGS else None), asked
+    if cur_tag and cur_tag in GRAPHIC_TAGS:
+        return cur_tag, cur_tag
+    return (GRAPHIC_TAGS[0] if len(GRAPHIC_TAGS) == 1 else None), None
+
+
 def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
     """
     규칙 기반 의도 분석.
@@ -1930,7 +1946,13 @@ def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
     if re.search(r"(시나리오|시뮬레이션|재생|공정\s*화면)[^\n]*"
                  r"(정지|멈춰|멈춤|중지|스톱|stop)"
                  r"|(정지|멈춰|멈춤|중지)[^\n]*(시나리오|시뮬레이션|재생)", low):
-        return {"type": "interlock", "tag": "P-5101A", "tab": "interlock",
+        gtag, asked = _graphic_tag(msg, cur_tag)
+        if not gtag:
+            return {"type": "chat",
+                    "reply": "%s 의 공정 화면은 없습니다. 현재 모의 화면이 "
+                             "있는 설비는 %s 뿐입니다."
+                             % (asked, ", ".join(GRAPHIC_TAGS))}
+        return {"type": "interlock", "tag": gtag, "tab": "interlock",
                 "action": "OPEN", "openGraphic": True,
                 "stopScenario": True, "playScenario": False,
                 "reply": "공정 화면의 시나리오 재생을 멈춥니다. "
@@ -1938,12 +1960,21 @@ def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
 
     if re.search(r"시나리오\s*재생|시뮬레이션.*(재생|가동|실행|열|보여)"
                  r"|공정\s*화면", low):
-        return {"type": "interlock", "tag": "P-5101A", "tab": "interlock",
+        gtag, asked = _graphic_tag(msg, cur_tag)
+        if not gtag:
+            return {"type": "chat",
+                    "reply": "%s 의 공정 화면은 없습니다. 현재 모의 화면이 "
+                             "있는 설비는 %s 뿐입니다. 인터락 조건은 "
+                             "'%s 인터락 조회해줘' 로 보실 수 있습니다."
+                             % (asked, ", ".join(GRAPHIC_TAGS), asked)}
+        play = bool(re.search(r"재생|가동|실행", low))
+        return {"type": "interlock", "tag": gtag, "tab": "interlock",
                 "action": "OPEN", "openGraphic": True,
-                "playScenario": bool(re.search(r"재생|가동|실행", low)),
-                "reply": "P-5101A 공정 화면(오프라인 시뮬레이션)을 열어 "
-                         "시나리오를 재생합니다. 실제 공정 상태가 아닌 "
-                         "시연 화면입니다."}
+                "playScenario": play,
+                "reply": "%s 공정 화면(오프라인 시뮬레이션)을 %s. 실제 공정 "
+                         "상태가 아닌 시연 화면입니다."
+                         % (gtag, "열어 시나리오를 재생합니다" if play
+                            else "엽니다")}
 
     if re.search(r"자료\s*반입|반입|파일\s*(올리|넣|업로드)|업로드", low):
         return {
