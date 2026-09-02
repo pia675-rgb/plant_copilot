@@ -33,13 +33,35 @@ def check(name, fn, fix="", critical=True):
 
 
 # ── 개별 점검 ───────────────────────────────────────────────
+def _interlock_exists(path):
+    """인터락 자료가 있는가.
+
+    config.INTERLOCK_XLSX 는 **파일일 수도 폴더일 수도 있다.** 실물은
+    인터락 리스트가 여러 엑셀로 나뉘어 오므로 폴더를 통째로 가리키게
+    설계했다(config._resolve_interlock_xlsx).
+
+    그런데 이 점검은 isfile 만 봤다. 폴더로 해결된 경우 자료가 멀쩡한데도
+    "없음" 이라고 보고했고, 같은 자료로 인터락 조회는 67/67 을 냈다.
+    **점검이 틀렸는데 자료를 탓하고 있었다.**
+    """
+    if os.path.isfile(path):
+        return True
+    if os.path.isdir(path):
+        return any(f.lower().endswith((".xlsx", ".xlsm"))
+                   and not f.startswith("~$")
+                   for f in os.listdir(path))
+    return False
+
+
 def c_data_dir():
     """자료 폴더 — 이제 data/ 한 곳이다."""
     missing = []
     for label, path in (("IO List", config.IO_LIST),
                         ("계기 리스트", config.INSTRUMENT_SPEC),
                         ("인터락 리스트", config.INTERLOCK_XLSX)):
-        if not os.path.isfile(path):
+        ok = (_interlock_exists(path) if label == "인터락 리스트"
+              else os.path.isfile(path))
+        if not ok:
             missing.append("%s(%s)" % (label, os.path.basename(path)))
     if missing:
         return False, "%s — 없음: %s" % (config.DATA_DIR, ", ".join(missing))
@@ -166,7 +188,7 @@ def c_advisor():
 
 def c_interlock():
     p = config.INTERLOCK_XLSX
-    if not os.path.isfile(p):
+    if not _interlock_exists(p):
         return False, "없음: %s" % p
     from ingest.interlock import load_interlocks
     items = load_interlocks()
@@ -190,8 +212,22 @@ def c_deps():
 
 def main():
     ap = argparse.ArgumentParser(description="환경 점검")
-    ap.add_argument("--strict", action="store_true")
+    ap.add_argument("--strict", action="store_true",
+                    help="(호환용) 실패 시 종료 코드 1 — 이제 기본 동작")
+    ap.add_argument("--lenient", action="store_true",
+                    help="실패가 있어도 종료 코드 0 — 경고만 보고 진행")
     args = ap.parse_args()
+
+    # 출력이 파이프·파일로 갈 때 윈도우는 인코딩을 cp949 로 잡는다.
+    # 이 파일의 메시지에는 cp949 에 없는 글자(em dash)가 있어,
+    # 콘솔에서는 멀쩡하다가 `> log.txt` 로 받는 순간 UnicodeEncodeError
+    # 로 죽었다. 그 죽음이 종료 코드 1 로 나타나 게이트가 동작한 것처럼
+    # 보이기까지 했다 — 조용히 틀리는 쪽이다. 여기서 못 박는다.
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
 
     print("\nPlant Maintenance Copilot v2 — 환경 점검\n" + "=" * 78)
 
@@ -241,7 +277,17 @@ def main():
     else:
         print("전부 통과. `python -m eval.run_eval_v2 --md eval/scorecard_v2.md` 진행 가능.")
     print()
-    return 1 if (bad and args.strict) else 0
+    # 실패가 있으면 0 이 아닌 값을 돌려준다.
+    #
+    # 예전에는 --strict 일 때만 1 을 냈다. 그래서 배치의
+    # `if errorlevel 1` 이 걸리지 않았고, **화면에 "실패 2건" 을 찍고도
+    # 그대로 다음 단계로 넘어갔다.** 검사가 실패를 표시하고서 통과시키는
+    # 것은 검사가 없는 것보다 나쁘다 — 봤다고 착각하게 만든다.
+    #
+    # --lenient 를 주면 예전처럼 진행한다(경고만 보고 싶을 때).
+    if bad and not args.lenient:
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

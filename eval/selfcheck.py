@@ -244,6 +244,57 @@ def c_repair_key_gate():
     return True, '무열쇠 401 · 유열쇠 통과 (반영 대상 없음)'
 
 
+def c_preflight_gate():
+    """환경 점검 게이트 [주입] — 실패를 표시하고도 통과시키지 않는가.
+
+    preflight 가 화면에 "실패 2건" 을 찍고서 종료 코드 0 을 돌려주어,
+    배치의 errorlevel 검사가 걸리지 않았다. 검사가 실패를 보고서
+    통과시키는 것은 검사가 없는 것보다 나쁘다 — 봤다고 착각하게 만든다.
+
+    아울러 인터락 자료 판정이 isfile 만 보아, 폴더로 해결된 정상 자료를
+    "없음" 으로 보고하던 것도 함께 확인한다.
+    """
+    import subprocess, sys, os
+    from eval.preflight import _interlock_exists
+    import config
+
+    # 1) 인터락 자료 판정 — 폴더도 유효
+    if not _interlock_exists(config.INTERLOCK_XLSX):
+        return False, "인터락 자료를 찾지 못함: %s" % config.INTERLOCK_XLSX
+    if os.path.isdir(config.INTERLOCK_XLSX):
+        pass          # 폴더로 해결된 경우가 이 검사의 본래 대상이다
+
+    # 2) 종료 코드 — 없는 자료 폴더를 가리켜 실패를 만든 뒤 확인
+    env = dict(os.environ)
+    env["COPILOT_DATA_DIR"] = os.path.join(
+        os.path.dirname(config.DATA_DIR), "__no_such_data__")
+    # 출력을 파이프로 받으면 윈도우에서 인코딩이 cp949 로 잡힌다. 요약줄의
+    # em dash 같은 글자가 그 표에 없어 UnicodeEncodeError 로 죽고, 그것이
+    # 종료 코드 1 로 나타나 게이트가 동작한 것처럼 보인다. 콘솔에서는
+    # 멀쩡하고 파이프로 받을 때만 그러므로 알아채기 어렵다.
+    env["PYTHONIOENCODING"] = "utf-8"
+
+    def _run(*extra):
+        return subprocess.run(
+            [sys.executable, "-m", "eval.preflight"] + list(extra),
+            capture_output=True, env=env, text=True,
+            encoding="utf-8", errors="replace")
+
+    r = _run()
+    if "Traceback" in (r.stderr or ""):
+        return False, "preflight 가 예외로 죽었습니다 — %s" % (
+            (r.stderr or "").strip().splitlines()[-1][:70])
+    if r.returncode == 0:
+        return False, "실패 상황인데 종료 코드 0 — 배치가 멈추지 않는다"
+    r2 = _run("--lenient")
+    if "Traceback" in (r2.stderr or ""):
+        return False, "--lenient 실행이 예외로 죽었습니다 — %s" % (
+            (r2.stderr or "").strip().splitlines()[-1][:70])
+    if r2.returncode != 0:
+        return False, "--lenient 인데 종료 코드 %d" % r2.returncode
+    return True, "인터락 폴더 인식 / 실패 시 종료 1 · --lenient 시 0"
+
+
 def c_terminal_unique():
     """단자 번호 유일성 [주입] — 한 PLC 안에서 주소가 겹치지 않는가.
 
@@ -1800,6 +1851,7 @@ def main():
     run("기능 질문 라우팅 [주입]", c_feature_question)
     run("단자 번호 역조회 [주입]", c_terminal_lookup)
     run("단자 번호 유일성 [주입]", c_terminal_unique)
+    run("환경 점검 게이트 [주입]", c_preflight_gate)
     run("임베딩 캐시 신원 [주입]", c_cache_identity)
     run("환각 차단 [주입]", c_advisor_rejects_fake)
     run("챗봇·조치 경로 일치", c_chat_gateway)
