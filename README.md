@@ -68,7 +68,7 @@
 pip install -r requirements.txt
 
 ollama pull bge-m3        # 임베딩 (필수)
-ollama pull llama3.2      # 조치 순서 생성
+ollama pull qwen2.5:7b-instruct   # 조치 순서 생성
 ```
 
 ### 실행
@@ -109,7 +109,7 @@ npm run dev
 | `IO_LIST.xlsx` | 입력 76 + 출력 24 = 100점 | `tools/make_io_list.py` |
 | `INSTRUMENT_LIST.xlsx` | 계기 사양 100건 | `tools/make_io_list.py` |
 | `TB_LIST.xlsx` | 판넬 6 · TB 블록 36 | `tools/make_tb_list.py` |
-| `interlock/` | 인터락 33건 / 조건 92행 | `tools/make_interlock_list.py` |
+| `interlock/` | 인터락 37건 / 조건 103행 | `tools/make_interlock_list.py` |
 | `drawings/` | P&ID · 배치도 · 외형도 · 결선도 | 합성 도면 |
 | `manuals/` | 벤더 카탈로그 3종 | 제조사 공개 자료 |
 
@@ -140,7 +140,7 @@ python -m eval.selfcheck
 | 인터락 조회 (층 분리·역방향·부재 판정·원문 보존) | 67/67 |
 | 판넬 조회 (위치·카드·채널·상실 영향) | 211/211 |
 | 이력 우선 (3단 매칭·정렬·기종 가드) | 100/100 |
-| 매뉴얼 색인 | 198청크 |
+| 매뉴얼 색인 | 1,210청크 |
 
 `selfcheck` 는 단순 통과 검사가 아니라 **고장 주입** 검사입니다.
 태그를 몰래 바꿔치기하거나 파일을 지운 상태를 만들어, 도구가 그것을
