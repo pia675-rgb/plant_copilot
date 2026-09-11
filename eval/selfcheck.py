@@ -282,11 +282,21 @@ def c_scenario_stop():
     # LLM 이 고를 수 있는 도구 목록에도 시나리오 제어가 있어야 한다.
     # 규칙이 못 잡은 표현은 LLM 이 받는데, 그 스키마에 정지가 없으면
     # 가장 가까운 것(인터락 STOP)을 고른다. 실제로 그렇게 샜다.
-    import api.server as _srv, inspect
-    src = inspect.getsource(_srv.chat_help)
-    for token in ('stopScenario', 'playScenario', '공정 화면'):
-        if token not in src:
+    # 패치 35 부터 이 지침은 도구 목록에서 만들어진다. 그래서 함수
+    # 소스가 아니라 **만들어진 지침**을 본다 — 소스를 문자열로 뒤지는
+    # 가드는 코드를 옮기는 순간 보던 자리를 잃고, 잃은 줄도 모른다.
+    from api import tools as _tools
+    from api.server import llm_command_prompt
+    prompt = llm_command_prompt(False)
+    # 스키마 줄과 설명을 **따로** 본다. 한 덩어리로 놓고 낱말만 찾으면,
+    # 스키마에서 필드가 빠져도 설명문에 남은 같은 낱말이 가려 준다.
+    schema = _tools.llm_schema_line()
+    for token in ('stopScenario', 'playScenario', 'openGraphic'):
+        if token not in schema:
             return False, 'LLM 명령 스키마에 %s 가 없습니다' % token
+    for token in ('공정 화면', '시나리오'):
+        if token not in prompt:
+            return False, '명령 지침에 %s 안내가 없습니다' % token
     # 화면이 없는 태그를 물으면 있는 화면을 열어 주면 안 된다.
     # 사용자는 그 태그의 화면을 보고 있다고 믿는다 (패치 33b).
     for m in ('LCV-01 공정 화면 재생해줘', 'AIT-4002 시나리오 재생해줘',
@@ -1889,12 +1899,424 @@ def c_report_font():
     return True, p
 
 
+# ── 7. 화면이 하는 설명 (리허설 발견) ─────────────────────────
+def _ui_src(rel):
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(here, rel)
+    with open(path, encoding="utf-8") as f:
+        return f.read(), path
+
+
+def _ix_fixture(root, pdfs, bad_embed=False):
+    """색인 판정용 픽스처. **임시 폴더에만 만든다** — 데모 자료는 건드리지
+    않는다. 시각은 손으로 박는다. 픽스처가 같은 초에 만들어지면 시각 대조가
+    그날 운에 따라 통과·실패하기 때문이다."""
+    import json as _json
+    import time as _t
+    man = os.path.join(root, "manuals")
+    idx = os.path.join(root, "index")
+    os.makedirs(man, exist_ok=True)
+    os.makedirs(idx, exist_ok=True)
+    for name, body in pdfs.items():
+        with open(os.path.join(man, name), "wb") as f:
+            f.write(body)
+    codes = os.path.join(root, "error_codes.json")
+    with open(codes, "w", encoding="utf-8") as f:
+        _json.dump([], f)
+    with open(os.path.join(idx, "chunks.jsonl"), "w", encoding="utf-8") as f:
+        for name in pdfs:
+            f.write(_json.dumps(
+                {"id": name, "kind": "manual_text",
+                 "source": {"file": name, "rel_path": name}},
+                ensure_ascii=False) + "\n")
+    with open(os.path.join(idx, "embeddings.npy"), "wb") as f:
+        f.write(b"\x00" * 16)
+    with open(os.path.join(idx, "embeddings.meta.json"), "w",
+              encoding="utf-8") as f:
+        _json.dump({"provider": ("zz-없는제공자" if bad_embed
+                                 else config.EMBED_PROVIDER),
+                    "model": config.EMBED_MODEL}, f, ensure_ascii=False)
+    # 원본은 오래된 것, 색인은 그 뒤에 만들어진 것으로 시각을 고정한다.
+    now = _t.time()
+    for folder, back in ((man, 3000), (idx, 1500)):
+        for nm in os.listdir(folder):
+            os.utime(os.path.join(folder, nm), (now - back, now - back))
+    os.utime(codes, (now - 3000, now - 3000))
+    return man, idx, codes
+
+
+def c_screen_notices():
+    """
+    [주입] 화면이 이유를 말하는가 — 9/2 리허설 발견 1·4·5 (패치 34).
+
+    세 건 다 기능이 아니라 **안내**의 결함이었다. 버튼이 회색인 이유를
+    화면이 말하지 않았고(1), 자료가 바뀌지 않았는데도 재생성이 몇 분을
+    그대로 돌았고(4), 태그를 쓰지 않는 반입 화면에 태그 선택기가 남아
+    있었다(5).
+
+    보는 것 넷.
+
+    1) 색인 변경 판정이 **서버에서** 정답을 내는가. 픽스처를 임시 폴더에
+       만들어 그대로·내용만 바뀜·새 파일·빠진 파일·색인 없음·임베딩 다름을
+       각각 주입한다. 특히 **시각을 그대로 둔 채 내용만 바꾼** 경우를 본다 —
+       기록(SHA-256)이 있으면 잡아야 하고, 없으면 못 잡는다고 말해야 한다.
+    2) 판정이 재생성 앞에 **문으로 서지 않는가.** 변경이 없다고 자동으로
+       건너뛰면, 그래도 다시 만들고 싶은 사람에게는 방법이 없어진다.
+    3) 화면이 그 값을 읽어 말하는가 (App.jsx 세 자리).
+    4) **빌드본이 원본보다 오래되지 않았는가.** 고치고 빌드를 잊으면 화면은
+       그대로다 — 이 프로젝트에서 두 번 겪은 자리다. 라우팅만 보는 가드가
+       서버 500 을 놓쳤던 것과 같은 이유로, 원본만 보고 끝내지 않는다.
+    """
+    import glob
+    import inspect as _inspect
+    import shutil
+    import tempfile
+    from ingest.index_state import index_state, list_sources, write_manifest
+
+    # 주입 전 원본 지문. 시험이 실제 자료를 건드리지 않았음을 끝에서
+    # 대조한다 (CLAUDE.md 7 — 임시 폴더에 심고 원본 해시를 대조한다).
+    before = [(x["rel"], x["sha256"]) for x in list_sources()]
+
+    root = tempfile.mkdtemp(prefix="pmc_ixstate_")
+    try:
+        man, idx, codes = _ix_fixture(
+            root, {"a.pdf": b"AAAA" * 64, "b.pdf": b"BBBB" * 64})
+
+        def state():
+            return index_state(index_dir=idx, manual_dir=man,
+                               error_codes=codes)
+
+        # (1) 기록이 없으면 시각 대조. 그 한계를 말해야 한다.
+        st = state()
+        if st["basis"] != "mtime":
+            return False, "기록이 없는데 대조 기준이 %s" % st["basis"]
+        if st["changed"] is not False:
+            return False, "그대로인데 시각 대조가 '%s'" % st["verdict"]
+        if "시각" not in st["reason"]:
+            return False, "시각 대조인데 그 사실을 말하지 않습니다"
+
+        # (2) 기록을 남기면 내용 대조로 올라간다.
+        write_manifest(index_dir=idx, manual_dir=man, error_codes=codes)
+        st = state()
+        if st["basis"] != "manifest" or st["changed"] is not False:
+            return False, "기록을 남겼는데 %s / '%s'" % (st["basis"],
+                                                        st["verdict"])
+
+        # (3) 주입 — 시각은 그대로 두고 내용만 바꾼다. 시각 대조로는
+        #     절대 못 잡는 경우다.
+        pa = os.path.join(man, "a.pdf")
+        keep = os.stat(pa)
+        with open(pa, "wb") as f:
+            f.write(b"CCCC" * 64)
+        os.utime(pa, (keep.st_atime, keep.st_mtime))
+        st = state()
+        if st["changed"] is not True or st["sources"]["modified"] != ["a.pdf"]:
+            return False, ("시각 그대로 내용만 바뀐 것을 못 잡습니다 — "
+                           "'%s' / %s" % (st["verdict"], st["sources"]))
+
+        # (4) 주입 — 새 파일·빠진 파일
+        write_manifest(index_dir=idx, manual_dir=man, error_codes=codes)
+        with open(os.path.join(man, "c.pdf"), "wb") as f:
+            f.write(b"DDDD" * 64)
+        os.remove(os.path.join(man, "b.pdf"))
+        st = state()
+        if st["sources"]["added"] != ["c.pdf"] or \
+                st["sources"]["removed"] != ["b.pdf"]:
+            return False, "새 파일·빠진 파일을 못 잡습니다 — %s" % st["sources"]
+
+        # (5) 주입 — 색인이 없으면 없다고 말해야 한다.
+        os.remove(os.path.join(idx, "chunks.jsonl"))
+        st = state()
+        if st["verdict"] != "색인 없음" or st["changed"] is not True:
+            return False, "색인이 없는데 '%s'" % st["verdict"]
+
+        # (6) 주입 — 임베딩 모델이 색인과 다르면 그것도 변경이다. 파일이
+        #     그대로여도 그 색인으로는 검색이 조용히 강등된다.
+        root2 = tempfile.mkdtemp(prefix="pmc_ixstate2_")
+        try:
+            man2, idx2, codes2 = _ix_fixture(root2, {"a.pdf": b"AAAA" * 64},
+                                             bad_embed=True)
+            write_manifest(index_dir=idx2, manual_dir=man2,
+                           error_codes=codes2)
+            st = index_state(index_dir=idx2, manual_dir=man2,
+                             error_codes=codes2)
+            if st["changed"] is not True or "임베딩" not in st["reason"]:
+                return False, "임베딩 모델이 달라졌는데 '%s'" % st["verdict"]
+        finally:
+            shutil.rmtree(root2, ignore_errors=True)
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+    if [(x["rel"], x["sha256"]) for x in list_sources()] != before:
+        return False, "주입 시험이 실제 자료를 건드렸습니다 — 되돌리십시오"
+
+    # 서버가 그 판정을 화면에 내주는가
+    import api.server as _srv
+    got = _srv.ingest_index_state()
+    for k in ("changed", "verdict", "reason", "basis_label",
+              "index_built_at", "sources"):
+        if k not in got:
+            return False, "/ingest/index-state 응답에 %s 가 없습니다" % k
+
+    # 판정이 재생성 앞에 문으로 서 있으면 안 된다.
+    src = _inspect.getsource(_srv.ingest_rebuild)
+    if "index_state" in src or "changed" in src:
+        return False, ("재생성이 변경 판정을 보고 갈라집니다 — 판정은 "
+                       "알려 주기만 해야 합니다")
+
+    # 화면 — 세 건이 실제로 App.jsx 에 들어 있는가
+    app, app_path = _ui_src("ui/react/src/App.jsx")
+    if "const ALARM_HINT" not in app:
+        return False, "App.jsx 에 증상 안내 문장(ALARM_HINT)이 없습니다"
+    if app.count("ALARM_HINT") < 3:
+        return False, ("증상 안내가 버튼 title·아래 안내 양쪽에 쓰이지 "
+                       "않습니다 (%d곳)" % app.count("ALARM_HINT"))
+    if "/ingest/index-state" not in app:
+        return False, "반입 화면이 색인 변경 판정을 읽지 않습니다"
+    head = app[:app.index("<h3>설비 태그</h3>")]
+    if "tab !== 'ingest'" not in head[-400:]:
+        return False, "자료 반입 탭에서 설비 태그 선택기가 그대로 보입니다"
+    if "onClick={rebuild} disabled={st && st.running}" not in app:
+        return False, ("재생성 버튼이 재생성 중 말고 다른 이유로 꺼집니다 — "
+                       "판정으로 버튼을 막지 않습니다")
+
+    # 빌드본 — 원본보다 오래되면 화면은 고쳐지지 않은 것이다
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    js = glob.glob(os.path.join(here, "ui", "react", "dist", "assets", "*.js"))
+    if not js:
+        return False, "빌드본이 없습니다 — ui/react 에서 npm run build"
+    newest = max(js, key=os.path.getmtime)
+    if os.path.getmtime(newest) < os.path.getmtime(app_path):
+        return False, ("빌드본이 App.jsx 보다 오래되었습니다 — "
+                       "npm run build 를 하지 않았습니다")
+    with open(newest, encoding="utf-8") as f:
+        built = f.read()
+    for token in ("증상이 비어 있어", "ingest/index-state", "대조 기준"):
+        if token not in built:
+            return False, "빌드본에 '%s' 가 없습니다 — 빌드가 낡았습니다" % token
+    return True, ("판정 6종(내용·시각·새·빠진·색인없음·임베딩) / 자동 "
+                  "건너뛰기 없음 / App.jsx 3자리 · 빌드본 반영 / 원본 무손상")
+
+
+# ── 8. 도구 목록 ────────────────────────────────────────────
+def c_tool_registry():
+    """
+    [주입] 도구 목록이 한 곳인가, 그리고 기존 명령이 그대로인가 (패치 35).
+
+    패치 33 은 같은 지식이 두 곳(규칙·LLM 스키마)에 적혀 있어서 났다.
+    한 곳만 고치면 규칙이 아는 표현은 되고 모르는 표현은 모델이 받아
+    엉뚱한 곳으로 간다. 목록을 한 곳으로 모았으니, 이 가드는 **모은 것이
+    실제로 하나로 도는지**와 **모으면서 기존 것을 깨지 않았는지**를 본다.
+
+    보는 것 넷.
+
+    1) 규칙이 판정하는 도구가 모델이 고를 수 있는 목록에도 들어 있는가.
+       하나라도 빠지면 패치 33 이 다시 난다.
+    2) **주입** — 반쪽으로 등록한 도구를 넣으면 등록 점검이 죽는가.
+       표현만 적고 본체를 잊은 것, 실행 명령인데 스키마 설명이 없는 것.
+       (진짜 목록은 건드리지 않는다. 넣었다 되돌리고 원상태를 대조한다.)
+    3) 새로 넣은 도구 둘 — 탭 이동과 범위 밖 질문 — 이 실제로 도는가.
+    4) **기존 챗봇 계열이 그대로인가.** 이 가드의 절반은 여기다. 규칙
+       계층을 통째로 갈아끼웠으므로, 조회·후속 질문·인사·기능 안내가
+       예전과 같은 판정을 내는지 표로 대조한다.
+    """
+    from api import tools
+    from api.server import (ChatRequest, chat_help, llm_command_prompt,
+                            rule_intent)
+
+    # (1) 규칙 ↔ 스키마 — 같은 목록을 읽는가
+    prompt = llm_command_prompt(False)
+    schema = tools.llm_schema_line()
+    rules = tools.llm_rule_block()
+    for t in tools.all_tools():
+        if t.actionable and t.llm_type not in schema:
+            return False, ("%s 가 규칙에는 있는데 모델이 고를 수 있는 "
+                           "목록에 없습니다 (패치 33 이 난 자리)" % t.key)
+        if t.summary and t.summary not in prompt:
+            return False, "%s 설명이 지침에 실리지 않았습니다" % t.key
+        if t.llm_rule and t.llm_rule not in rules:
+            return False, "%s 지시문이 지침에 실리지 않았습니다" % t.key
+        # 이 도구가 쓰는 필드가 스키마 줄에 있어야 한다. 설명문에만
+        # 남아 있으면 모델은 스키마에 없는 필드를 채우게 된다.
+        for f in t.schema_extra:
+            if f not in schema:
+                return False, "%s 의 %s 필드가 스키마 줄에 없습니다" % (
+                    t.key, f)
+
+    # 화면이 실제로 읽는 것들. 목록에서 지웠을 때 가드도 함께 지워지면
+    # 그건 점검이 아니다 — 그래서 기대하는 이름을 **여기에 따로** 적는다.
+    for ty in ("diagnose", "drawing", "interlock", "interlock_source",
+               "panel", "navigate", "advice", "help", "chat"):
+        if ty not in schema:
+            return False, "스키마 줄에 %s 명령이 없습니다" % ty
+    for f in ("tag", "tab", "alarm", "action", "openSource",
+              "openGraphic", "playScenario", "stopScenario"):
+        if f not in schema:
+            return False, "스키마 줄에 %s 필드가 없습니다" % f
+
+    # 규칙이 실제로 내는 type 을 모델이 고를 수 있는가.
+    #
+    # 표시(actionable)를 믿지 않고 **돌려서** 확인한다. 표시를 지우면
+    # 스키마에서 빠지는데, 규칙은 그대로 그 명령을 내므로 화면은 도는데
+    # 모델만 모르는 상태가 된다 — 패치 33 이 정확히 그 모양이었다.
+    for t in tools.all_tools():
+        if not t.example:
+            continue
+        r = rule_intent(t.example, None, "alarm") or {}
+        if r.get("type") != t.returns:
+            return False, "%s 의 예시 '%s' 가 %s 로 갑니다 (기대 %s)" % (
+                t.key, t.example[:20], r.get("type"), t.returns)
+        if r["type"] in ("chat", "followup"):
+            continue
+        if r["type"] not in schema:
+            return False, ("규칙은 %s 를 내는데 모델은 그것을 고를 수 "
+                           "없습니다 — 목록이 갈라졌습니다" % r["type"])
+
+    # (2) 주입 — 반쪽 등록을 잡는가. 진짜 목록은 건드리지 않는다.
+    before = list(tools._TOOLS)
+    try:
+        broken = [
+            ("표현만 있고 본체 없음",
+             dict(key="_probe_a", label="주입", order=1,
+                  trigger=r"이런낱말은없다")),
+            ("실행 명령인데 스키마 설명 없음",
+             dict(key="_probe_b", label="주입", order=1, actionable=True)),
+            ("기능 질문 표현만 있고 안내문 없음",
+             dict(key="_probe_c", label="주입", order=1,
+                  help_pattern=r"이런낱말은없다")),
+        ]
+        for name, kw in broken:
+            tools.Tool(**kw)
+            try:
+                tools.check()
+            except RuntimeError:
+                pass                       # 잡았다 — 정상
+            else:
+                return False, "반쪽 등록(%s)을 그대로 통과시킵니다" % name
+            finally:
+                tools._TOOLS[:] = before
+        # 되돌린 뒤 진짜 목록은 여전히 성한가
+        tools.check()
+    finally:
+        tools._TOOLS[:] = before
+    if [t.key for t in tools._TOOLS] != [t.key for t in before]:
+        return False, "주입 시험이 진짜 도구 목록을 바꿨습니다"
+
+    # (3) 새 도구 둘
+    #
+    # 탭 이동 — 화면만 옮기고 조회를 실행하지 않아야 한다. 태그도 그대로
+    # 두어야 한다. 옮기라는 말에 사이드바 태그까지 바뀌면 다음 조회가
+    # 엉뚱한 설비를 본다.
+    for msg, want_tab in (("알람 조회 탭으로 이동해줘", "alarm"),
+                          ("인터락 조회 탭으로 가줘", "interlock"),
+                          ("판넬 조회 탭 열어줘", "panel"),
+                          ("자료 반입 탭으로 이동", "ingest")):
+        r = rule_intent(msg, "AIT-4002", "alarm") or {}
+        if r.get("type") != "navigate" or r.get("tab") != want_tab:
+            return False, "'%s' → %s / tab=%s" % (msg[:18], r.get("type"),
+                                                  r.get("tab"))
+        if r.get("tag"):
+            return False, "'%s' 가 태그까지 바꿉니다 (%s)" % (msg[:18],
+                                                            r.get("tag"))
+    r = rule_intent("탭 이동해줘", "AIT-4002", "alarm") or {}
+    if r.get("type") != "chat" or "어느 탭" not in (r.get("reply") or ""):
+        return False, "어느 탭인지 없는데 되묻지 않고 %s" % r.get("type")
+
+    # 범위 밖 질문 — 매뉴얼 검색으로 내려가면 안 된다. generic 이면
+    # 챗봇 계층이 QA 로 넘기므로, generic 이 아니어야 한다.
+    for msg in ("오늘 며칠이야", "지금 몇 시야", "오늘 날짜 알려줘",
+                "내일 날씨 어때", "환율 얼마야"):
+        r = rule_intent(msg, "AIT-4002", "alarm") or {}
+        if r.get("type") != "chat" or r.get("generic"):
+            return False, "'%s' → %s (generic=%s) — 매뉴얼 검색으로 샙니다" % (
+                msg, r.get("type"), r.get("generic"))
+        if "알지 못" not in (r.get("reply") or ""):
+            return False, "'%s' 응답이 모른다고 말하지 않습니다" % msg
+    # 실제로 챗봇을 태워 인용이 붙지 않는지까지 본다. 라우팅만 보면
+    # 화면에 무엇이 붙는지는 모른다 (패치 29b 에서 겪은 자리).
+    got = chat_help(ChatRequest(message="오늘 며칠이야", tab="alarm",
+                                use_llm=False))
+    if got.get("citations"):
+        return False, "범위 밖 질문에 근거 인용이 붙었습니다"
+    if got.get("engine") != "rule":
+        return False, "범위 밖 질문이 %s 경로로 갔습니다" % got.get("engine")
+
+    # 경계 — 정비 낱말이 섞인 시간 질문까지 끊으면 안 된다
+    for msg in ("지연 시간이 얼마야", "LIT-4003 이 걸린 인터락"):
+        r = rule_intent(msg, "AIT-4002", "alarm") or {}
+        if "알지 못" in (r.get("reply") or ""):
+            return False, "'%s' 를 범위 밖으로 잘못 끊습니다" % msg
+
+    # 화면이 그 명령을 실제로 실행하는가. 규칙이 옳게 판정해도 화면이
+    # 걸러 버리면 아무 일도 일어나지 않는다 — 사용자에게는 무시당한
+    # 것으로 보인다. 라우팅만 보는 가드가 서버 500 을 놓쳤던 자리와 같다.
+    app, _path = _ui_src("ui/react/src/App.jsx")
+    if "if (cmd.tab) setTab(cmd.tab)" not in app:
+        return False, "화면이 탭 이동 명령을 받지 않습니다 (App.jsx)"
+    if "cmd.type !== 'navigate'" not in app:
+        return False, ("탭 이동이 조회 명령처럼 화면에 전달됩니다 — "
+                       "옮기기만 해야 합니다 (App.jsx)")
+
+    # (4) 기존 챗봇 계열 — 갈아끼우기 전과 같은 판정인가
+    same = [
+        ("AIT-4002 산 잔량 알람 조회해줘", "diagnose", "AIT-4002"),
+        ("AIT-4002 acid residual low 알람 조회해줘", "diagnose", "AIT-4002"),
+        ("XV-4101 인터락 조회", "interlock", "XV-4101"),
+        ("LCV 01 인터락 보여줘", "interlock", "LCV-01"),
+        ("LCV-01 인터락 원본 보여줘", "interlock_source", "LCV-01"),
+        ("AIT-1001 P&ID 도면 보여줘", "drawing", "AIT-1001"),
+        ("CUB-A 판넬 조회해줘", "panel", None),
+        ("사용법 알려줘", "help", None),
+        ("시나리오 재생해줘", "interlock", "P-5101A"),
+        ("시나리오 정지해주세요", "interlock", "P-5101A"),
+        ("조회된 내용을 보고 조치방법을 알려줘", "followup", None),
+        ("조치방법 알려줘", "followup", None),
+        ("말로 풀어서 설명해줘", "followup", None),
+        ("자료 반입 어떻게 해", "chat", None),
+        ("안녕하세요", "chat", None),
+        ("ZZZ-99 인터락 조회", "chat", None),
+        ("판넬 조회로 나는 어떤걸 알 수 있지?", "chat", None),
+        ("그냥 해본 말이야", "chat", None),
+    ]
+    for msg, want, tag in same:
+        r = rule_intent(msg, None, "alarm") or {}
+        if r.get("type") != want:
+            return False, "'%s' → %s (기대 %s) — 기존 명령이 깨졌습니다" % (
+                msg[:22], r.get("type"), want)
+        if tag and r.get("tag") != tag:
+            return False, "'%s' 태그 %s (기대 %s)" % (msg[:22], r.get("tag"),
+                                                     tag)
+    # 인사·기능 안내는 포괄 응답으로 떨어지면 안 되고(매뉴얼 검색으로
+    # 샌다), 못 알아들은 잡담은 반대로 포괄이어야 한다(LLM 이 받는다).
+    if (rule_intent("안녕하세요") or {}).get("generic"):
+        return False, "인사가 포괄 응답으로 떨어집니다"
+    if not (rule_intent("그냥 해본 말이야") or {}).get("generic"):
+        return False, "못 알아들은 말이 포괄 응답이 아닙니다 — LLM 이 못 받습니다"
+
+    n_rule = len([t for t in tools.all_tools() if t.handler])
+    return True, ("도구 %d종 한 곳에서 정의 / 규칙·스키마 일치 / 반쪽 등록 "
+                  "3종 검출 / 탭 이동 4탭·범위 밖 5종 / 기존 명령 %d종 유지"
+                  % (n_rule, len(same)))
+
+
 # ── 실행 ────────────────────────────────────────────────────
 def main():
     ap = argparse.ArgumentParser(description="시연 전 전 경로 점검")
     ap.add_argument("--skip-llm", action="store_true",
                     help="모델 호출 없이 구조만 점검")
     args = ap.parse_args()
+
+    # 출력이 파이프·파일로 갈 때 윈도우는 인코딩을 cp949 로 잡는다. 이
+    # 파일의 메시지에는 cp949 에 없는 글자(em dash)가 있어, 콘솔에서는
+    # 멀쩡하다가 로그 파일로 받는 순간 첫 줄에서 UnicodeEncodeError 로
+    # 죽었다. 점검 결과를 기록으로 남기려는 순간에만 죽으므로 알아채기
+    # 어렵다. preflight 에는 같은 것을 못 박아 두고(패치 32) 정작 이
+    # 파일은 빠져 있었다.
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
 
     print("\nPlant Maintenance Copilot — 시연 전 점검\n" + "=" * 78)
 
@@ -1954,6 +2376,8 @@ def main():
     run("인사 응대 [주입]", c_smalltalk)
     run("태그 조사 표기 [주입]", c_tag_particle)
     run("매뉴얼 용어 오인 금지 [주입]", c_manual_vocab_not_blocked)
+    run("화면 안내 3건 [주입]", c_screen_notices)
+    run("도구 목록 통합 [주입]", c_tool_registry)
     run("한글 PDF 폰트", c_report_font, critical=False)
     if not args.skip_llm:
         run("조치 생성 모델 연결", c_advisor_reachable, critical=False)

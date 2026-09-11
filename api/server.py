@@ -27,6 +27,7 @@ from pydantic import BaseModel, Field
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config  # noqa: E402
+from api import tools  # noqa: E402
 from graph.app_graph import Copilot2  # noqa: E402
 from retrieval.pipeline import Retriever  # noqa: E402
 from retrieval.interlock_index import InterlockIndex  # noqa: E402
@@ -1770,63 +1771,6 @@ _FEATURE_Q = re.compile(
     r"|알\s*수\s*있(지|나|어|을까)|어떻게\s*(쓰|사용)|사용\s*(법|방법)"
     r"|뭐(야|지|예요|에요|인가요|죠)|뭔가요|뭐가\s*(나와|보여|달라)")
 
-_FEATURE_HELP = [
-    (r"판넬|카드\s*조회|배선",
-     "판넬 조회는 계기가 어디에 어떻게 물려 있는지를 봅니다.\n"
-     "· 태그가 어느 판넬·어느 카드·몇 번 채널인지, 단자 번호까지\n"
-     "· 같은 카드에 물린 다른 계기 — 카드 한 장이 죽으면 함께 우는 것들\n"
-     "· 카드가 죽었을 때 영향을 받는 인터락 (의존 관계만, 트립 단정 없음)\n"
-     "· 배치도에서 그 판넬의 위치\n"
-     "화면 맨 아래 「동시 알람 조사」로 여러 태그의 공통 원인도 짚습니다.\n"
-     "예: CUB-A 판넬 조회해줘 / AIT-4002 어느 판넬이야"),
-    (r"인터락|interlock",
-     "인터락 조회는 설비가 왜 멈췄는지(못 움직이는지)를 리스트에서 찾아 "
-     "보여줍니다.\n"
-     "· 동작(정지·기동 등)별 조건과 세트포인트, 지연 시간\n"
-     "· 래치 여부 — 수동(MANUAL)은 사람이 리셋해야 풀립니다\n"
-     "· 역방향 — 이 계기가 어느 설비를 세우는지\n"
-     "· 「원본 보기」로 리스트 원문 대조\n"
-     "예: P-5101A 인터락 조회해줘 / LIT-4003 이 걸린 인터락"),
-    (r"알람\s*조회|알람\s*기능|진단",
-     "알람 조회는 태그와 증상으로 벤더 매뉴얼 근거를 찾아 옵니다.\n"
-     "· 근거마다 문서명·페이지 — 원문 보기로 확인\n"
-     "· 현장 조치 이력이 있으면 함께, 매뉴얼과 다르면 경고\n"
-     "· 근거가 부족하면 답하지 않고 거절(ABSTAIN)합니다\n"
-     "· 조치 순서 생성 → 결과 기록 → 4D 리포트로 이어집니다\n"
-     "예: AIT-4002 loop error 알람 조회해줘"),
-    (r"반입|업로드|파일\s*(올리|넣)",
-     "자료 반입은 새 매뉴얼·리스트를 넣는 화면입니다.\n"
-     "· 올리면 즉시 점검 — 읽은 행 수, 표준 열, 매뉴얼-기종 연결, "
-     "태그 맞물림\n"
-     "· 「수리안」이 고칠 수 있는 것을 제안 — 자동은 정답이 계산되는 "
-     "것만, 반영 전 이전 판 보존\n"
-     "· 수정에는 열쇠가 필요합니다 (보기는 누구나)\n"
-     "매뉴얼을 바꾸면 색인 재생성이 필요합니다."),
-    (r"도면|p\s*&\s*i\s*d|pid",
-     "도면 보기는 태그가 실린 P&ID·결선도·배치도를 엽니다.\n"
-     "알람 조회 결과나 판넬 조회에서 바로 열 수 있고, "
-     "챗봇으로도 됩니다. 예: AIT-1001 도면 보여줘"),
-    (r"공정\s*화면|시뮬레이션|시나리오",
-     "공정 화면은 인터락 동작을 눈으로 보는 오프라인 모의 화면입니다.\n"
-     "실제 공정과 연결되어 있지 않으며, 조건·세트포인트·지연 시간은 "
-     "전부 인터락 리스트에서 읽은 값입니다.\n"
-     "P-5101A 인터락 조회 화면에서 「펼치기」, 또는 "
-     "\"시나리오 재생해줘\" 라고 말하면 됩니다."),
-    (r"자유\s*모드|근거\s*모드|모드",
-     "근거 모드(기본)는 등록된 문서에 있는 것만 답하고, 없으면 없다고 "
-     "합니다.\n자유 모드는 근거가 없어도 모델의 일반 지식으로 답하되 "
-     "「추측」 라벨이 붙고 화면 테두리가 주황색이 됩니다.\n"
-     "추측은 조치 순서·4D 리포트·이력에 섞이지 않습니다. "
-     "조회 명령의 결과는 모드와 무관하게 같습니다."),
-    (r"조치|4\s*d|리포트",
-     "조치 순서 생성은 조회된 근거로 점검 순서를 만듭니다 — 근거가 없는 "
-     "단계는 만들지 않습니다.\n조치가 끝나면 실제 원인을 기록하고, "
-     "그 기록은 다음 사람의 조회에 근거로 뜹니다.\n"
-     "4D 리포트는 작업지시서에 첨부할 PDF 로, 근거가 없으면 "
-     "\"매뉴얼 근거: 없음\" 이라고 적습니다."),
-]
-
-
 # 공정 화면(오프라인 모의)이 있는 태그. 화면 파일이 실제로 있는 것만
 # 적는다 — 목록에 없는 태그를 물었는데 있는 화면을 열어 주면, 사용자는
 # 그 태그의 화면을 보고 있다고 믿는다. 지어내는 것보다 나쁘다 (패치 33b).
@@ -1843,6 +1787,328 @@ def _graphic_tag(msg, cur_tag):
     return (GRAPHIC_TAGS[0] if len(GRAPHIC_TAGS) == 1 else None), None
 
 
+# ── 도구별 규칙 본체 ────────────────────────────────────────
+#
+# 판정 순서·표현·기능 안내문·LLM 스키마 설명은 전부 **api/tools.py** 에
+# 있다. 여기에는 본체만 둔다. 도구를 하나 늘릴 때 고칠 파일은 그 하나다
+# (패치 35).
+#
+# 왜 이렇게 바꿨나 — 패치 33 에서 "시나리오 정지" 가 인터락 조회로 샜다.
+# 규칙에는 넣고 LLM 스키마에는 안 넣어서였다. 같은 지식을 두 곳에 적으면
+# 언젠가 한 곳을 잊는다. 잊은 쪽은 조용히 엉뚱하게 돈다.
+
+class _Cx:
+    """규칙 하나가 보는 것. tag 는 태그 판정을 지난 뒤에 채워진다."""
+
+    def __init__(self, msg, cur_tag, cur_tab):
+        self.msg = msg
+        self.low = (msg or "").lower()
+        self.cur_tag = cur_tag
+        self.cur_tab = cur_tab
+        self.tag = None
+
+
+@tools.FEATURE_HELP.rule
+def _r_feature_help(cx):
+    """기능 질문은 명령이 아니다 (패치 29b).
+
+    문장에 태그가 직접 적혀 있으면 그 태그를 조회하려는 뜻일 수 있으니
+    명령 쪽으로 넘긴다.
+    """
+    if not _FEATURE_Q.search(cx.low) or find_tag(cx.msg)[0]:
+        return None
+    reply = tools.feature_help(cx.low)
+    return {"type": "chat", "reply": reply} if reply else None
+
+
+@tools.SMALLTALK.rule
+def _r_smalltalk(cx):
+    return smalltalk_intent(cx.msg, cx.low)
+
+
+@tools.TERMINAL.rule
+def _r_terminal(cx):
+    """단자 번호로 태그를 되찾는다 (패치 29c).
+
+    판넬 조회가 "IW512+ 1" 처럼 단자 번호를 보여주는데, 그것을 되물으면
+    답하지 못했다. 도구가 방금 화면에 띄운 값을 모르는 셈이었다.
+    """
+    mterm = re.search(r"\b([iqm][wbd]\s?\d{1,4})\s*\+?", cx.low)
+    if not (mterm and re.search(r"태그|뭐|무엇|뭔|어디|누구|어느", cx.low)):
+        return None
+    want = re.sub(r"\s+", "", mterm.group(1)).upper()
+    px = get_panel()
+    if px is None:
+        return {"type": "chat",
+                "reply": "배선 자료를 읽지 못해 단자 조회를 할 수 없습니다."}
+    found = []
+    for prow in px.panels():
+        pname = prow.get("panel") if isinstance(prow, dict) else prow
+        d = px.by_panel(pname) or {}
+        for term, tags in (d.get("by_terminal") or {}).items():
+            if re.sub(r"[^A-Z0-9]", "", str(term).upper()) == want:
+                for t2 in tags:
+                    found.append((pname, term, t2))
+    if not found:
+        return {"type": "chat",
+                "reply": "%s 단자를 배선 자료에서 찾지 못했습니다. "
+                         "단자 번호를 확인해 주세요." % want}
+    # 문장에 판넬명이 함께 있으면 그 판넬로 좁힌다. 단자 번호는
+    # 판넬마다 되풀이되므로, 좁히지 않으면 남의 판넬까지 딸려 온다.
+    pm = re.search(r"\b((?:cub|rio|jb|lcp)-[a-z0-9]+)\b", cx.low)
+    if pm:
+        want_p = pm.group(1).upper()
+        narrowed = [f for f in found if str(f[0]).upper() == want_p]
+        if narrowed:
+            found = narrowed
+
+    if len(found) == 1:
+        pn, term, t2 = found[0]
+        return {"type": "panel", "tab": "panel", "tag": t2,
+                "reply": "%s 단자는 %s 입니다 (%s 판넬 · 단자 %s)."
+                         % (want, t2, pn, term)}
+    return {"type": "chat",
+            "reply": "%s 단자에 %d건이 걸려 있습니다 — %s"
+                     % (want, len(found),
+                        ", ".join("%s(%s)" % (t2, pn)
+                                  for pn, _, t2 in found[:6]))}
+
+
+@tools.NAVIGATE.rule
+def _r_navigate(cx):
+    """탭 이동 — 화면만 옮기고 조회는 실행하지 않는다.
+
+    "알람 조회 탭으로 이동해줘" 가 알람 조회를 **실행**했다. 조회라는
+    낱말이 들어 있으니 조회 규칙이 가져간 것인데, 사용자는 화면을 옮겨
+    달라고 했을 뿐이다.
+
+    태그는 건드리지 않는다. 옮기라는 말에 사이드바 태그까지 바뀌면 그
+    다음 조회가 엉뚱한 설비를 본다 — 화면은 바뀌었는데 무엇이 바뀌었는지
+    사용자는 모른다.
+
+    어느 탭인지 적혀 있지 않으면 옮기지 않고 되묻는다. 아무 데나 옮기는
+    것은 지어내는 것과 같다.
+    """
+    for tab, label, pat in tools.tab_targets():
+        if re.search(pat, cx.low):
+            return {"type": "navigate", "tab": tab,
+                    "reply": "%s 탭으로 이동합니다. 조회는 실행하지 "
+                             "않았습니다." % label}
+    names = " · ".join(label for _t, label, _p in tools.tab_targets())
+    return {"type": "chat",
+            "reply": "어느 탭으로 갈까요? %s 중에서 말씀해 주세요." % names}
+
+
+@tools.PANEL.rule
+def _r_panel(cx):
+    # 판넬 의도를 태그 판정보다 먼저 본다 (표기가 겹치므로)
+    return panel_intent(cx.msg, cx.low, cx.cur_tag)
+
+
+@tools.HELP.rule
+def _r_help(cx):
+    if not (re.match(r"^(도움|help|사용법|가이드)", cx.low)
+            or cx.msg.strip() == "?"):
+        return None
+    return {
+        "type": "help",
+        "reply": (
+            "사용 가이드\n"
+            "1) 알람 조회: 태그 선택 → 증상 입력 → 알람 조회\n"
+            "2) 원문/도면: 결과에서 원문 보기·도면 보기\n"
+            "3) 인터락: 인터락 조회 탭에서 출력 태그\n"
+            "4) 자료 반입: 자료 반입 탭에서 파일 올리기 → 반입 점검 확인\n"
+            "5) 자유 모드: 사이드바 토글 — 근거 없는 모델 답변이 라벨과 함께 표시\n"
+            "6) 자연어 예: AIT-4002 low acid 알람 조회해줘"
+        ),
+    }
+
+
+@tools.GRAPHIC_STOP.rule
+def _r_graphic_stop(cx):
+    """시나리오를 멈춰 달라는 말이 먼저다.
+
+    '정지' 라는 낱말이 인터락 동작(STOP)과 겹쳐서, 인터락 규칙이 먼저
+    걸리면 "시나리오 정지" 가 P-5101A 정지 인터락 조회로 흐른다. 실제로
+    그랬다 (패치 33). 순서는 api/tools.py 의 order 가 정한다.
+    """
+    gtag, asked = _graphic_tag(cx.msg, cx.cur_tag)
+    if not gtag:
+        return {"type": "chat",
+                "reply": "%s 의 공정 화면은 없습니다. 현재 모의 화면이 "
+                         "있는 설비는 %s 뿐입니다."
+                         % (asked, ", ".join(GRAPHIC_TAGS))}
+    return {"type": "interlock", "tag": gtag, "tab": "interlock",
+            "action": "OPEN", "openGraphic": True,
+            "stopScenario": True, "playScenario": False,
+            "reply": "공정 화면의 시나리오 재생을 멈춥니다. "
+                     "화면의 값은 멈춘 시점 그대로 남습니다."}
+
+
+@tools.GRAPHIC.rule
+def _r_graphic(cx):
+    """공정 화면(오프라인 시뮬레이션)을 열거나 재생한다.
+
+    화면 파일이 있는 태그만 연다. 없는 태그를 물었는데 있는 화면을 열어
+    주면 사용자는 그 태그의 화면을 보고 있다고 믿는다 (패치 33b).
+    """
+    gtag, asked = _graphic_tag(cx.msg, cx.cur_tag)
+    if not gtag:
+        return {"type": "chat",
+                "reply": "%s 의 공정 화면은 없습니다. 현재 모의 화면이 "
+                         "있는 설비는 %s 뿐입니다. 인터락 조건은 "
+                         "'%s 인터락 조회해줘' 로 보실 수 있습니다."
+                         % (asked, ", ".join(GRAPHIC_TAGS), asked)}
+    play = bool(re.search(r"재생|가동|실행", cx.low))
+    return {"type": "interlock", "tag": gtag, "tab": "interlock",
+            "action": "OPEN", "openGraphic": True,
+            "playScenario": play,
+            "reply": "%s 공정 화면(오프라인 시뮬레이션)을 %s. 실제 공정 "
+                     "상태가 아닌 시연 화면입니다."
+                     % (gtag, "열어 시나리오를 재생합니다" if play
+                        else "엽니다")}
+
+
+@tools.INGEST.rule
+def _r_ingest(cx):
+    return {
+        "type": "chat",
+        "reply": (
+            "자료 반입은 「자료 반입」 탭에서 합니다.\n"
+            "1) 종류 선택(IO List·계기·TB·인터락·매뉴얼·도면) → 파일 올리기\n"
+            "2) 올리면 즉시 반입 점검 리포트 — 몇 행을 읽었는지, "
+            "못 읽은 열, 매뉴얼-기종 연결, 태그 맞물림\n"
+            "3) 매뉴얼을 바꿨으면 색인 다시 만들기 (진행률 표시)\n"
+            "같은 자리 파일은 덮어쓰기 전에 .prev 로 보존되고, "
+            "삭제는 2단계(삭제 → 영구 삭제)입니다."
+        ),
+    }
+
+
+@tools.FOLLOWUP_REF.rule
+def _r_followup_ref(cx):
+    """화면에 이미 결과가 떠 있는 상태에서의 후속 질문은 명령이 아니다.
+
+    "조회된 내용을 보고 조치방법을 알려줘" 는 '조회' 라는 글자 때문에
+    다시 알람 조회 명령으로 걸렸고, 같은 조회를 반복하며 대화가 제자리를
+    돌았다.
+    """
+    return {"type": "followup", "tag": cx.tag, "question": cx.msg}
+
+
+@tools.OUT_OF_SCOPE.rule
+def _r_out_of_scope(cx):
+    """도구가 알 수 없는 사실 질문은 검색으로 내려보내지 않는다.
+
+    날짜·시각·날씨 같은 질문이 매뉴얼 검색으로 흘러 무관한 인용이 붙었다
+    (9/2 리허설 발견 6). 검색이 답을 못 찾는 것이 아니라 **비슷한 문구를
+    찾아 붙이는** 것이 문제다. 근거처럼 보이는 것이 붙으면 사람은 그것을
+    근거로 읽는다.
+
+    모델에게 넘기지도 않는다. 오늘 날짜를 모델이 답하면 그것은 지어낸
+    값이고, 화면에는 그럴듯하게 뜬다 (CLAUDE.md 3-3).
+    """
+    return {"type": "chat",
+            "reply": ("이 도구는 등록된 정비 자료(매뉴얼·리스트·도면·이력)만 "
+                      "봅니다. 날짜·시각·날씨·환율 같은 것은 알지 못하며, "
+                      "매뉴얼에서 비슷한 문구를 찾아 붙이면 무관한 근거가 "
+                      "달리므로 찾지 않습니다.\n"
+                      "할 수 있는 것: " + " · ".join(tools.examples()))}
+
+
+@tools.FOLLOWUP_EXPLAIN.rule
+def _r_followup_explain(cx):
+    """지시 대명사가 없는 설명 요청도 후속 질문이다 (패치 29).
+
+    "말로 풀어서 설명해줘" 처럼 가리키는 말이 없으면 매뉴얼 검색으로
+    흘렀다. 인터락을 조회한 뒤 이렇게 물으면 직전 알람 근거로 엉뚱한
+    답이 나왔다.
+    """
+    if re.search(r"인터락|interlock|도면|p\s*&\s*i\s*d|pid"
+                 r"|판넬|panel|반입|업로드|사용법|사용 방법", cx.low):
+        return None
+    if find_tag(cx.msg)[0]:
+        return None
+    return {"type": "followup", "tag": cx.tag, "question": cx.msg}
+
+
+@tools.DRAWING.rule
+def _r_drawing(cx):
+    if not cx.tag:
+        return {"type": "chat",
+                "reply": "태그를 알려주세요. 예: AIT-1001 P&ID 도면 보여줘"}
+    return {"type": "drawing", "tag": cx.tag, "tab": "alarm",
+            "reply": "%s 도면을 엽니다." % cx.tag}
+
+
+def _il_action(low):
+    """문장이 가리키는 동작. 없으면 OPEN."""
+    return "CLOSE" if re.search(r"close|닫", low) else (
+        "START" if re.search(r"start|기동", low) else (
+        "STOP" if re.search(r"stop|정지", low) else "OPEN"))
+
+
+@tools.INTERLOCK_SOURCE.rule
+def _r_interlock_source(cx):
+    if not cx.tag:
+        return {"type": "chat", "reply": "예: LCV-01 인터락 원본 보여줘"}
+    return {"type": "interlock_source", "tag": cx.tag, "tab": "interlock",
+            "action": _il_action(cx.low), "openSource": True,
+            "reply": "%s 인터락 원본을 엽니다." % cx.tag}
+
+
+@tools.INTERLOCK.rule
+def _r_interlock(cx):
+    if not cx.tag:
+        return {"type": "chat", "reply": "예: XV-4101 인터락 조회해줘"}
+    act = _il_action(cx.low)
+    return {"type": "interlock", "tag": cx.tag, "tab": "interlock",
+            "action": act,
+            "reply": "%s %s 인터락을 조회합니다." % (cx.tag, act)}
+
+
+@tools.ADVICE.rule
+def _r_advice(cx):
+    # 조치 순서는 조회 결과가 있어야 만들 수 있다. 화면 상태를 아는
+    # 챗봇 계층에서 처리하도록 followup 으로 넘긴다.
+    return {"type": "followup", "tag": cx.tag, "question": cx.msg,
+            "want": "advice"}
+
+
+@tools.DIAGNOSE.rule
+def _r_diagnose(cx):
+    """알람 조회.
+
+    "…에 대해 설명해줘" 의 '해줘', "…재생해줘" 의 '해줘' 가 조회 명령으로
+    걸려 화면 태그로 알람 조회를 납치한 일이 있었다. 설명·정의를 묻는
+    문장과, 조회가 아닌 동사(재생·시뮬레이션 등 이 도구에 없는 기능 요청
+    포함)는 뺀다 — 모델로 넘어가면 새 프롬프트 규칙이 "그런 기능은 없다"
+    고 사양한다.
+    """
+    asking = re.search(r"설명|뭐야|뭔가요|무엇|사용법|어떤\s*기능"
+                       r"|시뮬레이션|재생|불러|틀어|노래|게임|만들어",
+                       cx.low)
+    if asking:
+        return None
+    if not (re.search(r"알람|조회|검색|고장", cx.low)
+            or (cx.tag and re.search(r"해줘|보여", cx.low))):
+        return None
+    alarm = re.sub(r"\b([A-Za-z]{1,8}-[A-Za-z0-9]{1,8})\b", " ", cx.msg)
+    alarm = re.sub(r"알람|조회|해줘|해주세요|검색|좀|관련", " ", alarm,
+                   flags=re.I)
+    alarm = re.sub(r"\s+", " ", alarm).strip() or "alarm"
+    if not cx.tag:
+        return {"type": "chat",
+                "reply": "예: AIT-4002 acid residual low 알람 조회해줘"}
+    return {"type": "diagnose", "tag": cx.tag, "tab": "alarm", "alarm": alarm,
+            "reply": "%s 알람 조회를 실행합니다." % cx.tag}
+
+
+# 등록이 반쪽이면 여기서 죽는다. 표현만 적고 본체를 잊거나, 실행 명령을
+# 만들고 LLM 스키마 설명을 빼먹으면 그대로 뜬다 — 패치 33 이 난 자리다.
+tools.check()
+
+
 def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
     """
     규칙 기반 의도 분석.
@@ -1851,213 +2117,37 @@ def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
     기준이기도 하다. 이전에는 챗봇 엔드포인트 안에 중첩되어 있어
     바깥의 req 를 직접 참조했고, 그래서 밖에서 불러 시험할 수 없었다.
     점검할 수 없는 코드는 조용히 깨진다.
+
+    판정할 도구와 그 순서는 **api/tools.py** 가 갖고 있다. 여기서는
+    그 목록을 차례로 물어볼 뿐이다 (패치 35).
     """
-    low = msg.lower()
+    cx = _Cx(msg, cur_tag, cur_tab)
 
-    # 기능 질문 — 명령이 아니라 안내다. 인사말 규칙보다도 먼저 본다.
-    # "자료 반입은 무슨 기능이야?" 가 잡담의 '기능 목록' 답변에 걸려
-    # 뭉툭한 답이 나가던 것을 여기서 끊는다. 문장에 태그가 직접 적혀
-    # 있으면 그 태그를 조회하려는 뜻일 수 있으니 명령 쪽으로 넘긴다.
-    if _FEATURE_Q.search(low) and not find_tag(msg)[0]:
-        for pat, reply in _FEATURE_HELP:
-            if re.search(pat, low):
-                return {"type": "chat", "reply": reply}
+    # 태그 판정 전 — 판넬명·단자 번호는 표기가 태그와 겹친다.
+    for t in tools.ordered(before_tag=True):
+        if t.trigger and not t.matches(cx.low):
+            continue
+        got = t.handler(cx)
+        if got:
+            return got
 
-    # 인사·감사는 조회 의도가 아니다. 예시 목록도 매뉴얼 검색도 아니다.
-    st = smalltalk_intent(msg, low)
-    if st:
-        return st
-
-    # 단자 번호로 태그를 되찾는다 (패치 29c).
-    #
-    # 판넬 조회가 "IW512+ 1" 처럼 단자 번호를 보여주는데, 그것을 되물으면
-    # 답하지 못했다. 도구가 방금 화면에 띄운 값을 모르는 셈이었다.
-    # 자료(by_terminal)에는 있으니 규칙으로 잇는다.
-    mterm = re.search(r"\b([iqm][wbd]\s?\d{1,4})\s*\+?", low)
-    if mterm and re.search(r"태그|뭐|무엇|뭔|어디|누구|어느", low):
-        want = re.sub(r"\s+", "", mterm.group(1)).upper()
-        px = get_panel()
-        if px is None:
-            return {"type": "chat",
-                    "reply": "배선 자료를 읽지 못해 단자 조회를 할 수 없습니다."}
-        found = []
-        for prow in px.panels():
-            pname = prow.get("panel") if isinstance(prow, dict) else prow
-            d = px.by_panel(pname) or {}
-            for term, tags in (d.get("by_terminal") or {}).items():
-                if re.sub(r"[^A-Z0-9]", "", str(term).upper()) == want:
-                    for t2 in tags:
-                        found.append((pname, term, t2))
-        if not found:
-            return {"type": "chat",
-                    "reply": "%s 단자를 배선 자료에서 찾지 못했습니다. "
-                             "단자 번호를 확인해 주세요." % want}
-        # 문장에 판넬명이 함께 있으면 그 판넬로 좁힌다. 단자 번호는
-        # 판넬마다 되풀이되므로, 좁히지 않으면 남의 판넬까지 딸려 온다.
-        pm = re.search(r"\b((?:cub|rio|jb|lcp)-[a-z0-9]+)\b", low)
-        if pm:
-            want_p = pm.group(1).upper()
-            narrowed = [f for f in found if str(f[0]).upper() == want_p]
-            if narrowed:
-                found = narrowed
-
-        if len(found) == 1:
-            pn, term, t2 = found[0]
-            return {"type": "panel", "tab": "panel", "tag": t2,
-                    "reply": "%s 단자는 %s 입니다 (%s 판넬 · 단자 %s)."
-                             % (want, t2, pn, term)}
-        return {"type": "chat",
-                "reply": "%s 단자에 %d건이 걸려 있습니다 — %s"
-                         % (want, len(found),
-                            ", ".join("%s(%s)" % (t2, pn)
-                                      for pn, _, t2 in found[:6]))}
-
-    # 판넬 의도를 태그 판정보다 먼저 본다 (표기가 겹치므로)
-    pintent = panel_intent(msg, low, cur_tag)
-    if pintent:
-        return pintent
-
+    # 태그 판정. 문장에 적힌 태그가 목록에 없으면, 현재 화면 태그로
+    # 대체하지 않는다 — miss 가 있는데 tag=cur_tag 로 넘어가면 다른
+    # 설비의 답이 나간다.
     tag, miss = find_tag(msg, cur_tag)
-    # 문장에 적힌 태그가 목록에 없으면, 현재 화면 태그로 대체하지 않는다.
-    # miss 가 있는데 tag=cur_tag 로 넘어가면 다른 설비 답변이 나간다.
     if miss:
         return {"type": "chat",
                 "reply": "%s 는 계기 리스트와 인터락 리스트에 없습니다. "
                          "태그를 확인해 주세요." % miss}
-    if re.match(r"^(도움|help|사용법|가이드)", low) or msg.strip() == "?":
-        return {
-            "type": "help",
-            "reply": (
-                "사용 가이드\n"
-                "1) 알람 조회: 태그 선택 → 증상 입력 → 알람 조회\n"
-                "2) 원문/도면: 결과에서 원문 보기·도면 보기\n"
-                "3) 인터락: 인터락 조회 탭에서 출력 태그\n"
-                "4) 자료 반입: 자료 반입 탭에서 파일 올리기 → 반입 점검 확인\n"
-                "5) 자유 모드: 사이드바 토글 — 근거 없는 모델 답변이 라벨과 함께 표시\n"
-                "6) 자연어 예: AIT-4002 low acid 알람 조회해줘"
-            ),
-        }
-    # 공정 화면(오프라인 시뮬레이션)의 시나리오 재생. 화면은 P-5101A
-    # 인터락 뷰에 붙어 있는 기존 기능이고, 챗봇은 그리로 안내·실행만
-    # 한다. 시뮬레이션 화면이 있는 태그는 현재 P-5101A 하나다.
-    # 시나리오를 멈춰 달라는 말이 먼저다. "정지" 라는 낱말이 인터락 동작
-    # (STOP)과 겹쳐서, 아래 인터락 규칙이 먼저 걸리면 "시나리오 정지" 가
-    # P-5101A 정지 인터락 조회로 흘렀다. 실제로 그랬다 (패치 33).
-    if re.search(r"(시나리오|시뮬레이션|재생|공정\s*화면)[^\n]*"
-                 r"(정지|멈춰|멈춤|중지|스톱|stop)"
-                 r"|(정지|멈춰|멈춤|중지)[^\n]*(시나리오|시뮬레이션|재생)", low):
-        gtag, asked = _graphic_tag(msg, cur_tag)
-        if not gtag:
-            return {"type": "chat",
-                    "reply": "%s 의 공정 화면은 없습니다. 현재 모의 화면이 "
-                             "있는 설비는 %s 뿐입니다."
-                             % (asked, ", ".join(GRAPHIC_TAGS))}
-        return {"type": "interlock", "tag": gtag, "tab": "interlock",
-                "action": "OPEN", "openGraphic": True,
-                "stopScenario": True, "playScenario": False,
-                "reply": "공정 화면의 시나리오 재생을 멈춥니다. "
-                         "화면의 값은 멈춘 시점 그대로 남습니다."}
+    cx.tag = tag
 
-    if re.search(r"시나리오\s*재생|시뮬레이션.*(재생|가동|실행|열|보여)"
-                 r"|공정\s*화면", low):
-        gtag, asked = _graphic_tag(msg, cur_tag)
-        if not gtag:
-            return {"type": "chat",
-                    "reply": "%s 의 공정 화면은 없습니다. 현재 모의 화면이 "
-                             "있는 설비는 %s 뿐입니다. 인터락 조건은 "
-                             "'%s 인터락 조회해줘' 로 보실 수 있습니다."
-                             % (asked, ", ".join(GRAPHIC_TAGS), asked)}
-        play = bool(re.search(r"재생|가동|실행", low))
-        return {"type": "interlock", "tag": gtag, "tab": "interlock",
-                "action": "OPEN", "openGraphic": True,
-                "playScenario": play,
-                "reply": "%s 공정 화면(오프라인 시뮬레이션)을 %s. 실제 공정 "
-                         "상태가 아닌 시연 화면입니다."
-                         % (gtag, "열어 시나리오를 재생합니다" if play
-                            else "엽니다")}
+    for t in tools.ordered(before_tag=False):
+        if t.trigger and not t.matches(cx.low):
+            continue
+        got = t.handler(cx)
+        if got:
+            return got
 
-    if re.search(r"자료\s*반입|반입|파일\s*(올리|넣|업로드)|업로드", low):
-        return {
-            "type": "chat",
-            "reply": (
-                "자료 반입은 「자료 반입」 탭에서 합니다.\n"
-                "1) 종류 선택(IO List·계기·TB·인터락·매뉴얼·도면) → 파일 올리기\n"
-                "2) 올리면 즉시 반입 점검 리포트 — 몇 행을 읽었는지, "
-                "못 읽은 열, 매뉴얼-기종 연결, 태그 맞물림\n"
-                "3) 매뉴얼을 바꿨으면 색인 다시 만들기 (진행률 표시)\n"
-                "같은 자리 파일은 덮어쓰기 전에 .prev 로 보존되고, "
-                "삭제는 2단계(삭제 → 영구 삭제)입니다."
-            ),
-        }
-    # 화면에 이미 결과가 떠 있는 상태에서의 후속 질문은 명령이 아니다.
-    #
-    # "조회된 내용을 보고 조치방법을 알려줘" 는 '조회' 라는 글자 때문에
-    # 다시 알람 조회 명령으로 걸렸고, 같은 조회를 반복하며 대화가
-    # 제자리를 돌았다. 이런 문장은 명령이 아니라 방금 결과에 대한
-    # 질문이므로 규칙에서 빼고 질의응답으로 넘긴다.
-    if re.search(r"(조회된|검색된|나온|방금|위의|이|그|저)\s*(내용|결과|것|거)"
-                 r"|결과를?\s*(보고|바탕|기반)|앞서|아까", low):
-        return {"type": "followup", "tag": tag, "question": msg}
-
-    # 지시 대명사가 없는 설명 요청도 후속 질문이다 (패치 29).
-    #
-    # "말로 풀어서 설명해줘" 처럼 가리키는 말이 없으면 위 규칙에 안 걸려
-    # 매뉴얼 검색으로 흘렀다. 인터락을 조회한 뒤 이렇게 물으면 직전 알람
-    # 근거로 엉뚱한 답이 나왔다. 조회 대상(태그·인터락 같은 낱말)이 없고
-    # 설명을 청하는 문장이면, 화면에 떠 있는 결과에 대한 질문으로 본다.
-    if re.search(r"(설명|알려|해석|정리)\s*(해|해서|을|를)?\s*"
-                 r"(줄|주|달|부탁|가능|해)", low) \
-            and not re.search(r"인터락|interlock|도면|p\s*&\s*i\s*d|pid"
-                              r"|판넬|panel|반입|업로드|사용법|사용 방법", low) \
-            and not find_tag(msg)[0]:
-        return {"type": "followup", "tag": tag, "question": msg}
-
-    if re.search(r"도면|p\s*&\s*i\s*d|pid|p&id", low):
-        if not tag:
-            return {"type": "chat", "reply": "태그를 알려주세요. 예: AIT-1001 P&ID 도면 보여줘"}
-        return {"type": "drawing", "tag": tag, "tab": "alarm",
-                "reply": "%s 도면을 엽니다." % tag}
-    if re.search(r"인터락.*원본|원본.*인터락", low):
-        if not tag:
-            return {"type": "chat", "reply": "예: LCV-01 인터락 원본 보여줘"}
-        act = "CLOSE" if re.search(r"close|닫", low) else (
-            "START" if re.search(r"start|기동", low) else (
-            "STOP" if re.search(r"stop|정지", low) else "OPEN"))
-        return {"type": "interlock_source", "tag": tag, "tab": "interlock",
-                "action": act, "openSource": True,
-                "reply": "%s 인터락 원본을 엽니다." % tag}
-    if re.search(r"인터락|interlock", low):
-        if not tag:
-            return {"type": "chat", "reply": "예: XV-4101 인터락 조회해줘"}
-        act = "CLOSE" if re.search(r"close|닫", low) else (
-            "START" if re.search(r"start|기동", low) else (
-            "STOP" if re.search(r"stop|정지", low) else "OPEN"))
-        return {"type": "interlock", "tag": tag, "tab": "interlock",
-                "action": act,
-                "reply": "%s %s 인터락을 조회합니다." % (tag, act)}
-    if re.search(r"조치|어떻게\s*(해|하나|하면)|뭘\s*해|해결", low):
-        # 조치 순서는 조회 결과가 있어야 만들 수 있다. 화면 상태를
-        # 아는 챗봇 계층에서 처리하도록 followup 으로 넘긴다.
-        return {"type": "followup", "tag": tag, "question": msg,
-                "want": "advice"}
-
-    # "…에 대해 설명해줘" 의 '해줘', "…재생해줘" 의 '해줘' 가 조회
-    # 명령으로 걸려 화면 태그로 알람 조회를 납치한 일이 있었다.
-    # 설명·정의를 묻는 문장과, 조회가 아닌 동사(재생·시뮬레이션 등
-    # 이 도구에 없는 기능 요청 포함)는 뺀다 — 모델로 넘어가면 새
-    # 프롬프트 규칙이 "그런 기능은 없다" 고 사양한다.
-    _asking = re.search(r"설명|뭐야|뭔가요|무엇|사용법|어떤\s*기능"
-                        r"|시뮬레이션|재생|불러|틀어|노래|게임|만들어",
-                        low)
-    if (re.search(r"알람|조회|검색|고장", low) and not _asking) \
-            or (tag and re.search(r"해줘|보여", low) and not _asking):
-        alarm = re.sub(r"\b([A-Za-z]{1,8}-[A-Za-z0-9]{1,8})\b", " ", msg)
-        alarm = re.sub(r"알람|조회|해줘|해주세요|검색|좀|관련", " ", alarm, flags=re.I)
-        alarm = re.sub(r"\s+", " ", alarm).strip() or "alarm"
-        if not tag:
-            return {"type": "chat", "reply": "예: AIT-4002 acid residual low 알람 조회해줘"}
-        return {"type": "diagnose", "tag": tag, "tab": "alarm", "alarm": alarm,
-                "reply": "%s 알람 조회를 실행합니다." % tag}
     # 아무 규칙에도 걸리지 않은 포괄 응답. LLM 이 더 나은 답을 낼 수
     # 있으므로 generic 표식을 달아, 챗봇에서 덮어쓰지 않게 한다.
     return {
@@ -2068,7 +2158,6 @@ def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
                   "예) AIT-4002 low acid 알람 조회해줘 · XV-4101 인터락 조회 "
                   "· AIT-1001 은 어느 판넬이야 · 사용법"),
     }
-
 
 
 class _FixedEvidence:
@@ -2108,6 +2197,60 @@ def _with_free_reply(res, question, tag="", service=""):
             if head else "〔모델 답변 · 문서 근거 아님〕\n" + extra), True
 
 
+def llm_command_prompt(free: bool = False) -> str:
+    """LLM 에게 주는 명령 해석 지침. **도구 목록에서 만든다.**
+
+    패치 33 이 난 자리가 여기다. 규칙에는 시나리오 정지를 넣고 이 문장에는
+    넣지 않아서, 모델이 고를 수 있는 것 중에 정지가 없었다. 고를 것이 없으면
+    모델은 가장 가까운 것(인터락 STOP)을 고른다 — 이상한 선택이 아니다.
+    그러니 도구가 늘면 이 문장도 저절로 늘어야 한다 (패치 35).
+
+    함수로 빼 둔 이유는 **점검할 수 있게** 하기 위해서다. 안에 묻어 두면
+    가드가 함수 소스를 문자열로 뒤지는 수밖에 없고, 그런 가드는 코드를
+    조금만 옮겨도 보던 자리를 잃는다.
+    """
+    # 자유 모드의 대화 지침.
+    #
+    # 명령 해석 스키마는 그대로 둔다 — 조회는 모드와 무관하게 정확해야
+    # 한다. 달라지는 것은 type=chat 일 때의 답변 폭이다. 근거 모드는
+    # 도구 안내로 한정하고, 자유 모드는 일반 지식으로 답하되 두 가지를
+    # 지킨다: 조회 결과(판넬 위치·인터락 조건·매뉴얼 페이지)를 지어내지
+    # 않는다, 기술 판단에는 문서 근거가 아님을 밝힌다.
+    free_clause = (
+        "지금 자유 모드가 켜져 있습니다 (모드를 물으면 켜져 있다고 "
+        "답하십시오). 질문이나 대화이면 type=chat 으로 두고 reply 에 "
+        "한국어로 자유롭게 답하십시오. 일반적인 정비 지식·개념 설명은 "
+        "됩니다. 다만 다음은 지키십시오. "
+        "(1) 이 도구의 조회 결과 — 특정 태그의 판넬 위치, 인터락 조건, "
+        "매뉴얼 페이지 — 를 지어내지 마십시오. 그런 질문에는 해당 조회 "
+        "기능을 안내하십시오. "
+        "(2) 기술적 판단을 담은 답에는 문서 근거가 아니라 일반 지식이라는 "
+        "점을 한 줄로 밝히십시오. "
+        "(3) reply 는 대화 답변일 뿐 아무것도 실행하지 않습니다 — "
+        "'조회하겠습니다', '확인해보겠습니다' 처럼 실행을 약속하는 문장을 "
+        "쓰지 마십시오. 실행이 필요하면 type 을 해당 명령으로 정하십시오. "
+        "(4) 노래·게임·역할극 등 정비 도구 범위 밖의 요청은 할 수 있는 "
+        "척하지 말고, 정비 지원 도구라 어렵다고 한 줄로 사양하십시오."
+        if free else
+        "명령이 아니라 질문이나 인사이면 type=chat 으로 두고 reply 에 "
+        "한국어로 자연스럽게 답하십시오. 기능을 물으면 위 목록을 바탕으로 "
+        "두세 문장으로 설명하고, 바로 써 볼 수 있는 예시를 한 줄 "
+        "덧붙이십시오.")
+
+    return (
+        "당신은 Plant Maintenance Copilot 의 도우미입니다. "
+        "플랜트 정비원이 쓰는 도구이며, 다음을 할 수 있습니다.\n"
+        + tools.llm_tool_block() + "\n\n"
+        "사용자 메시지를 UI 명령 JSON 으로 해석하십시오. " + free_clause + "\n"
+        "Reply language: Korean.\n"
+        "Schema:\n" + tools.llm_schema_line() + "\n"
+        "Rules: do not invent tags; if tag missing ask in reply with "
+        "type=chat. " + tools.llm_rule_block() + " "
+        "reply 는 아무것도 실행하지 않으니 실행을 약속하는 문장을 쓰지 "
+        "마십시오. 범위 밖 요청(노래 등)은 한 줄로 사양하십시오."
+    )
+
+
 @app.post("/api/chat")
 def chat_help(req: ChatRequest):
     """도우미 챗봇. LLM API 가 있으면 의도 분석, 없으면 규칙 기반."""
@@ -2128,10 +2271,11 @@ def chat_help(req: ChatRequest):
     # 화면 어디에도 드러나지 않았다. 게이트웨이를 하나로 합친다.
     from graph.advisor import _CHAT, _parse
 
-    ACTIONABLE = {"diagnose", "drawing", "interlock", "interlock_source",
-                  "advice", "help", "navigate", "panel"}
-    NEEDS_TAG = {"diagnose", "drawing", "interlock", "interlock_source",
-                 "advice"}
+    # 실행 여부 판정도 **도구 목록에서 읽는다.** 도구를 늘렸는데 이 집합에
+    # 넣는 것을 잊으면, 규칙이 옳게 판정하고도 화면이 아무 일도 하지 않는다
+    # — 사용자에게는 무시당한 것으로 보인다 (패치 35).
+    ACTIONABLE = tools.actionable_types()
+    NEEDS_TAG = tools.needs_tag_types()
 
     def finalize(data, source):
         """태그를 실재하는 것으로 되돌리고, 없으면 되묻는다."""
@@ -2299,66 +2443,7 @@ def chat_help(req: ChatRequest):
                              if req.use_llm else "요청에서 비활성")
         return out
 
-    # 자유 모드의 대화 지침.
-    #
-    # 명령 해석 스키마는 그대로 둔다 — 조회는 모드와 무관하게 정확해야
-    # 한다. 달라지는 것은 type=chat 일 때의 답변 폭이다. 근거 모드는
-    # 도구 안내로 한정하고, 자유 모드는 일반 지식으로 답하되 두 가지를
-    # 지킨다: 조회 결과(판넬 위치·인터락 조건·매뉴얼 페이지)를 지어내지
-    # 않는다, 기술 판단에는 문서 근거가 아님을 밝힌다.
-    free_clause = (
-        "지금 자유 모드가 켜져 있습니다 (모드를 물으면 켜져 있다고 "
-        "답하십시오). 질문이나 대화이면 type=chat 으로 두고 reply 에 "
-        "한국어로 자유롭게 답하십시오. 일반적인 정비 지식·개념 설명은 "
-        "됩니다. 다만 다음은 지키십시오. "
-        "(1) 이 도구의 조회 결과 — 특정 태그의 판넬 위치, 인터락 조건, "
-        "매뉴얼 페이지 — 를 지어내지 마십시오. 그런 질문에는 해당 조회 "
-        "기능을 안내하십시오. "
-        "(2) 기술적 판단을 담은 답에는 문서 근거가 아니라 일반 지식이라는 "
-        "점을 한 줄로 밝히십시오. "
-        "(3) reply 는 대화 답변일 뿐 아무것도 실행하지 않습니다 — "
-        "'조회하겠습니다', '확인해보겠습니다' 처럼 실행을 약속하는 문장을 "
-        "쓰지 마십시오. 실행이 필요하면 type 을 해당 명령으로 정하십시오. "
-        "(4) 노래·게임·역할극 등 정비 도구 범위 밖의 요청은 할 수 있는 "
-        "척하지 말고, 정비 지원 도구라 어렵다고 한 줄로 사양하십시오."
-        if req.free else
-        "명령이 아니라 질문이나 인사이면 type=chat 으로 두고 reply 에 "
-        "한국어로 자연스럽게 답하십시오. 기능을 물으면 위 목록을 바탕으로 "
-        "두세 문장으로 설명하고, 바로 써 볼 수 있는 예시를 한 줄 "
-        "덧붙이십시오.")
-
-    system = (
-        "당신은 Plant Maintenance Copilot 의 도우미입니다. "
-        "플랜트 정비원이 쓰는 도구이며, 다음을 할 수 있습니다.\n"
-        "- 알람 조회: 설비 태그와 증상을 주면 벤더 매뉴얼과 에러코드표에서 "
-        "원인·조치를 찾아 출처(문서·페이지)와 함께 보여줍니다. 증상은 "
-        "한국어로 써도 되고 매뉴얼이 영문이어도 찾습니다.\n"
-        "- 근거가 부족하면 답을 지어내지 않고 근거 부재를 알립니다.\n"
-        "- 보수 이력 대조: 같은 설비에서 과거에 있었던 조치를 함께 보여줍니다.\n"
-        "- 인터락 조회: 밸브·펌프가 왜 안 움직이는지, 동작 조건을 "
-        "인터락·퍼미시브·시퀀스로 나누어 보여주고 엑셀 원본과 대조합니다.\n"
-        "- 도면: 태그가 표시된 P&ID 위치와 배선 정보를 보여줍니다.\n"
-        "- 4D 리포트: 조회 결과를 PDF 보고서로 출력합니다.\n"
-        "- 공정 화면(P-5101A): 오프라인 모의 화면을 열고, 시나리오를 "
-        "재생하거나 재생 중인 것을 멈춥니다. 실제 공정이 아닙니다.\n\n"
-        "사용자 메시지를 UI 명령 JSON 으로 해석하십시오. " + free_clause + "\n"
-        "Reply language: Korean.\n"
-        "Schema:\n"
-        '{"type":"diagnose|drawing|interlock|interlock_source|advice|help|chat|navigate",'
-        '"tag":"AIT-4002 or null","tab":"alarm|interlock","alarm":"symptom text or null",'
-        '"action":"OPEN|CLOSE|START|STOP or null","openSource":false,'
-        '"openGraphic":false,"playScenario":false,"stopScenario":false,'
-        '"reply":"short Korean confirmation"}\n'
-        "Rules: do not invent tags; if tag missing ask in reply with type=chat. "
-        "For alarm search type=diagnose. For P&ID type=drawing. For interlock type=interlock. "
-        "공정 화면을 열어 달라면 type=interlock, tag=P-5101A, openGraphic=true 로 "
-        "두십시오. 재생은 playScenario=true, 재생을 멈춰 달라는 말(정지·멈춰·중지)은 "
-        "stopScenario=true 로 두고 playScenario 는 false 로 두십시오. "
-        "여기서 '정지'는 시나리오 재생을 멈추라는 뜻이며, 펌프 정지 인터락 조회와 "
-        "다릅니다. 어느 쪽인지 분명하지 않으면 실행하지 말고 type=chat 으로 "
-        "무엇을 원하는지 되물으십시오. "
-        "reply 는 아무것도 실행하지 않으니 실행을 약속하는 문장을 쓰지 마십시오. 범위 밖 요청(노래 등)은 한 줄로 사양하십시오."
-    )
+    system = llm_command_prompt(bool(req.free))
     user = "current_tab=%s current_tag=%s\nuser: %s" % (req.tab, req.tag, text)
 
     try:
@@ -2812,6 +2897,20 @@ def _rebuild_worker():
         di.build(progress=prog)
 
         _reset_caches()
+
+        # 무엇으로 만든 색인인지 적어 둔다. 다음에 「색인 다시 만들기」를
+        # 누를 때 자료가 바뀌었는지 이 기록과 대조해 답한다 (패치 34).
+        # 기록에 실패해도 색인은 정상이므로 재생성을 실패로 만들지 않는다.
+        # 대신 그 사실을 로그에 남긴다 — 다음 판정이 시각 대조로 내려간
+        # 이유를 나중에 알 수 있어야 한다.
+        try:
+            from ingest.index_state import write_manifest
+            write_manifest()
+        except Exception as e:                              # noqa: BLE001
+            print("[ingest] 색인 원본 기록 실패 — 다음 변경 판정은 "
+                  "시각 대조로 내려갑니다: %s: %s"
+                  % (type(e).__name__, str(e)[:120]))
+
         _rebuild.update(stage="완료",
                         finished_at=dt.datetime.now().strftime("%H:%M:%S"))
     except Exception as e:                                  # noqa: BLE001
@@ -2975,6 +3074,22 @@ def ingest_file_op(request: Request,
 @app.get("/api/ingest/status")
 def ingest_status():
     return dict(_rebuild)
+
+
+@app.get("/api/ingest/index-state")
+def ingest_index_state():
+    """색인이 지금 자료와 맞는지 (패치 34 · 리허설 발견 4).
+
+    자료를 바꾸지 않았는데도 재생성이 몇 분을 그대로 돌았다. **판정은
+    여기서 하고 화면은 값만 읽는다** — 화면이 스스로 판정하면 같은
+    질문에 두 곳이 다른 답을 하게 된다.
+
+    판정만 한다. **자동으로 건너뛰지 않는다** — 재생성을 누를지는
+    사람이 정한다. 그래서 이 엔드포인트는 /ingest/rebuild 앞에 서지
+    않고, 화면이 옆에 놓고 읽는 값으로만 쓰인다.
+    """
+    from ingest.index_state import index_state
+    return index_state()
 
 
 # ── 정적 파일 (빌드된 React UI) ─────────────────────────────
