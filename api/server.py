@@ -313,6 +313,22 @@ class FeedbackRequest(BaseModel):
     tech: str = ""
 
 
+class GraphicState(BaseModel):
+    """공정 화면(오프라인 모의)의 상태. **화면이 실어 보낸다.**
+
+    도는 중인지를 아는 곳은 그 화면(iframe)뿐이다 — 사람이 화면의 버튼을
+    직접 눌러도, 조작을 만져 저절로 멈춰도 서버는 알 길이 없다. 그래서
+    서버가 짐작하지 않고 받아서 쓴다.
+
+    이것이 없던 동안 챗봇에 「정지해줘」 라고만 하면 알람 조회가 실행됐다.
+    그 말이 시나리오 정지인지 정지 인터락 조회인지 가릴 근거가 없었다
+    (패치 36).
+    """
+    open: bool = False
+    playing: bool = False
+    tag: Optional[str] = None
+
+
 class ChatContext(BaseModel):
     """화면에 떠 있는 조회 결과. 후속 질문에 답하려면 이것이 필요하다.
 
@@ -331,6 +347,8 @@ class ChatContext(BaseModel):
     tab: Optional[str] = None
     # 인터락 조회 응답 그대로. 서술은 규칙으로 하며 LLM 을 쓰지 않는다.
     interlock: Optional[dict] = None
+    # 공정 화면 상태. 맥락을 봐야 하는 명령("정지해줘")이 이것을 읽는다.
+    graphic: Optional[GraphicState] = None
 
 
 class ChatRequest(BaseModel):
@@ -1798,14 +1816,37 @@ def _graphic_tag(msg, cur_tag):
 # 언젠가 한 곳을 잊는다. 잊은 쪽은 조용히 엉뚱하게 돈다.
 
 class _Cx:
-    """규칙 하나가 보는 것. tag 는 태그 판정을 지난 뒤에 채워진다."""
+    """규칙 하나가 보는 것. tag 는 태그 판정을 지난 뒤에 채워진다.
 
-    def __init__(self, msg, cur_tag, cur_tab):
+    화면에 떠 있는 것(ctx)도 함께 본다. 같은 말이 화면 상태에 따라 다른
+    뜻이 되는 명령이 있다 — 시나리오가 도는 중의 「정지해줘」와 아무것도
+    돌지 않을 때의 「정지해줘」는 다르다 (패치 36).
+    """
+
+    def __init__(self, msg, cur_tag, cur_tab, ctx=None):
         self.msg = msg
         self.low = (msg or "").lower()
         self.cur_tag = cur_tag
         self.cur_tab = cur_tab
+        self.ctx = ctx
         self.tag = None
+
+    @property
+    def graphic(self):
+        """공정 화면 상태. 화면이 실어 보내지 않으면 아무것도 모른다 —
+        모를 때 도는 중이라고 짐작하지 않는다."""
+        g = getattr(self.ctx, "graphic", None) if self.ctx else None
+        if g is None and isinstance(self.ctx, dict):
+            g = self.ctx.get("graphic")
+        if g is None:
+            return None
+        if isinstance(g, dict):
+            return {"open": bool(g.get("open")),
+                    "playing": bool(g.get("playing")),
+                    "tag": g.get("tag")}
+        return {"open": bool(getattr(g, "open", False)),
+                "playing": bool(getattr(g, "playing", False)),
+                "tag": getattr(g, "tag", None)}
 
 
 @tools.FEATURE_HELP.rule
@@ -1924,6 +1965,16 @@ def _r_help(cx):
     }
 
 
+def _stop_scenario_intent(gtag):
+    """시나리오 정지 명령. 두 규칙(명시·맥락)이 같은 것을 내도록 한 곳에
+    둔다 — 한쪽만 고치면 두 표현이 다르게 동작한다."""
+    return {"type": "interlock", "tag": gtag, "tab": "interlock",
+            "action": "OPEN", "openGraphic": True,
+            "stopScenario": True, "playScenario": False,
+            "reply": "공정 화면의 시나리오 재생을 멈춥니다. "
+                     "화면의 값은 멈춘 시점 그대로 남습니다."}
+
+
 @tools.GRAPHIC_STOP.rule
 def _r_graphic_stop(cx):
     """시나리오를 멈춰 달라는 말이 먼저다.
@@ -1938,11 +1989,7 @@ def _r_graphic_stop(cx):
                 "reply": "%s 의 공정 화면은 없습니다. 현재 모의 화면이 "
                          "있는 설비는 %s 뿐입니다."
                          % (asked, ", ".join(GRAPHIC_TAGS))}
-    return {"type": "interlock", "tag": gtag, "tab": "interlock",
-            "action": "OPEN", "openGraphic": True,
-            "stopScenario": True, "playScenario": False,
-            "reply": "공정 화면의 시나리오 재생을 멈춥니다. "
-                     "화면의 값은 멈춘 시점 그대로 남습니다."}
+    return _stop_scenario_intent(gtag)
 
 
 @tools.GRAPHIC.rule
@@ -2067,6 +2114,46 @@ def _r_interlock(cx):
             "reply": "%s %s 인터락을 조회합니다." % (cx.tag, act)}
 
 
+@tools.STOP_BARE.rule
+def _r_stop_bare(cx):
+    """무엇을 멈추라는 말이 없는 정지.
+
+    배포에서 시나리오를 재생한 뒤 「정지해줘」 라고만 하면 알람 조회가
+    실행됐다. 패치 33 의 정지 규칙은 시나리오·시뮬레이션·재생·공정 화면
+    중 한 낱말을 **함께** 요구했고, 그 가드도 "시나리오 정지해주세요" 만
+    봤다. 낱말이 빠진 표현은 아무도 보지 않았다.
+
+    두 가지를 한다.
+
+    1) **맥락을 본다.** 공정 화면이 열려 있고 시나리오가 도는 중이면
+       그것을 멈춘다. 사람이 방금 재생을 시켰으니 '정지' 의 뜻은 하나다.
+    2) **맥락이 없으면 되묻는다.** 알람 조회로 실행하지 않는다 — 어느
+       쪽인지 모를 때 실행하는 것이 이 사고의 본체였다. 근거가 부족하면
+       답하지 않는다는 이 도구의 원칙을 명령 해석에도 적용한다 (패치 33
+       추기 1과 같은 자리).
+
+    알람 어휘가 함께 있으면 넘긴다. SCADA 알람에는 "CMD STOP" 처럼 정지가
+    낱말로 들어 있어서, 그것까지 되물으면 조회가 막힌다.
+    """
+    if re.search(r"알람|경보|증상|고장|검색", cx.low):
+        return None
+    g = cx.graphic or {}
+    gtag = g.get("tag") or (GRAPHIC_TAGS[0] if len(GRAPHIC_TAGS) == 1
+                            else None)
+    if g.get("playing") and gtag:
+        return _stop_scenario_intent(gtag)
+
+    # 되묻기. 문장에 태그가 있으면 그 태그로 물어야 한다 — 사용자가 말한
+    # 설비를 우리가 바꿔 물으면 그것도 지어내는 것이다.
+    asked = cx.tag or gtag or "해당 설비"
+    return {"type": "chat",
+            "reply": ("시나리오를 멈추실 건가요, %s 정지 인터락을 "
+                      "조회하실 건가요?\n"
+                      "· 시나리오 정지 — \"시나리오 정지해줘\"\n"
+                      "· 인터락 조회 — \"%s 정지 인터락 조회해줘\""
+                      % (asked, asked))}
+
+
 @tools.ADVICE.rule
 def _r_advice(cx):
     # 조치 순서는 조회 결과가 있어야 만들 수 있다. 화면 상태를 아는
@@ -2109,7 +2196,8 @@ def _r_diagnose(cx):
 tools.check()
 
 
-def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
+def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None,
+                ctx=None):
     """
     규칙 기반 의도 분석.
 
@@ -2120,8 +2208,12 @@ def rule_intent(msg: str, cur_tag: str = None, cur_tab: str = None):
 
     판정할 도구와 그 순서는 **api/tools.py** 가 갖고 있다. 여기서는
     그 목록을 차례로 물어볼 뿐이다 (패치 35).
+
+    ctx 는 화면에 떠 있는 것(ChatContext)이다. 같은 말이 화면 상태에 따라
+    다른 뜻이 되는 명령이 있어서 받는다 — 시나리오가 도는 중의
+    「정지해줘」와 아무것도 돌지 않을 때의 「정지해줘」는 다르다 (패치 36).
     """
-    cx = _Cx(msg, cur_tag, cur_tab)
+    cx = _Cx(msg, cur_tag, cur_tab, ctx)
 
     # 태그 판정 전 — 판넬명·단자 번호는 표기가 태그와 겹친다.
     for t in tools.ordered(before_tag=True):
@@ -2195,6 +2287,23 @@ def _with_free_reply(res, question, tag="", service=""):
     head = (res.get("reply") or "").strip()
     return (head + "\n\n〔모델 답변 · 문서 근거 아님〕\n" + extra
             if head else "〔모델 답변 · 문서 근거 아님〕\n" + extra), True
+
+
+def llm_user_line(req, text: str) -> str:
+    """모델에게 주는 사용자 줄. 화면 맥락을 함께 싣는다.
+
+    규칙만 맥락을 보고 모델은 못 보면, 규칙이 아는 표현은 되고 모르는
+    표현은 다시 엉뚱한 곳으로 간다 — 패치 33·35 가 가르친 것이다.
+    「정지해줘」가 시나리오 정지인지 정지 인터락 조회인지는 **시나리오가
+    도는 중인지**로 갈리므로, 그 상태를 모델도 알아야 한다 (패치 36).
+
+    함수로 빼 둔 이유는 점검할 수 있게 하기 위해서다.
+    """
+    g = getattr(req.context, "graphic", None) if req.context else None
+    scene = ("playing" if (g and g.playing) else
+             ("open" if (g and g.open) else "none"))
+    return ("current_tab=%s current_tag=%s scenario=%s" + chr(10)
+            + "user: %s") % (req.tab, req.tag, scene, text)
 
 
 def llm_command_prompt(free: bool = False) -> str:
@@ -2322,7 +2431,8 @@ def chat_help(req: ChatRequest):
     # 같은 문장에 같은 동작이 나온다.
     rule = rule_intent(text, req.tag,
                        (req.context.tab if req.context else None)
-                       or req.tab) or {}
+                       or req.tab,
+                       ctx=req.context) or {}
     if rule.get("type") in ACTIONABLE:
         return finalize(rule, "rule")
 
@@ -2444,7 +2554,7 @@ def chat_help(req: ChatRequest):
         return out
 
     system = llm_command_prompt(bool(req.free))
-    user = "current_tab=%s current_tag=%s\nuser: %s" % (req.tab, req.tag, text)
+    user = llm_user_line(req, text)
 
     try:
         content = _CHAT[provider](
@@ -3091,6 +3201,12 @@ def ingest_index_state():
     from ingest.index_state import index_state
     return index_state()
 
+
+# ── 공정 모의 화면 (패치 37) ─────────────────────────────────
+# 새 라우터만 붙인다. 검색·판정 경로 무접촉. 쓰기는 반입과 같은 열쇠를 거친다.
+# 정적 마운트보다 앞에 있어야 한다 (뒤에 두면 "/" 가 가로챈다).
+from api.sim_routes import build_router as _build_sim_router  # noqa: E402
+app.include_router(_build_sim_router(_require_edit))
 
 # ── 정적 파일 (빌드된 React UI) ─────────────────────────────
 # 반드시 모든 /api 라우트 뒤에 와야 한다. 앞에 두면 "/" 아래를

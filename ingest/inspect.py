@@ -30,7 +30,10 @@ def _xlsx_rows(path):
         # PermissionError 로 막힌다 — 점검이 파일 관리를 잠그는 셈이다.
         wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
         try:
-            rows = list(wb.active.iter_rows(values_only=True))
+            from ingest.io_standard import pick_sheet
+            _ps = pick_sheet(wb.sheetnames)
+            rows = list((wb[_ps] if _ps else wb.active)
+                        .iter_rows(values_only=True))
         finally:
             wb.close()
     except Exception as e:                                  # noqa: BLE001
@@ -64,7 +67,14 @@ def _inspect_io():
     if "columns" in out:
         try:
             from tools.make_io_list import STANDARD_ORDER
+            from ingest.io_standard import L1_ORDER, is_l1_header
             got = out["columns"]
+            # L1 IO LIST 표준양식이면 L1 열 순서와 대조한다
+            if is_l1_header(got):
+                STANDARD_ORDER = L1_ORDER
+                out["format"] = "L1"
+            else:
+                out["format"] = "24종"
             front = got[:len(STANDARD_ORDER)]
             miss = [c for c in STANDARD_ORDER if c not in got]
             extra = [c for c in got if c not in STANDARD_ORDER]

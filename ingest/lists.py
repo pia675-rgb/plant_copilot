@@ -170,7 +170,13 @@ def read_rows(path, sheet=None):
     if not path or not os.path.isfile(path):
         return []
     wb = load_workbook(path, read_only=True, data_only=True)
-    ws = wb[sheet] if sheet and sheet in wb.sheetnames else wb.active
+    if sheet and sheet in wb.sheetnames:
+        ws = wb[sheet]
+    else:
+        # L1 표준양식은 가이드 시트에도 TAG 머리가 있다 — 'IO LIST' 우선
+        from ingest.io_standard import pick_sheet
+        _ps = pick_sheet(wb.sheetnames)
+        ws = wb[_ps] if _ps else wb.active
     rows = list(ws.iter_rows(values_only=True))
     # read_only 워크북은 닫지 않으면 파일 핸들이 프로세스에 남는다.
     # Windows 에서 그 핸들이 반입 화면의 파일 삭제·교체를 막는다.
@@ -181,6 +187,13 @@ def read_rows(path, sheet=None):
         return []
     hdr = [_s(c).upper() for c in rows[hi]]
     ti = hdr.index("TAG")
+    # L1 IO LIST 표준양식이면 열 이름을 내부 이름으로 옮긴다. 같은 이름이
+    # 다른 뜻인 열(PLC·UNIT)이 있어 이름 그대로 읽으면 조용히 틀린다.
+    from ingest import io_standard as _std
+    l1 = _std.is_l1_header(rows[hi])
+    if l1:
+        hdr = [_std.internal_name(re.sub(r"\s+", " ", h)) if h else h
+               for h in hdr]
     out = []
     for r in rows[hi + 1:]:
         if not r or ti >= len(r) or not r[ti]:
@@ -188,8 +201,11 @@ def read_rows(path, sheet=None):
         tag = _s(r[ti])
         if tag in ("0", "-"):
             continue
-        out.append({hdr[i]: (r[i] if i < len(r) else None)
-                    for i in range(len(hdr)) if hdr[i]})
+        rec = {hdr[i]: (r[i] if i < len(r) else None)
+               for i in range(len(hdr)) if hdr[i]}
+        if l1:
+            _std.normalize_row(rec)
+        out.append(rec)
     return out
 
 

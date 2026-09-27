@@ -48,7 +48,7 @@
 | Q33 | typo | 샘프 유량이 없다고 나옵니다 | M9E-10084, M9E-10122, M9E-10125 | M9e#Lack_of_Flow#0, M9e#Lack_of_Flow#2 | Top-3 | advise 0.55 |
 | Q35 | typo | 산 시린지 기표 감지 | M9E-2403 | M9e#Configuring_the_Data_I_O_Optional_ | Top-3 | advise 0.58 |
 | Q36 | typo | 산화제 통 잔랑이 부족합니다 | M9E-400 | M9e#Lack_of_Flow#0, M9E-2400, M9e#Lack | Top-3 | advise 0.53 |
-| Q43 | abstain | 장비에서 쿵쿵거리는 소리가 납니다 | - | M9E-10077, M9E-10351 | 거절 | advise 0.56 |
+| Q43 | abstain | 장비에서 쿵쿵거리는 소리가 납니다 | - | M9E-10077, M9E-10350 | 거절 | advise 0.56 |
 | Q44 | abstain | 화면에 웃는 얼굴 아이콘이 떠 있습니다 | - | M9e#Reviewing_Errors_and_Warnings#0, M | 거절 | advise 0.59 |
 | Q45 | abstain | 장비에서 커피 냄새가 납니다 | - | M9e#Configuring_the_Data_I_O_Optional_ | 거절 | advise 0.66 |
 

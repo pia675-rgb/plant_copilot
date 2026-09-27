@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react'
 
-const API = '/api'
+// MAXIS AGENT 노드는 /agent/<node_id>/ 아래에 붙는다.
+// '/api' 로 두면 브라우저가 접두사를 잃고 node.maxis.skax.co.kr/api/... 를
+// 불러 404 가 난다. 앞 슬래시를 떼면 현재 문서 위치를 기준으로 붙는다.
+// Railway 배포(루트에 붙음)에서도 그대로 동작한다.
+const API = 'api'
 
 async function get(path) {
   const res = await fetch(`${API}${path}`)
@@ -18,11 +22,50 @@ async function post(path, body) {
   return res.json()
 }
 
+// 오래 걸리는 작업을 폴링으로 받는다.
+//
+// MAXIS 게이트웨이가 요청을 15초에서 끊는다(2026-09-12 측정).
+// 조치 순서 생성은 LLM 이 문장을 만드느라 그보다 오래 걸려 504 가 났다.
+// 스트리밍으로도 못 넘는다 — 게이트웨이가 연결 전체 시간을 재기 때문이다.
+//
+// 챗봇 해석(/api/chat)도 같은 이유로 끊겼다. 그래서 노드에
+// /api/<이름>/start 와 /api/<이름>/result/{id} 를 두고
+// 짧은 요청을 여러 번 보낸다. 각 요청이 1초 안에 끝나 제한에 걸리지 않는다.
+//
+// Railway 배포에는 그 두 엔드포인트가 없다. 404 가 오면 원래 방식으로
+// 되돌아가므로 같은 빌드가 양쪽에서 동작한다.
+async function postLong(path, body, { intervalMs = 2000, timeoutMs = 180000 } = {}) {
+  let started
+  try {
+    started = await post(`${path}/start`, body)
+  } catch (e) {
+    // /start 가 없는 배포(Railway) — 원래 경로로.
+    return post(path, body)
+  }
+  if (!started?.job_id) return post(path, body)
+
+  const t0 = Date.now()
+  for (;;) {
+    if (Date.now() - t0 > timeoutMs) {
+      throw new Error(`응답이 ${Math.round(timeoutMs / 1000)}초 안에 오지 않았습니다.`)
+    }
+    await new Promise(r => setTimeout(r, intervalMs))
+    const s = await get(`${path}/result/${started.job_id}`)
+    if (s.status === 'done') return s.result
+    if (s.status === 'error') throw new Error(s.error || '작업이 실패했습니다.')
+    // running 이면 계속 기다린다.
+  }
+}
+
 async function del(path) {
   const res = await fetch(`${API}${path}`, { method: 'DELETE' })
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || res.statusText)
   return res.json()
 }
+
+// 알람 조회·조치 순서 버튼이 회색인 이유를 화면이 말한다 (패치 34 · 리허설 발견 1).
+// 버튼 title 과 버튼 아래 안내 두 곳에서 같은 문장을 쓴다.
+const ALARM_HINT = '증상이 비어 있어 조회할 수 없습니다 — 왼쪽 「알람 문구 / 증상」에 알람 문구나 증상을 적으십시오.'
 
 const MATCH_COLOR = {
   '일치': { bg: 'var(--match-bg)', color: 'var(--match)', border: 'transparent' },
@@ -30,12 +73,6 @@ const MATCH_COLOR = {
   '불일치': { bg: 'var(--nomatch-bg)', color: 'var(--nomatch)', border: 'var(--line-strong)' },
   '판정하지 않음': { bg: 'transparent', color: 'var(--fg-4)', border: 'var(--line-strong)' },
 }
-
-// 증상이 비어 있으면 알람 조회·조치 생성 버튼이 꺼진다. 그런데 화면이
-// 그 이유를 말하지 않아 리허설에서 "왜 회색인지 모르겠다" 로 멈췄다
-// (9/2 발견 1). 버튼 title 과 버튼 아래 안내가 같은 문장을 쓴다 — 두
-// 곳이 어긋나면 오히려 더 헷갈린다.
-const ALARM_HINT = '왼쪽 「알람 조건」의 「알람 문구 / 증상」 에 증상을 적으면 켜집니다. 예: acid residual low'
 
 export default function App() {
   const [tab, setTab] = useState('alarm') // alarm | interlock
@@ -167,54 +204,56 @@ export default function App() {
           <button className={`nav-tab ${tab === 'ingest' ? 'active' : ''}`} onClick={() => setTab('ingest')}>
             자료 반입
           </button>
+          <button className={`nav-tab ${tab === 'sim' ? 'active' : ''}`} onClick={() => setTab('sim')}>
+            공정 화면
+          </button>
         </nav>
 
-        {/* 설비 태그 — 자료 반입 탭에서는 감춘다. 반입 화면은 태그를
-            쓰지 않는데 선택기만 남아 있어, 올린 자료가 그 태그에만
-            들어가는 것처럼 읽혔다 (9/2 발견 5). */}
-        {tab !== 'ingest' && (
-          <div className="sidebar-section">
-            <h3>설비 태그</h3>
-            <div className="field">
-              <label>검색 (선택)</label>
-              <input value={tagQ} onChange={e => setTagQ(e.target.value)} placeholder="태그 / 서비스 / 모델" />
-            </div>
-            <div className="field">
-              <label>태그 선택</label>
-              {tagsError && (
-                <div className="mode-warn">
-                  ⚠ {tagsError}
-                  <br />백엔드가 떠 있는지, 계기 리스트 경로가 맞는지 확인하십시오.
-                </div>
-              )}
-              <select value={tag} onChange={e => setTag(e.target.value)}>
-                {filteredTags.map(t => (
-                  <option key={t.tag + (t.kind || '')} value={t.tag}>
-                    {/* 입력 기준 조회에서는 종류를 붙이지 않는다. 목록에
-                        계기와 출력이 섞여 있는 것이 정상인데(펌프가 도는
-                        상태가 밸브 개방의 조건이 되는 식), '· 출력' 이
-                        붙어 있으면 잘못 걸러진 것처럼 읽힌다. */}
-                    {t.kind === 'output' && !(tab === 'interlock' && asInput)
-                      ? `${t.tag} · 출력`
-                      : `${t.tag}${t.service ? ' — ' + t.service : ''}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {filteredTags.find(t => t.tag === tag) && (
-              <div className="field-hint" style={{ marginBottom: 10, lineHeight: 1.4 }}>
-                {(() => {
-                  const t = filteredTags.find(x => x.tag === tag)
-                  // 인터락에만 등장하는 태그는 계기 리스트에 없어 제조사·
-                  // 모델이 비어 있다. 비어 있는 칸을 구분자로 잇지 않는다 —
-                  // '· ' 만 덩그러니 남으면 자료가 깨진 것처럼 보인다.
-                  const parts = [t.maker, t.model].filter(Boolean).join(' ')
-                  const line = [parts, t.service].filter(Boolean).join(' · ')
-                  return line || '인터락 리스트에만 등장하는 태그입니다.'
-                })()}
+        {/* 자료 반입·공정 화면은 태그를 쓰지 않는다 — 선택기가 남아 있으면
+            무엇을 고르라는 건지 헷갈린다 (패치 34 · 리허설 발견 5) */}
+        {tab !== 'ingest' && tab !== 'sim' && (
+        <div className="sidebar-section">
+          <h3>설비 태그</h3>
+          <div className="field">
+            <label>검색 (선택)</label>
+            <input value={tagQ} onChange={e => setTagQ(e.target.value)} placeholder="태그 / 서비스 / 모델" />
+          </div>
+          <div className="field">
+            <label>태그 선택</label>
+            {tagsError && (
+              <div className="mode-warn">
+                ⚠ {tagsError}
+                <br />백엔드가 떠 있는지, 계기 리스트 경로가 맞는지 확인하십시오.
               </div>
             )}
+            <select value={tag} onChange={e => setTag(e.target.value)}>
+              {filteredTags.map(t => (
+                <option key={t.tag + (t.kind || '')} value={t.tag}>
+                  {/* 입력 기준 조회에서는 종류를 붙이지 않는다. 목록에
+                      계기와 출력이 섞여 있는 것이 정상인데(펌프가 도는
+                      상태가 밸브 개방의 조건이 되는 식), '· 출력' 이
+                      붙어 있으면 잘못 걸러진 것처럼 읽힌다. */}
+                  {t.kind === 'output' && !(tab === 'interlock' && asInput)
+                    ? `${t.tag} · 출력`
+                    : `${t.tag}${t.service ? ' — ' + t.service : ''}`}
+                </option>
+              ))}
+            </select>
           </div>
+          {filteredTags.find(t => t.tag === tag) && (
+            <div className="field-hint" style={{ marginBottom: 10, lineHeight: 1.4 }}>
+              {(() => {
+                const t = filteredTags.find(x => x.tag === tag)
+                // 인터락에만 등장하는 태그는 계기 리스트에 없어 제조사·
+                // 모델이 비어 있다. 비어 있는 칸을 구분자로 잇지 않는다 —
+                // '· ' 만 덩그러니 남으면 자료가 깨진 것처럼 보인다.
+                const parts = [t.maker, t.model].filter(Boolean).join(' ')
+                const line = [parts, t.service].filter(Boolean).join(' · ')
+                return line || '인터락 리스트에만 등장하는 태그입니다.'
+              })()}
+            </div>
+          )}
+        </div>
         )}
 
         {tab === 'alarm' && (
@@ -324,6 +363,11 @@ export default function App() {
           <PanelView key="panel" tag={tag} panelSel={panelSel} cardSel={cardSel} onPickTag={setTag} free={freeMode} />
         )}
         {tab === 'ingest' && <IngestView free={freeMode} />}
+        {tab === 'sim' && (
+          // 공정 모의 화면 관리(패치 37). 자체 완결 페이지를 끼운다 — 상대 경로.
+          <iframe src="sim_studio.html" title="공정 모의 화면 관리"
+            style={{ width: '100%', height: 'calc(100vh - 40px)', border: 0, display: 'block' }} />
+        )}
       </main>
 
       <HelpBot
@@ -333,6 +377,13 @@ export default function App() {
         currentTag={tag}
         currentTab={tab}
         onCommand={(cmd) => {
+          // 시나리오 정지는 태그·동작을 바꾸지 않는다. 바꾸면 인터락 화면이
+          // 새로 그려지며(key 변경) 공정 화면이 닫혀, 멈춘 장면을 볼 수 없다.
+          if (cmd.stopScenario) {
+            if (cmd.tab) setTab(cmd.tab)
+            setBotPending(cmd)
+            return
+          }
           // 공통: 태그/탭 전환
           if (cmd.tag) setTag(cmd.tag)
           if (cmd.tab) setTab(cmd.tab)
@@ -525,7 +576,7 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
       open()
     } else if (cmd.type === 'advice') {
       setAdvLoading(true)
-      post('/advice', { tag, alarm, code, mode, free })
+      postLong('/advice', { tag, alarm, code, mode, free })
         .then(setAdvice)
         .catch(e => setError(e.message))
         .finally(() => { setAdvLoading(false); onBotHandled && onBotHandled() })
@@ -555,7 +606,7 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
     setAdvLoading(true)
     setError(null)
     try {
-      setAdvice(await post('/advice', { tag, alarm, code, mode, free }))
+      setAdvice(await postLong('/advice', { tag, alarm, code, mode, free }))
     } catch (e) {
       setError(e.message)
     } finally {
@@ -625,10 +676,6 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
   const history = inst?.history || []
   const instrument = inst?.instrument || {}
   const drawings = inst?.drawings || []
-  // 증상이 비면 조회·조치가 꺼진다. 왜 꺼졌는지를 버튼 title 과
-  // 버튼 아래 안내가 같은 문장으로 말한다 (9/2 발견 1).
-  const needSymptom = !alarm.trim()
-  const whyOff = needSymptom ? ALARM_HINT : ''
 
   return (
     <>
@@ -656,37 +703,24 @@ function AlarmView({ tag, alarm, code, mode, free, botPending, onBotHandled, onA
         </div>
       </div>
 
-      {/* 증상이 없으면 두 버튼이 꺼진다 — 매뉴얼·이력을 무엇으로 찾을지
-          가 증상이므로 빈 채로 누르면 근거 없는 답이 된다. 버튼을 항상
-          누를 수 있게 바꾸는 대신, 왜 꺼졌는지를 화면이 말한다.
-          title 은 꺼진 버튼에서 브라우저가 무시하는 경우가 있어 감싼
-          span 에도 같이 건다. 그래도 안 보이는 브라우저가 있으므로
-          아래 안내 한 줄이 본체다 (9/2 발견 1). */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: needSymptom ? 6 : 16, flexWrap: 'wrap' }}>
-        <span title={whyOff || '증상으로 매뉴얼·현장 이력을 찾습니다'} style={{ display: 'inline-flex' }}>
-          <button className="btn primary" style={{ width: 'auto', padding: '8px 16px' }}
-            title={whyOff || '증상으로 매뉴얼·현장 이력을 찾습니다'}
-            onClick={runDiagnose} disabled={loading || needSymptom}>
-            {loading ? '조회 중…' : '알람 조회'}
-          </button>
-        </span>
-        <span title={whyOff || '조회된 근거로 조치 순서를 문장화합니다'} style={{ display: 'inline-flex' }}>
-          <button className="btn" style={{ width: 'auto', padding: '8px 16px' }}
-            title={whyOff || '조회된 근거로 조치 순서를 문장화합니다'}
-            onClick={runAdvice} disabled={advLoading || needSymptom}>
-            {advLoading ? '생성 중…' : '조치 순서 생성'}
-          </button>
-        </span>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+        <button className="btn primary" style={{ width: 'auto', padding: '8px 16px' }}
+          onClick={runDiagnose} disabled={loading || !alarm.trim()}
+          title={!alarm.trim() ? ALARM_HINT : undefined}>
+          {loading ? '조회 중…' : '알람 조회'}
+        </button>
+        <button className="btn" style={{ width: 'auto', padding: '8px 16px' }}
+          onClick={runAdvice} disabled={advLoading || !alarm.trim()}
+          title={!alarm.trim() ? ALARM_HINT : undefined}>
+          {advLoading ? '생성 중…' : '조치 순서 생성'}
+        </button>
         <button className="btn" style={{ width: 'auto', padding: '8px 16px', borderColor: 'var(--safety)', color: 'var(--safety)' }}
-          title="화면에 있는 근거로 4D 리포트를 만듭니다"
           onClick={runReport} disabled={repLoading || !tag}>
           {repLoading ? 'PDF 생성 중…' : '4D 리포트 PDF'}
         </button>
       </div>
-      {needSymptom && (
-        <div className="field-hint" style={{ marginBottom: 16, lineHeight: 1.5 }}>
-          증상이 비어 있어 <b>알람 조회</b>·<b>조치 순서 생성</b> 이 꺼져 있습니다 — {ALARM_HINT}
-        </div>
+      {!alarm.trim() && (
+        <div className="field-hint" style={{ marginTop: -8, marginBottom: 14 }}>{ALARM_HINT}</div>
       )}
 
       {error && <div className="error-box">{error}</div>}
@@ -1727,37 +1761,80 @@ function InterlockView({ tag, action, asInput, botPending, onBotHandled, free, o
   const [error, setError] = useState(null)
   const [data, setData] = useState(null)
   const [sourceBlock, setSourceBlock] = useState(null)
-  // 조회 결과를 챗봇이 볼 수 있게 위로 올린다. 이것이 없던 동안
-  // 후속 질문("말로 설명해줘")이 직전 알람 근거로 답했다 (패치 29).
-  React.useEffect(() => {
-    if (!onResult) return
-    onResult(data ? { tag, tab: 'interlock', interlock: data, evidence: [] } : null)
-  }, [data, tag])
   const [sourceOpen, setSourceOpen] = useState(false)
   const [sourceLoading, setSourceLoading] = useState(false)
   const [sourceError, setSourceError] = useState(null)
   // 공정 화면(작화 전사본)이 준비된 태그만. 없는 태그는 패널 자체를 띄우지 않는다.
-  const GRAPHIC_PAGES = { 'P-5101A': '/interlock_P-5101A.html?embed=1' }
+  // 앞 슬래시를 붙이지 말 것. MAXIS AGENT 노드는 /agent/<node_id>/ 아래에 붙어서
+  // '/interlock_...' 로 두면 접두사를 잃고 404 가 난다.
+  // 항목을 추가할 때도 상대 경로로 쓴다.
+  const GRAPHIC_STATIC = { 'P-5101A': 'interlock_P-5101A.html?embed=1' }
+  // 공정 화면 관리에서 만든 모의 화면도 연결한다(패치 37). 그 태그가 실제로
+  // 들어 있는 화면이 있을 때만 — 없는 태그에 다른 화면을 여는 것은 금지(패치 33b).
+  const [simPage, setSimPage] = useState(null)
+  const outTag = data?.output?.tag
+  useEffect(() => {
+    setSimPage(null)
+    if (!outTag || GRAPHIC_STATIC[outTag]) return
+    let alive = true
+    fetch(`${API}/sim/tag/${encodeURIComponent(outTag)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (alive && j?.screens?.length)
+        setSimPage(`${API}/sim/screens/${encodeURIComponent(j.screens[0])}/view?embed=1&sel=${encodeURIComponent(outTag)}`) })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [outTag])
+  const GRAPHIC_PAGES = outTag && simPage ? { ...GRAPHIC_STATIC, [outTag]: simPage } : GRAPHIC_STATIC
   const [graphicOpen, setGraphicOpen] = useState(false)  // 기본은 접힘
   const graphicRef = React.useRef(null)
   // 챗봇 명령("시나리오 재생해줘")이 공정 화면의 재생 버튼까지 잇는다.
   // 화면(iframe)이 뜬 뒤에 신호를 보내야 하므로 예약해 두었다가
   // iframe onLoad 에서 보낸다.
   const [playWhenReady, setPlayWhenReady] = useState(false)
+  // 공정 화면이 재생 중인지. **화면이 알려 준다** — 사람이 화면 버튼을
+  // 직접 눌러도, 조작을 만져 저절로 멈춰도 그것을 아는 곳은 화면뿐이다.
+  // 이 값이 없으면 챗봇의 「정지해줘」 가 시나리오 정지인지 정지 인터락
+  // 조회인지 가릴 수 없다 (패치 36).
+  const [graphicPlaying, setGraphicPlaying] = useState(false)
+  useEffect(() => {
+    const h = e => {
+      if (e.origin !== window.location.origin) return
+      const d = e.data
+      if (d && d.source === 'plant-graphic' && d.type === 'scenario')
+        setGraphicPlaying(!!d.playing)
+    }
+    window.addEventListener('message', h)
+    return () => window.removeEventListener('message', h)
+  }, [])
+  useEffect(() => { if (!graphicOpen) setGraphicPlaying(false) }, [graphicOpen])
+  // 조회 결과와 공정 화면 상태를 챗봇이 볼 수 있게 위로 올린다. 이것이
+  // 없던 동안 후속 질문("말로 설명해줘")이 직전 알람 근거로 답했다 (패치 29).
+  // graphicOpen 선언 **뒤**에 둔다 — 앞에서 쓰면 렌더 중 TDZ 로 화면이 죽는다.
+  React.useEffect(() => {
+    if (!onResult) return
+    onResult(data ? {
+      tag, tab: 'interlock', interlock: data, evidence: [],
+      graphic: {
+        open: !!graphicOpen,
+        playing: !!(graphicOpen && graphicPlaying),
+        tag: data?.output?.tag || tag,
+      },
+    } : null)
+  }, [data, tag, graphicOpen, graphicPlaying])
 
   useEffect(() => {
     if (!botPending) return
+    // 시나리오 정지는 화면에 멈춤만 전한다. 조회를 다시 돌리면 화면이
+    // 다시 그려지며 사람이 보던 상태가 사라진다 (패치 33·36).
+    if (botPending.stopScenario) {
+      graphicRef.current?.contentWindow?.postMessage('stop-scenario', window.location.origin)
+      onBotHandled && onBotHandled()
+      return
+    }
     if (botPending.type === 'interlock' || botPending.type === 'interlock_source') {
       if (botPending.openGraphic) {
         setGraphicOpen(true)
         setPlayWhenReady(!!botPending.playScenario)
-        // 멈춰 달라는 명령은 이미 떠 있는 화면에 바로 보낸다. 재생과 달리
-        // onLoad 를 기다릴 필요가 없다 — 기다리면 이미 열린 화면에서는
-        // 영영 전달되지 않는다 (패치 33).
-        if (botPending.stopScenario) {
-          graphicRef.current?.contentWindow?.postMessage(
-            'stop-scenario', window.location.origin)
-        }
       }
       const run = async () => {
         setLoading(true)
@@ -2251,7 +2328,7 @@ function HelpBot({ tags, currentTag, currentTab, onCommand, screen, free }) {
     setThinking(Date.now())
     let intent = null
     try {
-      intent = await post('/chat', {
+      intent = await postLong('/chat', {
         message: text,
         tag: currentTag || '',
         tab: currentTab || 'alarm',
@@ -2563,9 +2640,7 @@ function IngestView({ free }) {
   const [busy, setBusy] = useState(false)
   const [uploaded, setUploaded] = useState([])
   const [st, setSt] = useState(null)       // 색인 재생성 상태
-  // 색인이 지금 자료와 맞는지. **판정은 서버가 한다** — 화면은 값만
-  // 읽는다. 화면이 스스로 판정하면 같은 질문에 두 곳이 다른 답을 한다.
-  const [ix, setIx] = useState(null)
+  const [ixs, setIxs] = useState(null)     // 색인 변경 판정 (/ingest/index-state)
   const fileRef = React.useRef(null)
   const pollRef = React.useRef(null)
 
@@ -2592,22 +2667,14 @@ function IngestView({ free }) {
     return () => clearInterval(t)
   }, [editKey])
 
-  // 판정을 못 읽었으면 못 읽었다고 적는다. 비워 두면 '변경 없음' 과
-  // 구분되지 않아, 아무 말 없는 화면이 판정한 것처럼 읽힌다.
-  const loadIx = async () => {
-    try { setIx(await get('/ingest/index-state')) }
-    catch (e) {
-      setIx({ verdict: '알 수 없음', reason: '판정을 읽지 못했습니다 — '
-              + String(e.message || e) })
-    }
-  }
-
   const loadReport = async () => {
     setErr('')
     try { setReport(await get('/ingest/report')) }
     catch (e) { setErr(String(e.message || e)) }
     try { setFiles(await get('/ingest/files')) } catch { /* 목록만 실패 */ }
-    await loadIx()
+    // 색인이 지금 자료와 맞는지 (패치 34 · 리허설 발견 4). 판정은 서버가
+    // 하고 화면은 읽기만 한다. 재생성 버튼을 막지 않는다 — 누를지는 사람이 정한다.
+    try { setIxs(await get('/ingest/index-state')) } catch { setIxs(null) }
   }
   useEffect(() => { loadReport() }, [])
 
@@ -2789,43 +2856,28 @@ function IngestView({ free }) {
             도는 동안에는 조치 생성·도우미 사용을 피하십시오 — 로컬 실행에서는
             같은 GPU 를 써서 임베딩이 중단될 수 있습니다.
           </div>
-          {/* 자료가 바뀌었는지 — 서버가 판정하고 여기서는 값만 읽는다.
-              바뀌지 않았는데도 몇 분을 그대로 돌던 것이 리허설 발견
-              4번이다. **자동으로 건너뛰지 않는다** — 판정을 보이고
-              누를지는 사람이 정한다. 그래서 아래 버튼은 판정과 무관
-              하게 항상 눌린다 (재생성 중일 때만 꺼진다). */}
-          {ix && (
-            <div style={{
-              border: '1px solid var(--line-strong, #3b4a5e)', borderRadius: 6,
-              padding: '8px 10px', marginBottom: 10, fontSize: '0.82rem',
-              lineHeight: 1.5,
-            }}>
-              <div>
-                <b style={{ color: ix.changed === false ? 'var(--match, #34d399)' : 'var(--warn-ink, #d9a441)' }}>
-                  {ix.verdict}
-                </b>
-                {ix.reason ? ' — ' + ix.reason : ''}
+          {ixs && (
+            <div style={{ fontSize: '0.82rem', marginBottom: 10, lineHeight: 1.6,
+                          padding: '8px 10px', borderRadius: 6,
+                          border: '1px solid var(--line-strong, #2a4a66)',
+                          color: ixs.changed ? 'var(--warn, #fbbf24)'
+                               : ixs.changed === false ? 'var(--ok, #34d399)' : 'var(--faint)' }}>
+              <b>{ixs.changed ? '재생성 필요' : ixs.changed === false ? '재생성 불필요' : '판정 불가'}</b>
+              {' — '}{ixs.verdict}{ixs.reason ? ` · ${ixs.reason}` : ''}
+              <div style={{ color: 'var(--faint)' }}>
+                대조 기준: {ixs.basis_label || '없음'}
+                {ixs.index_built_at ? ` · 색인 생성 ${ixs.index_built_at}` : ''}
+                {ixs.sources ? ` · 매뉴얼 ${ixs.manual_count}건` : ''}
+                {ixs.sources && (ixs.sources.added.length + ixs.sources.removed.length + ixs.sources.modified.length) > 0 &&
+                  ` · 새 ${ixs.sources.added.length} · 빠짐 ${ixs.sources.removed.length} · 바뀜 ${ixs.sources.modified.length}`}
+                {ixs.embed?.changed ? ' · 임베딩 설정이 색인과 다름' : ''}
               </div>
-              {(ix.basis_label || ix.index_built_at) && (
-                <div style={{ color: 'var(--faint)', marginTop: 4 }}>
-                  대조 기준: {ix.basis_label || '—'}
-                  {' · '}마지막 재생성: {ix.index_built_at || '기록 없음'}
-                  {ix.manual_count != null && ` · 매뉴얼 ${ix.manual_count}개`}
-                </div>
+              {ixs.changed === false && (
+                <div style={{ color: 'var(--faint)' }}>변경이 없어도 다시 만들 수 있습니다 (몇 분 걸립니다).</div>
               )}
-              {ix.sources && [
-                ['새 파일', ix.sources.added],
-                ['빠진 파일', ix.sources.removed],
-                ['바뀐 파일', ix.sources.modified],
-              ].map(([label, arr]) => (arr && arr.length > 0) && (
-                <div key={label} style={{ color: 'var(--warn-ink, #d9a441)', marginTop: 2 }}>
-                  · {label}: {arr.join(', ')}
-                </div>
-              ))}
             </div>
           )}
-          <button className="btn" onClick={rebuild} disabled={st && st.running}
-            title={ix ? `${ix.verdict} — ${ix.reason}` : '매뉴얼 색인을 처음부터 다시 만듭니다'}>
+          <button className="btn" onClick={rebuild} disabled={st && st.running}>
             {st && st.running ? '재생성 중…' : '색인 다시 만들기'}
           </button>
           {st && (st.running || st.stage) && (

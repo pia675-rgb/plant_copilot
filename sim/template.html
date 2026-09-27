@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공정 모의 화면</title>
+<style>
+  :root{
+    --bg:#0a1420; --panel:#0f1e2d; --panel2:#132538; --line:#1e3448; --line2:#2a4a66;
+    --txt:#dbe9f4; --dim:#7b9bb3; --label:#9fc0d6;
+    --ok:#35d07f; --trip:#ff4d5a; --warn:#ffb020;
+    --scr:#3b3b3b; --pipe:#3f6ea5; --tagbg:#4a8ad6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:"Segoe UI","Malgun Gothic",system-ui,sans-serif;font-size:13px}
+  .mono{font-family:Consolas,"D2Coding",ui-monospace,monospace}
+  header{display:flex;align-items:center;gap:14px;padding:10px 16px;flex-wrap:wrap;
+         background:linear-gradient(180deg,#12283c,#0d1c2a);border-bottom:1px solid var(--line2)}
+  header h1{font-size:16px;margin:0;font-weight:600}
+  header .sub{font-size:11.5px;color:var(--dim);margin-top:2px}
+  .sim{margin-left:auto;font-size:11px;color:#0a1420;background:var(--warn);
+       padding:4px 10px;border-radius:3px;font-weight:700}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px;background:#0c1826;
+       border-bottom:1px solid var(--line);font-size:12px;color:var(--label);align-items:center}
+  .chip{border:1px solid var(--line2);border-radius:10px;padding:2px 9px;cursor:pointer;background:none;color:inherit;font:inherit}
+  .chip b{color:var(--txt)}
+  .chip.w b{color:var(--warn)} .chip.e b{color:var(--trip)} .chip.k b{color:var(--ok)}
+  .notes{display:none;padding:8px 16px 10px;background:#0b1622;border-bottom:1px solid var(--line);
+         font-size:12px;line-height:1.7;color:var(--dim);max-height:220px;overflow:auto}
+  .notes.on{display:block}
+  .notes h3{font-size:12px;color:var(--label);margin:6px 0 2px}
+  .wrap{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:12px;padding:12px;align-items:start}
+  @media (max-width:900px){ .wrap{grid-template-columns:minmax(0,1fr)} }
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;min-width:0;overflow:hidden}
+  .card h2{font-size:12px;color:var(--label);margin:0;padding:9px 12px;border-bottom:1px solid var(--line);
+           font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .card h2 .r{margin-left:auto;display:flex;gap:8px;align-items:center;font-weight:400;color:var(--dim)}
+  .body{padding:10px 12px}
+  .gwrap{position:relative;background:var(--scr)}
+  .gwrap img{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none}
+  svg{display:block;width:100%;height:auto;position:relative}
+  svg .obj{cursor:pointer}
+  svg .obj:hover .hit{stroke:#fff;stroke-opacity:.35}
+  svg .sel .hit{stroke:#ffd34d;stroke-opacity:.9}
+  .side{display:flex;flex-direction:column;gap:12px}
+  .kv{display:grid;grid-template-columns:88px 1fr;gap:3px 10px;font-size:12px}
+  .kv .k{color:var(--dim)}
+  .grp{margin-top:10px;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+  .grp .gh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 10px;background:#0c1a28;font-size:11.5px;color:var(--label)}
+  .grp .gh .tg{font-size:10px;border:1px solid var(--line2);border-radius:3px;padding:1px 5px;color:var(--dim)}
+  .grp .gh .st{margin-left:auto;font-weight:700}
+  .cond{display:flex;gap:9px;align-items:flex-start;padding:7px 10px;width:100%;border:none;
+        border-top:1px solid #16293b;border-left:3px solid transparent;cursor:pointer;background:none;
+        text-align:left;color:inherit;font:inherit}
+  .cond:hover{background:#132538}
+  .cond[data-st="met"]{border-left-color:var(--trip);background:#1c1420}
+  .cond[data-st="wait"]{border-left-color:var(--warn);background:#1d1a12}
+  .cond[data-st="ok"]{border-left-color:var(--ok)}
+  .lamp{width:10px;height:10px;border-radius:50%;margin-top:3px;flex:none;background:#2a4055;border:1px solid #3a556e}
+  .cond[data-st="met"] .lamp{background:var(--trip);border-color:var(--trip);box-shadow:0 0 7px #ff4d5a99}
+  .cond[data-st="wait"] .lamp{background:var(--warn);border-color:var(--warn)}
+  .cond[data-st="ok"] .lamp{background:var(--ok);border-color:var(--ok)}
+  .cond .t{flex:1;min-width:0}
+  .cond .n{font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+  .cond .d{font-size:10.5px;color:var(--dim);margin-top:2px}
+  .btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  button.act{background:var(--panel2);color:var(--txt);border:1px solid var(--line2);border-radius:4px;
+             padding:6px 10px;cursor:pointer;font-size:11.5px;font-weight:600}
+  button.act:hover{border-color:var(--label)}
+  button.act[data-on="1"]{background:#4a1520;border-color:var(--trip);color:#ffb9bf}
+  button.act[data-on="ok"]{background:#123528;border-color:var(--ok);color:#8ef0be}
+  button.act:disabled{opacity:.35;cursor:default}
+  .in{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .in label{font-size:11.5px;color:var(--label);width:118px;flex:none;overflow-wrap:anywhere}
+  .in input[type=range]{flex:1;accent-color:#4aa3d6;min-width:60px}
+  .in .v{width:92px;text-align:right;font-weight:700;color:var(--ok);font-size:12px}
+  .in .rs{font-size:10px;color:var(--warn)}
+  .sec{font-size:11px;color:var(--dim);margin:10px 0 2px;border-top:1px dashed var(--line);padding-top:8px}
+  .tgl{display:flex;flex-wrap:wrap;gap:6px}
+  .src{font-size:12px;color:var(--dim);line-height:1.6;min-height:70px;overflow-wrap:anywhere}
+  .src .q{color:var(--txt);background:#0b1826;border-left:2px solid var(--line2);padding:6px 9px;margin-top:6px;border-radius:0 3px 3px 0}
+  table.io{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+  table.io th,table.io td{border-bottom:1px solid #16293b;padding:3px 5px;text-align:left;vertical-align:top}
+  table.io th{color:var(--dim);font-weight:600}
+  .tbl{overflow:auto;max-height:340px}
+  .pass{color:var(--ok);font-weight:700} .fail{color:var(--trip);font-weight:700} .skip{color:var(--warn);font-weight:700}
+  .muted{color:var(--dim)}
+  .pill{font-size:10px;border-radius:3px;padding:1px 6px;border:1px solid}
+  .pill.u{color:var(--warn);border-color:var(--warn)} .pill.v{color:var(--ok);border-color:var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 id="ttl">공정 모의 화면</h1>
+    <div class="sub" id="sub"></div>
+  </div>
+  <span class="sim">오프라인 시뮬레이션 — 실제 공정 상태 아님</span>
+</header>
+<div class="bar" id="bar"></div>
+<div class="notes" id="notes"></div>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <h2>화면 <span class="r">
+        <label title="원본 캡처를 겹쳐 배치가 맞는지 확인"><input type="checkbox" id="ovl"> 원본 겹쳐보기</label>
+        <input type="range" id="ovlOp" min="0" max="100" value="45" style="width:80px">
+      </span></h2>
+      <div class="gwrap" id="gwrap"><img id="bg" alt=""><svg id="scr" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>리스트 기반 조건 점검 <span class="r">
+        <button class="act" id="runTest">▶ 전체 점검</button></span></h2>
+      <div class="body">
+        <div class="muted" style="font-size:11.5px;line-height:1.6">
+          인터락 리스트의 조건을 하나씩 성립시켜 출력이 리스트대로 움직이는지 모의로 확인합니다.
+          기대 동작은 리스트(동작·래치·지연)에서 규칙으로 정합니다. 실제 PLC 로직을 시험하는 것이 아닙니다.
+        </div>
+        <div class="tbl" id="testOut"></div>
+      </div>
+    </div>
+  </div>
+  <div class="side">
+    <div class="card"><h2 id="selH">선택 — 화면에서 심볼을 누르십시오</h2><div class="body" id="sel"></div></div>
+    <div class="card"><h2>근거</h2><div class="body src" id="src">조건을 누르면 인터락 리스트 원문이 여기 표시됩니다.</div></div>
+    <div class="card"><h2>입력 조작</h2><div class="body" id="inputs"></div></div>
+  </div>
+</div>
+
+<script>
+const M = /*__MODEL__*/null;
+const EMBED = new URLSearchParams(location.search).has("embed");
+if (EMBED){ document.querySelector("header").style.display="none"; }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (v,d=2) => (v===null||v===undefined||isNaN(v)) ? "-" : (+v).toFixed(d);
+const W = 1000, H = Math.round(1000*(M.aspect||0.45));
+const OBJ = Object.fromEntries(M.objects.map(o=>[o.id,o]));
+const BYTAG = Object.fromEntries(M.objects.filter(o=>o.tag).map(o=>[o.tag,o]));
+const DEV = M.devices, COND = M.conds;
+
+// ── 상태 ────────────────────────────────────────────────────
+function freshState(){
+  const S = {a:{}, b:{}, dev:{}, t:{}, sp:{}, cv:{}, man:{}};
+  for (const [k,a] of Object.entries(M.analog)) S.a[k] = a.init;
+  for (const [k,b] of Object.entries(M.bool)) S.b[k] = !!b.init;
+  for (const [t,d] of Object.entries(DEV))
+    S.dev[t] = {on:false, mode: d.groups.length ? "AUTO":"MAN", cmd:false, latch:{}, cause:"", blocked:"", seq:false};
+  for (const o of M.objects){
+    if (o.type==="pid") S.sp[o.id] = null;
+    if (o.type==="control_valve") S.cv[o.id] = 0;
+    if (o.type==="pump") S.man[o.id] = 50;
+  }
+  for (const k in COND) S.t[k] = 0;
+  return S;
+}
+function devOn(S,t){ return S.dev[t] ? S.dev[t].on : !!S.b[t+":ON"]; }
+function rawCond(c,S){
+  const x = c.test;
+  if (x.t==="cmp"){ const v=S.a[x.tag]; if (v===undefined) return false;
+    return {">":v>x.sp, ">=":v>=x.sp, "<":v<x.sp, "<=":v<=x.sp, "=":v===x.sp}[x.op] || false; }
+  if (x.t==="bool") return (!!S.b[x.var]) === x.value;
+  if (x.t==="dev"){ const r = x.tags.map(t=>devOn(S,t)===x.on); return x.multi==="ALL" ? r.every(Boolean) : r.some(Boolean); }
+  return false;
+}
+function step(S,dt){
+  const met = {}, raw = {};
+  for (const [k,c] of Object.entries(COND)){
+    raw[k] = rawCond(c,S);
+    S.t[k] = raw[k] ? S.t[k]+dt : 0;
+    met[k] = raw[k] && S.t[k] >= (c.delay||0) - 1e-9;
+  }
+  const G = {};
+  for (const [t,d] of Object.entries(DEV)){
+    const st = S.dev[t];
+    // 다른 장치의 상태를 보는 조건은 이 장치를 판정하는 순간의 상태로 다시 본다.
+    // 틱 첫머리 값으로 보면 교대 운전(A 정지 시에만 B 기동)의 A·B 가 같은
+    // 틱에 함께 기동한다 — 실제 PLC 는 한 스캔 안에서도 순서대로 쓴다.
+    for (const g of d.groups) for (const k of g.conds){
+      const c = COND[k]; if (c.test.t!=="dev") continue;
+      raw[k] = rawCond(c,S); if (!raw[k]) S.t[k]=0;
+      met[k] = raw[k] && S.t[k] >= (c.delay||0) - 1e-9;
+    }
+    const gm = d.groups.map(g => {
+      if (!g.conds.length) return false;
+      const m = g.conds.map(k=>met[k]);
+      return g.logic==="AND" ? m.every(Boolean) : m.some(Boolean);
+    });
+    d.groups.forEach((g,i)=>{ if (g.kind==="INTERLOCK" && g.latch && gm[i]) st.latch[g.il_no]=true; });
+    const act = (kind,dir) => d.groups.map((g,i)=>[g,i]).filter(([g])=>g.kind===kind && g.dir===dir);
+    const forced = dir => act("INTERLOCK",dir).filter(([g,i])=>gm[i] || st.latch[g.il_no]);
+    const offF = forced(-1), onF = forced(1);
+    const seqOff = act("SEQUENCE",-1).some(([g,i])=>gm[i]);
+    const seqOnG = act("SEQUENCE",1), seqOn = seqOnG.some(([g,i])=>gm[i]);
+    const permOn = act("PERMISSIVE",1).every(([g,i])=>gm[i]);
+    const permOff = act("PERMISSIVE",-1).every(([g,i])=>gm[i]);
+    // 시퀀스 기동은 「걸면 유지」 — 조건이 한 번 서면 기동 명령이 유지되고,
+    // 시퀀스 정지·인터락·수동 전환에서만 풀린다. 조건이 풀릴 때마다 꺼지면
+    // 보충 개시점(LIT < 80%)을 넘는 순간 밸브가 닫혀 버린다.
+    if (st.mode!=="AUTO" || seqOff || offF.length) st.seq = false;
+    if (st.mode==="AUTO" && seqOn && !seqOff) st.seq = true;
+    const want = st.mode==="AUTO" ? ((seqOnG.length ? st.seq : true) && !seqOff) : st.cmd;
+    st.blocked = "";
+    if (offF.length){ st.on=false; st.cause = offF.map(([g])=>g.il_no).join(" · "); }
+    else if (onF.length){ st.on=true; st.cause = onF.map(([g])=>g.il_no).join(" · "); }
+    else {
+      st.cause = (st.mode==="AUTO" && seqOff) ? "자동 정지" : "";
+      if (st.on && !want){ if (permOff) st.on=false; else st.blocked = d.off_word+" 허가 불성립"; }
+      else if (!st.on && want){ if (permOn) st.on=true; else st.blocked = d.on_word+" 허가 불성립"; }
+    }
+    G[t] = {gm, permOn, seqOff};
+  }
+  // PID · 조절밸브 (표시용 모의 — 리스트에 근거 없음)
+  for (const o of M.objects){
+    if (o.type!=="pid") continue;
+    const pv = pvOf(o,S);
+    if (S.sp[o.id]===null && pv!==null) S.sp[o.id] = pv;
+    const cv = pv===null ? 0 : Math.max(0,Math.min(100, 50 + 2*((S.sp[o.id]??pv) - pv)));
+    S.pidcv = S.pidcv || {}; S.pidcv[o.id] = cv;
+    for (const id of (o.outputs||[])) if (OBJ[id] && !(OBJ[id].tag && DEV[OBJ[id].tag])) S.cv[id] = cv;
+  }
+  return {met, raw, G};
+}
+function avgOf(o,S){ const v=(o.sources||[]).map(t=>S.a[t]).filter(x=>x!==undefined); return v.length? v.reduce((a,b)=>a+b,0)/v.length : null; }
+function spanOf(tag){ const a=M.analog[tag]; return a ? [a.min,a.max,a.unit] : [0,100,""]; }
+function pvOf(o,S){
+  let ref = o.pv, obj = ref && (OBJ[ref] || BYTAG[ref]);
+  if (!obj && o.type==="tank"){ obj = nearest(o, x=>x.type==="avg"||(x.type==="transmitter"&&x.tag)); o._pvGuess = obj ? obj.id : null; }
+  if (!obj && ref && M.analog[ref]) return S.a[ref];
+  if (!obj) return null;
+  if (obj.type==="avg") return avgOf(obj,S);
+  if (obj.tag && S.a[obj.tag]!==undefined) return S.a[obj.tag];
+  return null;
+}
+function pctOf(o,S){
+  let ref=o.pv, obj=ref&&(OBJ[ref]||BYTAG[ref]); if(!obj && o._pvGuess) obj=OBJ[o._pvGuess];
+  const v = pvOf(o,S); if (v===null) return null;
+  const tag = obj ? (obj.type==="avg" ? (obj.sources||[])[0] : obj.tag) : ref;
+  const [lo,hi] = spanOf(tag); return Math.max(0,Math.min(1,(v-lo)/((hi-lo)||1)));
+}
+function nearest(o,pred){
+  const cx=(o.bbox[0]+o.bbox[2])/2, cy=(o.bbox[1]+o.bbox[3])/2; let best=null,bd=0.3;
+  for (const x of M.objects){ if(x===o||!pred(x)) continue;
+    const d=Math.hypot((x.bbox[0]+x.bbox[2])/2-cx,((x.bbox[1]+x.bbox[3])/2-cy)*(M.aspect||.45));
+    if(d<bd){bd=d;best=x;} }
+  return best;
+}
+
+// ── 그리기 ─────────────────────────────────────────────────
+const svg = $("scr");
+svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+const X = v=>v*W, Y = v=>v*H;
+function el(tag, attrs, parent){ const e=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]); (parent||svg).appendChild(e); return e; }
+function txt(p,x,y,s,a){ const t=el("text",Object.assign({x,y,fill:"#e8eef4","font-size":11,"font-family":"Consolas,monospace"},a||{}),p); t.textContent=s; return t; }
+
+function draw(){
+  svg.innerHTML="";
+  for (const ln of M.lines){
+    el("polyline",{points:ln.pts.map(p=>X(p[0])+","+Y(p[1])).join(" "),fill:"none",
+      stroke: ln.style==="signal"?"#b8b8b8":"#3f6ea5","stroke-width":ln.style==="signal"?1.2:2.4,
+      "stroke-dasharray":ln.style==="signal"?"5 4":""});
+  }
+  for (const o of M.objects){
+    const [x0,y0,x1,y1] = [X(o.bbox[0]),Y(o.bbox[1]),X(o.bbox[2]),Y(o.bbox[3])];
+    const w=x1-x0, h=y1-y0;
+    const g = el("g",{class:"obj",id:"g-"+o.id,"data-id":o.id});
+    el("rect",{class:"hit",x:x0-3,y:y0-3,width:w+6,height:h+6,fill:"transparent",stroke:"transparent","stroke-width":2,rx:3},g);
+    DRAW[o.type] ? DRAW[o.type](o,g,x0,y0,w,h) : el("rect",{x:x0,y:y0,width:w,height:h,fill:"none",stroke:"#999","stroke-dasharray":"3 3"},g);
+    if (o.tag){
+      const lb = o.label_bbox ? [X(o.label_bbox[0]),Y(o.label_bbox[1]),X(o.label_bbox[2]),Y(o.label_bbox[3])]
+                              : [x0, y1+2, x0+Math.max(w,70), y1+20];
+      const unk = !o.verify.known;
+      el("rect",{x:lb[0],y:lb[1],width:lb[2]-lb[0],height:lb[3]-lb[1],fill:"#4a8ad6",
+                 stroke:unk?"#ffb020":"none","stroke-width":unk?2:0,"stroke-dasharray":unk?"4 2":""},g);
+      txt(g,(lb[0]+lb[2])/2,(lb[1]+lb[3])/2+5,o.tag+(unk?" ?":""),{"text-anchor":"middle","font-size":Math.min(15,(lb[3]-lb[1])*0.75),"font-family":"Segoe UI,Arial",fill:"#fff"});
+    }
+    g.addEventListener("click",()=>select(o.id));
+  }
+}
+function badge(g,x,y,s,col,sz){ el("rect",{x,y,width:sz,height:sz,fill:col,stroke:"#ddd","stroke-width":.6},g);
+  txt(g,x+sz/2,y+sz*0.78,s,{"text-anchor":"middle","font-size":sz*0.8,"font-family":"Arial","font-weight":700,fill:"#fff"}); }
+const DRAW = {
+  tank(o,g,x,y,w,h){
+    el("rect",{x,y,width:w,height:h,rx:Math.min(w,h)*0.12,fill:"#5d5d5d",stroke:"#aaa","stroke-width":1.5},g);
+    const cp = el("clipPath",{id:"cl-"+o.id},g); el("rect",{x,y,width:w,height:h,rx:Math.min(w,h)*0.12},cp);
+    el("rect",{id:"lv-"+o.id,x,y:y+h,width:w,height:0,fill:"#5b8ee6","clip-path":`url(#cl-${o.id})`},g);
+    for(let i=1;i<5;i++) el("line",{x1:x+w*i/5,y1:y,x2:x+w*i/5,y2:y+h,stroke:"#ffffff22"},g);
+    for(let i=1;i<3;i++) el("line",{x1:x,y1:y+h*i/3,x2:x+w,y2:y+h*i/3,stroke:"#ffffff22"},g);
+    txt(g,x+w/2,y+h/2+6,"",{id:"lt-"+o.id,"text-anchor":"middle","font-size":16,"font-weight":700});
+  },
+  pump(o,g,x,y,w,h){
+    const s = Math.min(h*0.45, w*0.16), cy=y+h*0.36;
+    let bx=x; for(const b of (o.badges||["A"]).slice(0,2)){ badge(g,bx,cy-s*0.4,b,b==="L"?"#1f9d3a":"#d23a3a",s*0.8); bx+=s*0.9; }
+    const cx = bx + s*0.8;
+    el("circle",{id:"pc-"+o.id,cx,cy,r:s*0.6,fill:"#1f9d3a",stroke:"#ddd","stroke-width":1},g);
+    el("polygon",{id:"pt-"+o.id,points:`${cx-s*0.25},${cy-s*0.33} ${cx-s*0.25},${cy+s*0.33} ${cx+s*0.38},${cy}`,fill:"#fff"},g);
+    txt(g,cx+s*0.8,cy-s*0.1,"CV",{"font-size":s*0.55}); txt(g,cx+s*0.8,cy+s*0.5,"FB",{"font-size":s*0.55});
+    txt(g,cx+s*1.7,cy-s*0.1,"",{id:"pcv-"+o.id,"font-size":s*0.55}); txt(g,cx+s*1.7,cy+s*0.5,"",{id:"pfb-"+o.id,"font-size":s*0.55});
+    const ly=y+h*0.72, lw=Math.min(w/3.4,s*1.8);
+    ["WARN","RUN","TRIP"].forEach((k,i)=>{ el("rect",{id:`pl-${k}-${o.id}`,x:x+i*(lw+2),y:ly,width:lw,height:h*0.22,rx:h*0.1,fill:"#555",stroke:"#888"},g);
+      txt(g,x+i*(lw+2)+lw/2,ly+h*0.17,k,{"text-anchor":"middle","font-size":h*0.15,"font-family":"Arial",fill:"#bbb",id:`plt-${k}-${o.id}`}); });
+  },
+  valve(o,g,x,y,w,h){ valveShape(o,g,x,y,w,h,false); },
+  control_valve(o,g,x,y,w,h){ valveShape(o,g,x,y,w,h,true); },
+  transmitter(o,g,x,y,w,h){
+    el("rect",{x,y,width:w,height:h,fill:"#262626",stroke:"#777"},g);
+    txt(g,x+w-4,y+h*0.72,"",{id:"tv-"+o.id,"text-anchor":"end","font-size":Math.min(14,h*0.7),fill:"#e8e8e8"});
+  },
+  avg(o,g,x,y,w,h){
+    badge(g,x,y+h*0.1,"A","#d23a3a",h*0.8);
+    txt(g,x+h,y+h*0.72,"AVG",{"font-size":h*0.6,"font-family":"Arial","font-weight":700,fill:"#5fd3ff"});
+    el("rect",{x:x+w*0.48,y,width:w*0.52,height:h,fill:"#1e1e1e",stroke:"#666"},g);
+    txt(g,x+w-4,y+h*0.72,"",{id:"av-"+o.id,"text-anchor":"end","font-size":h*0.6});
+  },
+  pid(o,g,x,y,w,h){
+    el("rect",{x,y,width:w,height:h,fill:"#222",stroke:"#666"},g);
+    const rh=h/4; txt(g,x+3,y+rh*0.8,"PID",{"font-size":rh*0.7,"font-family":"Arial","font-weight":700});
+    badge(g,x+w*0.6,y+rh*0.1,"A","#d23a3a",rh*0.8);
+    [["SP","#ff5a5a"],["PV","#35d07f"],["CV","#ffd34d"]].forEach(([k,c],i)=>{
+      txt(g,x+3,y+rh*(i+1.8),k,{"font-size":rh*0.7,fill:c,"font-weight":700});
+      txt(g,x+w-3,y+rh*(i+1.8),"",{id:`pid-${k}-${o.id}`,"text-anchor":"end","font-size":rh*0.7,fill:c}); });
+  },
+  other(o,g,x,y,w,h){ el("rect",{id:"ob-"+o.id,x,y,width:w,height:h,fill:"none",stroke:"#999","stroke-dasharray":"3 3"},g);
+    txt(g,x+w/2,y+h/2+4,"",{id:"ot-"+o.id,"text-anchor":"middle","font-size":Math.min(14,h*0.4),"font-family":"Arial","font-weight":700}); },
+};
+function valveShape(o,g,x,y,w,h,ctl){
+  const s=Math.min(w*0.45,h*0.55), cx=x+s*0.9, cy=y+h*0.62;
+  el("polygon",{id:"vb-"+o.id,points:`${cx-s*0.6},${cy-s*0.35} ${cx-s*0.6},${cy+s*0.35} ${cx+s*0.6},${cy-s*0.35} ${cx+s*0.6},${cy+s*0.35}`,fill:"#1f9d3a",stroke:"#ddd"},g);
+  if (ctl){ el("path",{d:`M${cx-s*0.3},${cy-s*0.55} A${s*0.3},${s*0.3} 0 0 1 ${cx+s*0.3},${cy-s*0.55} Z`,fill:"#1f9d3a",stroke:"#ddd",id:"vd-"+o.id},g);
+            el("line",{x1:cx,y1:cy-s*0.55,x2:cx,y2:cy,stroke:"#ddd"},g); }
+  if ((o.badges||[]).length || ctl) badge(g,cx+s*0.75,y,(o.badges||["A"])[0]||"A","#d23a3a",s*0.5);
+  txt(g,cx+s*0.1,cy+s*0.95,"",{id:"vp-"+o.id,"text-anchor":"middle","font-size":Math.max(9,s*0.45)});
+}
+
+// ── 선택 패널 ──────────────────────────────────────────────
+let SEL = null;
+const KIND_KO = {INTERLOCK:"인터락",PERMISSIVE:"기동 허가",SEQUENCE:"시퀀스",MANUAL:"수동"};
+function select(id){
+  SEL = id; document.querySelectorAll("svg .obj").forEach(e=>e.classList.toggle("sel", e.dataset.id===id));
+  const o = OBJ[id], d = o.tag && DEV[o.tag];
+  $("selH").innerHTML = `${esc(o.tag||o.key)} <span class="pill ${o.verify.known?"v":"u"}">${o.verify.known?"리스트 확인":"미확인"}</span>
+     <span class="r">${esc(o.type)}${o.conf!=null?` · 판독 ${(o.conf*100).toFixed(0)}%`:""}</span>`;
+  let h = "";
+  if (!o.tag) h += `<div class="muted">태그 라벨을 읽지 못한 심볼입니다. 배치 JSON 에서 태그를 적으면 리스트와 연결됩니다.</div>`;
+  if (o.verify.near && o.verify.near.length) h += `<div style="color:var(--warn);font-size:12px">리스트에 없는 태그 — 비슷한 태그: ${o.verify.near.map(esc).join(", ")} (자동으로 바꾸지 않습니다)</div>`;
+  if (d){
+    h += `<div class="kv" style="margin-top:6px"><span class="k">상태</span><b id="dst"></b>
+      <span class="k">모드</span><span id="dmode"></span>
+      <span class="k">고장 위치</span><span>${esc(d.fail||"리스트에 없음")}</span></div>
+      <div class="btns">
+        <button class="act" id="bMode">AUTO/MAN 전환</button>
+        <button class="act" id="bOn">${esc(d.on_word)}</button>
+        <button class="act" id="bOff">${esc(d.off_word)}</button>
+        <button class="act" id="bReset">인터락 리셋</button></div>`;
+    for (const g of d.groups){
+      h += `<div class="grp"><div class="gh"><b>${esc(g.il_no)}</b><span class="tg">${KIND_KO[g.kind]||esc(g.kind)}</span>
+        <span class="tg">${esc(g.action)} · ${esc(g.logic)}${g.latch?" · 래치":""}</span><span class="st" id="gs-${esc(g.il_no)}"></span></div>`;
+      g.conds.forEach(k=>{ const c=COND[k];
+        h += `<button class="cond" data-c="${esc(k)}" data-st="idle"><span class="lamp"></span><span class="t">
+          <span class="n">${esc(c.raw)}</span><span class="d" id="cd-${esc(k)}">${c.note?esc(c.note):""}</span></span></button>`; });
+      h += `</div>`;
+    }
+    if (!d.groups.length) h += `<div class="muted" style="margin-top:8px">인터락 리스트에 이 출력의 항목이 없습니다 — 수동 조작만 모의합니다.</div>`;
+  }
+  if (o.type==="pump") h += inRow("펌프 CV (모의)", "man", o.id, 0, 100, "%");
+  if (o.type==="pid") h += `<div class="muted" style="margin-top:6px">PID 는 표시용 모의입니다 (SP 는 임의 입력, CV=50+2×(SP−PV)). 리스트 근거가 없어 인터락 판정에 쓰지 않습니다.</div>` + inRow("SP (모의 입력)","sp",o.id,...spanOf((OBJ[o.pv]||{}).sources?.[0]||(OBJ[o.pv]||{}).tag||o.pv));
+  if (o.type==="tank" && o._pvGuess) h += `<div class="muted" style="margin-top:6px">레벨 표시는 가장 가까운 ${esc(OBJ[o._pvGuess].tag||OBJ[o._pvGuess].key)} 값을 따릅니다 (배치 근접 — 추정).</div>`;
+  if (o.verify.io.length){
+    h += `<div class="sec">IO List 연결 점 (${esc(M.sources.io_format)})</div><table class="io"><tr><th>IO TAG</th><th>I/O</th><th>ADD</th><th>PN/SLOT/CH</th><th>DWG</th></tr>` +
+      o.verify.io.map(p=>`<tr><td class="mono">${esc(p.io_tag)}</td><td>${esc(p.module||p.io_type)}</td><td class="mono">${esc(p.add)}</td>
+        <td class="mono">${esc([p.pn,p.slot,p.ch].map(v=>v??"-").join("/"))}</td><td class="mono">${esc(p.dwg)}</td></tr>`).join("") + `</table>`;
+  } else if (o.tag) h += `<div class="sec">IO List 연결 점 없음</div>`;
+  $("sel").innerHTML = h;
+  if (d){
+    $("bMode").onclick=()=>{ const s=S.dev[o.tag]; s.mode = s.mode==="AUTO"?"MAN":"AUTO"; s.cmd = s.on; };
+    $("bOn").onclick=()=>{ const s=S.dev[o.tag]; s.mode="MAN"; s.cmd=true; };
+    $("bOff").onclick=()=>{ const s=S.dev[o.tag]; s.mode="MAN"; s.cmd=false; };
+    $("bReset").onclick=()=>resetDev(S,o.tag,LAST);
+  }
+  bindInputs($("sel"));
+}
+function resetDev(S,t,last){
+  const d=DEV[t], st=S.dev[t];
+  d.groups.forEach((g,i)=>{ if (!(last && last.G[t] && last.G[t].gm[i])) delete st.latch[g.il_no]; });
+}
+document.body.addEventListener("click", e=>{
+  const b=e.target.closest(".cond"); if(!b) return;
+  const c = COND[b.dataset.c], g = DEV[c.device].groups.find(x=>x.il_no===c.il_no);
+  $("src").innerHTML = `<div><b style="color:var(--label)">${esc(c.il_no)}</b> · ${esc(c.device)} ${esc(g.action)} · ${esc(KIND_KO[g.kind]||g.kind)} · ${esc(g.logic)}${g.latch?" · 래치(수동 리셋)":""}</div>
+    <div class="q mono">${esc(c.raw)}</div>
+    <div style="margin-top:6px">판정: ${esc(testText(c))}${c.delay?` · 지연 ${c.delay}s`:""}${c.parsed?"":" · <span style='color:var(--warn)'>해석 불가 — 원문 토글</span>"}</div>
+    <div style="margin-top:4px">${esc(M.sources.interlock.join(", "))}${g.dwg?` · 도면 ${esc(g.dwg)}`:""}${g.sheet?` SHEET ${esc(g.sheet)}`:""}${g.plc_block?` · ${esc(g.plc_block)}`:""}</div>
+    ${g.remark?`<div class="muted" style="margin-top:4px">${esc(g.remark)}</div>`:""}`;
+});
+function testText(c){ const x=c.test;
+  if(x.t==="cmp") return `${x.tag} ${x.op} ${x.sp} ${x.unit||""}`;
+  if(x.t==="bool") return `[${(M.bool[x.var]||{}).label||x.var}] = ${x.value?"예":"아니오"}`;
+  if(x.t==="dev") return `${x.tags.join(x.multi==="ALL"?" 및 ":" 또는 ")} ${x.on?"ON/OPEN/RUN":"OFF/CLOSE/STOP"}`;
+  return "?"; }
+
+// ── 입력 조작 ──────────────────────────────────────────────
+function inRow(label, kind, key, lo, hi, unit, note){
+  const step = ((hi-lo)/500) || 0.01;
+  return `<div class="in"><label>${esc(label)}${note?`<br><span class="rs">${esc(note)}</span>`:""}</label>
+    <input type="range" min="${lo}" max="${hi}" step="${step}" data-k="${kind}" data-key="${esc(key)}">
+    <span class="v mono" data-vk="${kind}" data-vkey="${esc(key)}"></span><span class="muted" style="width:44px">${esc(unit||"")}</span></div>`;
+}
+function buildInputs(){
+  let h = `<div class="sec" style="border:none;margin-top:0;padding-top:0">아날로그 (화면 계기 먼저)</div>`;
+  const an = Object.values(M.analog).sort((a,b)=>(b.on_screen-a.on_screen)||a.tag.localeCompare(b.tag));
+  for (const a of an) h += inRow(a.tag+(a.on_screen?"":" (화면 밖)"), "a", a.tag, a.min, a.max, a.unit,
+                                 a.range_src.startsWith("범위 미상") ? "범위 미상 — 임시" : "");
+  const bools = Object.values(M.bool);
+  if (bools.length){
+    h += `<div class="sec">이산 신호 (눌러서 전환 — 붉은색=성립/고장, 녹색=정상)</div><div class="tgl">`;
+    for (const b of bools) h += `<button class="act" data-b="${esc(b.key)}" title="${esc(b.key)}">${esc((b.device && !b.key.startsWith(b.label) ? b.device+" · " : "")+b.label)}</button>`;
+    h += `</div>`;
+  }
+  h += `<div class="btns" style="margin-top:12px"><button class="act" id="bInit">초기 상태로</button></div>`;
+  $("inputs").innerHTML = h;
+  bindInputs($("inputs"));
+  $("inputs").querySelectorAll("button[data-b]").forEach(b=>b.onclick=()=>{ S.b[b.dataset.b]=!S.b[b.dataset.b]; });
+  $("bInit").onclick=()=>{ S = freshState(); settle(S); if(SEL) select(SEL); };
+}
+function getIn(kind,key){ return kind==="a"?S.a[key]:kind==="sp"?S.sp[key]:kind==="man"?S.man[key]:null; }
+function setIn(kind,key,v){ if(kind==="a")S.a[key]=v; else if(kind==="sp")S.sp[key]=v; else if(kind==="man")S.man[key]=v; }
+function bindInputs(root){
+  root.querySelectorAll("input[type=range]").forEach(r=>{
+    const v=getIn(r.dataset.k,r.dataset.key); if(v!=null) r.value=v;
+    r.oninput=()=>setIn(r.dataset.k,r.dataset.key,+r.value);
+  });
+}
+
+// ── 주기 ───────────────────────────────────────────────────
+let S = freshState(), LAST = null;
+// 기동 직후에는 모든 장치가 꺼져 있어 "모두 정지" 류 인터락이 한 번 걸려
+// 래치된다. 출발점은 정상 운전이어야 하므로, 한 번 돌린 뒤 지금 성립하지
+// 않는 래치만 풀고 다시 돌린다 (운전원이 기동 후 리셋을 누르는 것과 같다).
+function settle(S){
+  let r; for(let i=0;i<40;i++) r=step(S,0.1);
+  for (const t in S.dev) resetDev(S,t,r);
+  for(let i=0;i<40;i++) r=step(S,0.1);
+  LAST = r; return r;
+}
+function paint(r){
+  for (const o of M.objects){
+    if (o.type==="tank"){ const p=pctOf(o,S), e=$("lv-"+o.id), t=$("lt-"+o.id);
+      if(e){ const [x0,y0,x1,y1]=o.bbox; const h=Y(y1)-Y(y0); e.setAttribute("y",Y(y1)-(p||0)*h); e.setAttribute("height",(p||0)*h); }
+      if(t) t.textContent = p===null ? "레벨 미연결" : "" ; }
+    if (o.type==="transmitter"){ const e=$("tv-"+o.id); if(e) e.textContent = o.tag && S.a[o.tag]!==undefined ? fmt(S.a[o.tag])+" "+(M.analog[o.tag]?.unit||"") : "—"; }
+    if (o.type==="avg"){ const e=$("av-"+o.id), v=avgOf(o,S); if(e) e.textContent=v===null?"—":fmt(v); }
+    if (o.type==="pid"){ const pv=pvOf(o,S);
+      const set=(k,v)=>{const e=$(`pid-${k}-${o.id}`); if(e) e.textContent=fmt(v);};
+      set("SP",S.sp[o.id]); set("PV",pv); set("CV",(S.pidcv||{})[o.id]); }
+    const dv = o.tag && S.dev[o.tag];
+    if (o.type==="pump"){
+      const on = dv ? dv.on : false, trip = dv && dv.cause && !dv.cause.startsWith("자동");
+      const col = trip ? "#d23a3a" : on ? "#1f9d3a" : "#6b6b6b";
+      $("pc-"+o.id)?.setAttribute("fill",col);
+      const lamp=(k,c,onn)=>{ $(`pl-${k}-${o.id}`)?.setAttribute("fill",onn?c:"#555"); $(`plt-${k}-${o.id}`)?.setAttribute("fill",onn?"#fff":"#bbb"); };
+      lamp("RUN","#1f9d3a",on); lamp("TRIP","#d23a3a",!!trip); lamp("WARN","#e0a000",!!(dv&&(dv.blocked||dv.cause==="자동 정지")));
+      const cv = S.man[o.id]; $("pcv-"+o.id) && ($("pcv-"+o.id).textContent=fmt(cv)); $("pfb-"+o.id) && ($("pfb-"+o.id).textContent=fmt(on?cv:0));
+    }
+    if (o.type==="other" && dv){ const trip = dv.cause && !dv.cause.startsWith("자동");
+      const e=$("ot-"+o.id); if(e){ e.textContent = dv.on?DEV[o.tag].on_word:DEV[o.tag].off_word; e.setAttribute("fill", trip?"#ff6b6b":dv.on?"#35d07f":"#ccc"); }
+      $("ob-"+o.id)?.setAttribute("stroke", trip?"#d23a3a":dv.on?"#1f9d3a":"#999"); }
+    if (o.type==="valve"||o.type==="control_valve"){
+      const on = dv ? dv.on : (o.type==="control_valve" ? (S.cv[o.id]||0)>0.5 : false);
+      const trip = dv && dv.cause && !dv.cause.startsWith("자동");
+      const col = trip ? "#d23a3a" : on ? "#1f9d3a" : "#c8c8c8";
+      $("vb-"+o.id)?.setAttribute("fill",col); $("vd-"+o.id)?.setAttribute("fill",col);
+      const e=$("vp-"+o.id); if(e) e.textContent = o.type==="control_valve" ? fmt(dv?(on?100:0):(S.cv[o.id]||0))+" %" : (dv?(on?DEV[o.tag].on_word:DEV[o.tag].off_word):"");
+    }
+  }
+  if (SEL){
+    const o=OBJ[SEL], d=o.tag&&DEV[o.tag];
+    if (d){ const st=S.dev[o.tag], gi=r.G[o.tag];
+      const e=$("dst"); if(e){ e.textContent = (st.on?d.on_word:d.off_word) + (st.cause?` — ${st.cause}`:"") + (st.blocked?` (${st.blocked})`:"") +
+        (Object.keys(st.latch).length?" · 래치: "+Object.keys(st.latch).join(", "):"");
+        e.style.color = st.cause && !st.cause.startsWith("자동") ? "var(--trip)" : st.on ? "var(--ok)" : "var(--txt)"; }
+      $("dmode") && ($("dmode").textContent = st.mode==="AUTO" ? "AUTO (리스트 조건으로 동작)" : "MAN (운전원 명령 "+(st.cmd?d.on_word:d.off_word)+")");
+      $("bReset") && ($("bReset").disabled = !Object.keys(st.latch).length);
+      d.groups.forEach((g,i)=>{
+        const gs=$("gs-"+g.il_no); if(gs){ const m=gi.gm[i]; const good = g.kind==="PERMISSIVE"||(g.kind==="SEQUENCE"&&g.dir>0);
+          gs.textContent = m ? (good?"성립":"동작") : (st.latch[g.il_no]?"래치 유지":(good?"불성립":"—"));
+          gs.style.color = m ? (good?"var(--ok)":"var(--trip)") : st.latch[g.il_no]?"var(--trip)":"var(--dim)"; }
+        g.conds.forEach(k=>{ const b=document.querySelector(`.cond[data-c="${CSS.escape(k)}"]`); if(!b) return;
+          const good = g.kind==="PERMISSIVE"||(g.kind==="SEQUENCE"&&g.dir>0);
+          b.dataset.st = r.met[k] ? (good?"ok":"met") : (r.raw[k] ? "wait" : "idle");
+          const dd=$("cd-"+k); if(dd && r.raw[k] && !r.met[k]) dd.textContent=`지연 대기 ${(COND[k].delay-S.t[k]).toFixed(1)} s / ${COND[k].delay} s`;
+          else if(dd) dd.textContent = COND[k].note||""; });
+      });
+    }
+    document.querySelectorAll("[data-vk]").forEach(e=>{ const v=getIn(e.dataset.vk,e.dataset.vkey); e.textContent=fmt(v); });
+  } else document.querySelectorAll("[data-vk]").forEach(e=>{ const v=getIn(e.dataset.vk,e.dataset.vkey); e.textContent=fmt(v); });
+  document.querySelectorAll("#inputs button[data-b]").forEach(b=>{
+    const cs = Object.values(COND).filter(c=>c.test.t==="bool"&&c.test.var===b.dataset.b);
+    const bad = cs.some(c=>{ const g=DEV[c.device].groups.find(x=>x.il_no===c.il_no);
+      const good = g.kind==="PERMISSIVE"||(g.kind==="SEQUENCE"&&g.dir>0);
+      return good ? !rawCond(c,S) : rawCond(c,S); });
+    b.dataset.on = bad ? "1" : "ok"; b.textContent = b.textContent.replace(/ \[(예|아니오)\]$/,"") + (S.b[b.dataset.b]?" [예]":" [아니오]"); });
+}
+let last=performance.now();
+function tick(now){ const dt=Math.min(0.25,(now-last)/1000); last=now; LAST=step(S,dt); paint(LAST); requestAnimationFrame(tick); }
+
+// ── 조건 점검 (가속 모의, 화면 상태와 분리) ────────────────
+function clone(S){ return JSON.parse(JSON.stringify(S)); }
+function run(S,sec){ let r; for(let t=0;t<sec-1e-9;t+=0.1) r=step(S,0.1); return r; }
+function restore(S,B,cs){
+  for (const c of cs){ const x=c.test;
+    if (x.t==="cmp") S.a[x.tag]=B.a[x.tag];
+    else if (x.t==="bool") S.b[x.var]=B.b[x.var];
+    else if (x.t==="dev") for (const t of x.tags){
+      if (S.dev[t]){ S.dev[t].mode=B.dev[t].mode; S.dev[t].cmd=B.dev[t].cmd; } else S.b[t+":ON"]=B.b[t+":ON"]; } }
+}
+function trigger(S,c,want){
+  const x=c.test, eps=a=>Math.max(1e-3,(a.max-a.min)*0.01);
+  if (x.t==="cmp"){ const a=M.analog[x.tag]; const e=eps(a);
+    const v = want ? {">":x.sp+e,">=":x.sp,"<":x.sp-e,"<=":x.sp,"=":x.sp}[x.op] : {">":x.sp-e,">=":x.sp-e,"<":x.sp+e,"<=":x.sp+e,"=":x.sp+e}[x.op];
+    S.a[x.tag]=v; return true; }
+  if (x.t==="bool"){ S.b[x.var] = want ? x.value : !x.value; return true; }
+  if (x.t==="dev"){ const tags = (want && x.multi==="ANY") || (!want && x.multi==="ALL") ? x.tags.slice(0,1) : x.tags;
+    // 화면 장치의 상태가 조건이면 그 장치를 수동으로 조작해 만든다.
+    // 만들어졌는지는 호출자가 확인한다 (그 장치에도 허가·인터락이 있다).
+    for (const t of tags){ const v = want ? x.on : !x.on;
+      if (S.dev[t]){ S.dev[t].mode="MAN"; S.dev[t].cmd=v; } else S.b[t+":ON"] = v; }
+    return true; }
+  return false;
+}
+// 기저 상태 — 지연이 긴 허가(예: 연속 20초)까지 서도록 가장 긴 지연만큼 더 돌린다
+const MAXD = Math.max(0, ...Object.values(COND).map(c=>c.delay||0));
+function baseline(){ const B=freshState(); for(const t in B.dev) if(DEV[t].groups.length) B.dev[t].mode="AUTO";
+  settle(B); run(B, Math.min(MAXD, 60)+3); const r=step(B,0.1); for(const t in B.dev) resetDev(B,t,r); run(B,2); return B; }
+function resetAll(S){ const r=step(S,0.1); for(const t in S.dev) resetDev(S,t,r); }
+function runTests(){
+  const rows=[]; const B0 = baseline();
+  for (const [t,d] of Object.entries(DEV)){
+    for (const g of d.groups){
+      if (g.dir===0 || g.kind==="MANUAL") continue;
+      // 동작 조건(인터락·시퀀스)은 AND 면 전부 함께, OR 면 하나씩 성립시킨다.
+      // 허가는 반대다 — AND 허가는 하나만 깨져도 막혀야 하므로 하나씩 깬다.
+      const sets = (g.kind==="PERMISSIVE" ? g.logic!=="OR" : g.logic!=="AND") ? g.conds.map(k=>[k]) : [g.conds];
+      for (const ks of sets){
+        const S1=clone(B0), cs=ks.map(k=>COND[k]);
+        const text = cs.map(c=>c.raw).join(" & ");
+        if (g.kind==="PERMISSIVE"){
+          if (g.dir<0){ rows.push([g,text,"—","SKIP","정지·닫힘 방향 허가는 점검 대상에서 제외"]); continue; }
+          // 한 조건만 깨고 기동 명령 → 막혀야 한다. 되돌리면 기동해야 한다.
+          // 기저에서 이 허가가 서 있지 않으면(교대 운전 등) 깨고 되돌리는 시험이 성립하지 않는다
+          const gi = d.groups.indexOf(g), r0 = step(clone(B0),0.1);
+          if (!r0.G[t].gm[gi]){ const why = g.conds.filter(k=>!r0.met[k]).map(k=>COND[k].raw).join(", ");
+            rows.push([g,text,"기동 차단","SKIP","기저 상태에서 이 허가가 서 있지 않음 — 불성립: "+why]); continue; }
+          { const S0=clone(B0); S0.dev[t].mode="MAN"; S0.dev[t].cmd=false; run(S0,1); S0.dev[t].cmd=true; run(S0,1.5);
+            if (!S0.dev[t].on){ rows.push([g,text,"기동 차단","SKIP","허가가 서 있어도 기저에서 "+d.on_word+" 불가 — "+(S0.dev[t].cause||S0.dev[t].blocked||"다른 조건")+" 성립 중"]); continue; } }
+          S1.dev[t].mode="MAN"; S1.dev[t].cmd=false; run(S1,1);
+          if (S1.dev[t].on){ rows.push([g,text,"기동 차단","SKIP","기저 상태에서 정지시킬 수 없음(강제 조건 성립 중)"]); continue; }
+          cs.forEach(c=>trigger(S1,c,false)); run(S1,0.5);
+          if (!cs.every(c=>!rawCond(c,S1))){ rows.push([g,text,"기동 차단","SKIP","조건을 깨뜨릴 수 없음 — 관련 장치의 허가·인터락 확인"]); continue; }
+          S1.dev[t].cmd=true; run(S1,1.5); const blocked=!S1.dev[t].on;
+          // 조건을 깨는 것 자체가 인터락을 건드릴 수 있다 (VFD FAULT 없음 ↔
+          // VFD FAULT 발생). 되돌린 뒤 운전원이 하듯 리셋하고 다시 명령한다.
+          restore(S1,B0,cs); run(S1,1); const latched = Object.keys(S1.dev).some(x=>Object.keys(S1.dev[x].latch).length);
+          resetAll(S1); run(S1,Math.min(MAXD,60)+1.5);
+          S1.dev[t].cmd=true; run(S1,1.5); const ran=S1.dev[t].on;
+          rows.push([g,text,`불성립 시 ${d.on_word} 차단 → 성립 시 ${d.on_word}`, blocked&&ran?"PASS":"FAIL",
+                     blocked? (ran?(latched?"조건을 깨는 동안 인터락이 함께 걸려 리셋 후 기동":""):"조건 회복 후에도 기동 안 됨 — 다른 허가·인터락 확인") : "조건이 깨졌는데 기동됨"]);
+          continue;
+        }
+        const target = g.dir>0;
+        if (S1.dev[t].on===target){ S1.dev[t].mode="MAN"; S1.dev[t].cmd=!target; run(S1,1.5); }
+        const seqStart = g.kind==="SEQUENCE" && g.dir>0;
+        const hasSeqOn = d.groups.some(x=>x.kind==="SEQUENCE" && x.dir>0);
+        if (seqStart){ cs.forEach(c=>trigger(S1,c,false)); S1.dev[t].mode="AUTO"; run(S1,1); }
+        if (S1.dev[t].on===target){ rows.push([g,text,`${target?d.on_word:d.off_word}`,"SKIP",`기저 상태가 이미 ${target?d.on_word:d.off_word}이고 수동 ${target?d.off_word:d.on_word}도 불가(${S1.dev[t].blocked||S1.dev[t].cause||"다른 조건"}) — 동작 변화를 볼 수 없음`]); continue; }
+        cs.forEach(c=>trigger(S1,c,true));
+        const dl = Math.max(...cs.map(c=>c.delay||0));
+        { const S3=clone(S1); run(S3,0.3);
+          if (!cs.every(c=>rawCond(c,S3))){ rows.push([g,text,"—","SKIP","조건을 성립시킬 수 없음 — 관련 장치의 허가·인터락 확인"]); continue; } }
+        let early = null;
+        if (dl>=1){ const S2=clone(S1); run(S2,dl-0.5); early = S2.dev[t].on!==target; }
+        run(S1,dl+0.6); const acted = S1.dev[t].on===target;
+        restore(S1,B0,cs); run(S1,1.5);
+        const held = S1.dev[t].on===target;
+        // 해소 후 기대: 래치 인터락·시퀀스 기동은 유지, 시퀀스 정지는 시퀀스
+        // 기동 조건이 있는 장치면 재기동 대기(유지), 없으면 복귀
+        const keep = g.latch || seqStart || (g.kind==="SEQUENCE" && g.dir<0 && hasSeqOn);
+        let exp = `${target?d.on_word:d.off_word}${dl?` (${dl}s 지연)`:""}` + (keep?" · 해소 후 유지":" · 해소 후 복귀");
+        let ok = acted && (early!==false) && (keep ? held : !held || g.kind==="INTERLOCK");
+        let note = !acted ? "조건 성립 후에도 동작 안 함" : early===false ? "지연 시간 전에 동작함" :
+                   (keep && !held) ? "해소 후 유지되지 않음" : "";
+        if (g.latch && acted && held){ resetDev(S1,t,step(S1,0.1)); run(S1,2); note = S1.dev[t].on!==target ? "리셋 후 복귀 확인" : "리셋 후에도 복귀 안 함(다른 조건 확인)"; }
+        rows.push([g,text,exp, ok?"PASS":"FAIL", note]);
+      }
+    }
+  }
+  const n={PASS:0,FAIL:0,SKIP:0}; rows.forEach(r=>n[r[3]]++);
+  $("testOut").innerHTML = `<div style="margin:8px 0;font-size:12px">PASS <b class="pass">${n.PASS}</b> · FAIL <b class="fail">${n.FAIL}</b> · SKIP <b class="skip">${n.SKIP}</b></div>
+   <table class="io"><tr><th>IL NO</th><th>출력</th><th>조건</th><th>기대</th><th>결과</th><th>비고</th></tr>` +
+   rows.map(([g,text,exp,res,note])=>`<tr><td class="mono">${esc(g.il_no)}</td><td>${esc(DEVOF(g))}</td><td>${esc(text)}</td><td>${esc(exp)}</td>
+     <td class="${res.toLowerCase()}">${res}</td><td class="muted">${esc(note)}</td></tr>`).join("") + `</table>`;
+  window.__TEST__ = n;
+  return rows;
+}
+function DEVOF(g){ for(const [t,d] of Object.entries(DEV)) if(d.groups.includes(g)) return t; return ""; }
+$("runTest").onclick = runTests;
+
+// ── 머리·경고 ──────────────────────────────────────────────
+function head(){
+  $("ttl").textContent = "공정 모의 · " + M.title;
+  document.title = "공정 모의 · " + M.title;
+  $("sub").textContent = `IO List ${M.sources.io_list} (${M.sources.io_format||"-"}) · 인터락 ${M.sources.interlock.join(", ")} · 배치 ${M.sources.extractor||"-"}`;
+  const st=M.stats, unk = M.objects.filter(o=>o.tag && !o.verify.known).length, notag=M.objects.filter(o=>!o.tag && !["avg","pid"].includes(o.type)).length;
+  $("bar").innerHTML = `<span class="chip k">심볼 <b>${st.objects}</b></span>
+    <span class="chip k">리스트 확인 <b>${st.verified}</b></span>
+    <span class="chip ${unk?"w":"k"}">미확인 태그 <b>${unk}</b></span>
+    <span class="chip ${notag?"w":"k"}">태그 없음 <b>${notag}</b></span>
+    <span class="chip k">로직 있는 출력 <b>${st.devices_with_logic}</b></span>
+    <span class="chip k">조건 <b>${st.conditions}</b></span>
+    <span class="chip ${st.unparsed?"w":"k"}">해석 불가 <b>${st.unparsed}</b></span>
+    <button class="chip w" id="noteBtn">경고 <b>${M.warnings.length}</b> · 가정 <b>${M.assumptions.length}</b> 보기</button>`;
+  $("notes").innerHTML = `<h3>가정 (리스트에 없어 모의가 정한 것)</h3>${M.assumptions.map(a=>"· "+esc(a)).join("<br>")||"없음"}
+    <h3>경고</h3>${M.warnings.map(a=>"· "+esc(a)).join("<br>")||"없음"}`;
+  $("noteBtn").onclick=()=>$("notes").classList.toggle("on");
+  if (M.image){ $("bg").src=M.image; } else { $("ovl").disabled=true; $("ovl").parentElement.title="원본 이미지가 모델에 없습니다"; }
+  const ov=()=>{ $("bg").style.opacity = $("ovl").checked ? (+$("ovlOp").value/100) : 0; svg.style.opacity = $("ovl").checked ? 0.85 : 1; };
+  $("ovl").onchange=ov; $("ovlOp").oninput=ov;
+}
+head(); draw(); buildInputs(); settle(S);
+// ?sel=태그 — 인터락 조회에서 끼울 때 그 태그의 심볼을 바로 선택해 둔다
+{ const want = new URLSearchParams(location.search).get("sel"); if (want && BYTAG[want]) select(BYTAG[want].id); }
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

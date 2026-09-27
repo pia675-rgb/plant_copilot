@@ -58,7 +58,7 @@ class Tool:
                  trigger="", summary="", summary_order=0, limit="",
                  llm_rule="",
                  schema_extra=(), help_order=0, help_pattern="", help="",
-                 example="", note=""):
+                 example="", note="", asks_back=False):
         self.key = key
         self.label = label
         self.order = order
@@ -84,6 +84,10 @@ class Tool:
         self.help = help
         self.example = example
         self.note = note
+        # 되물을 수 있는 도구. 맥락이 부족하면 실행하지 않고 type=chat 으로
+        # 묻는다. 점검이 '예시가 이 도구로 가는가' 를 볼 때 그 답도 정답으로
+        # 인정해야 한다 — 되묻기는 실패가 아니다.
+        self.asks_back = asks_back
         self.handler = None
         _TOOLS.append(self)
 
@@ -196,6 +200,30 @@ GRAPHIC_STOP = Tool(
              "무엇을 원하는지 되물으십시오.",
     schema_extra=("stopScenario",),
     example="시나리오 정지해줘",
+)
+
+# 낱말만 남은 정지. 맥락을 보고 판정하며, 맥락이 없으면 되묻는다.
+STOP_BARE = Tool(
+    key="stop_bare", label="정지 (맥락 판정)", order=78, returns="interlock",
+    tab="interlock", actionable=True,
+    # **인터락 조회(75) 뒤**에 둔다. 순서가 이 도구의 절반이다 —
+    # "P-5101A 정지 인터락 조회해줘" 는 인터락이 먼저 가져가야 하고,
+    # 인터락이라는 낱말이 없는 "정지해줘" 만 여기로 내려와야 한다.
+    #
+    # 왜 생겼나 — 배포에서 시나리오를 재생한 뒤 「정지해줘」 라고만 하면
+    # 알람 조회가 실행됐다. 패치 33 의 정지 규칙은 시나리오·시뮬레이션·
+    # 재생·공정 화면 중 한 낱말을 **함께** 요구했고, 그 가드도
+    # "시나리오 정지해주세요" 만 봤다. 낱말이 빠진 표현은 아무도 보지
+    # 않았다 (패치 36).
+    trigger=r"정지|멈춰|멈춤|멈출|중지|스톱|stop",
+    llm_rule="'정지·멈춰·중지' 만 있고 무엇을 멈추라는 말이 없으면, 공정 "
+             "화면에서 시나리오가 도는 중일 때만(user 줄의 scenario=playing) "
+             "stopScenario=true 로 두십시오. 도는 중이 아니면 **실행하지 "
+             "말고** type=chat 으로 시나리오를 멈출 것인지 정지 인터락을 "
+             "조회할 것인지 되물으십시오.",
+    example="정지해줘",
+    # 맥락(시나리오가 도는 중)이 없으면 실행하지 않고 되묻는다.
+    asks_back=True,
 )
 
 GRAPHIC = Tool(

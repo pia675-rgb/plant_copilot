@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공정 모의 화면 관리</title>
+<style>
+  :root{--bg:#0a1420;--panel:#0f1e2d;--panel2:#132538;--line:#1e3448;--line2:#2a4a66;
+        --txt:#dbe9f4;--dim:#7b9bb3;--label:#9fc0d6;--ok:#35d07f;--trip:#ff4d5a;--warn:#ffb020}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:"Segoe UI","Malgun Gothic",system-ui,sans-serif;font-size:13px}
+  .wrap{display:grid;grid-template-columns:340px minmax(0,1fr);gap:12px;padding:12px}
+  @media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:12px}
+  .card h2{font-size:12px;color:var(--label);margin:0;padding:9px 12px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+  .card h2 .r{margin-left:auto;display:flex;gap:6px}
+  .body{padding:10px 12px}
+  label{display:block;font-size:11.5px;color:var(--label);margin:8px 0 3px}
+  input[type=text],input[type=password],textarea{width:100%;background:#0b1826;color:var(--txt);border:1px solid var(--line2);border-radius:4px;padding:6px 8px;font:inherit}
+  textarea{font-family:Consolas,monospace;font-size:11.5px;min-height:360px}
+  button{background:var(--panel2);color:var(--txt);border:1px solid var(--line2);border-radius:4px;padding:6px 11px;cursor:pointer;font-size:12px;font-weight:600}
+  button:hover{border-color:var(--label)} button:disabled{opacity:.4;cursor:default}
+  button.pri{background:#123528;border-color:var(--ok);color:#8ef0be}
+  .item{padding:8px 12px;border-bottom:1px solid #16293b;cursor:pointer}
+  .item:hover{background:var(--panel2)} .item.on{background:#16304a;border-left:3px solid #4aa3d6}
+  .item .t{font-weight:600} .item .m{font-size:11px;color:var(--dim);margin-top:2px}
+  .msg{font-size:12px;line-height:1.6;padding:8px 12px;white-space:pre-wrap}
+  .msg.err{color:var(--trip)} .msg.ok{color:var(--ok)}
+  .muted{color:var(--dim);font-size:11.5px;line-height:1.6}
+  iframe{width:100%;height:1150px;border:0;display:block;background:var(--bg)}
+  .tabs{display:flex;gap:6px}
+  .tabs button.on{border-color:#4aa3d6;color:#bfe3ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="card"><h2>새 화면 — 화면승인자료 캡처</h2><div class="body">
+      <div class="muted">캡처 이미지를 GPT-5.5 가 심볼·태그·배관으로 옮겨 적고, 인터락·IO 리스트와 규칙으로 대조해 모의 화면을 만듭니다. 조건·설정값은 리스트에서만 옵니다.</div>
+      <label>제목</label><input type="text" id="title" placeholder="예: NW 탱크 계통">
+      <label>이미지 (.png / .jpg)</label><input type="file" id="file" accept=".png,.jpg,.jpeg,.webp">
+      <label>추출 참고 한 줄 (선택)</label><input type="text" id="hint" placeholder="예: 좌측 탱크 레벨은 LT-001A/B 평균">
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="pri" id="bUp">이미지로 생성</button>
+        <button id="bLay" title="GPT 없이, 배치 JSON 파일로 생성">배치 JSON 으로 생성</button>
+        <input type="file" id="layFile" accept=".json" style="display:none">
+      </div>
+      <label>수정 열쇠 (서버에 설정된 경우)</label><input type="password" id="key" placeholder="자료 반입 화면과 같은 열쇠">
+    </div><div class="msg" id="msg"></div></div>
+    <div class="card"><h2>화면 목록 <span class="r"><button id="bRef">새로고침</button></span></h2><div id="list"></div></div>
+  </div>
+  <div>
+    <div class="card"><h2 id="curH">화면을 고르십시오 <span class="r tabs">
+      <button id="tView" class="on">모의 화면</button><button id="tLay">배치 수정</button>
+      <button id="bRebuild" title="리스트가 바뀐 뒤 다시 대조">리스트 재대조</button></span></h2>
+      <div id="viewBox"><div class="body muted">왼쪽 목록에서 화면을 고르거나 새로 만드십시오.</div></div>
+      <div id="layBox" style="display:none"><div class="body">
+        <div class="muted">모델이 옮겨 적은 배치입니다. 태그를 잘못 읽었거나(미확인), 라벨이 없어 null 인 심볼은 여기서 태그를 적어 저장하면 리스트와 연결됩니다. 저장하면 이전 판은 layout.prev.json 으로 남습니다.</div>
+        <textarea id="layTxt" spellcheck="false"></textarea>
+        <div style="margin-top:8px"><button class="pri" id="bSave">저장 후 재생성</button></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+<script>
+// 상대 경로 — MAXIS AGENT 노드 접두사 아래에서도 동작하도록 앞 슬래시를 붙이지 않는다
+const API = "api/sim";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SESS = Math.random().toString(36).slice(2);
+let CUR = null;
+function hdr(extra){ return Object.assign({"X-Ingest-Key": $("key").value.trim(), "X-Ingest-Session": SESS}, extra||{}); }
+function say(t, cls){ $("msg").className = "msg " + (cls||""); $("msg").textContent = t; }
+async function call(url, opt){
+  const r = await fetch(url, opt);
+  const txt = await r.text(); let j; try { j = JSON.parse(txt); } catch(e){ j = {detail: txt}; }
+  if (!r.ok) throw new Error((j && j.detail) || ("HTTP " + r.status));
+  return j;
+}
+function report(j){
+  const lines = [`생성: ${j.id}`, `심볼 ${j.stats.objects} · 리스트 확인 ${j.stats.verified} · 로직 있는 출력 ${j.stats.devices_with_logic} · 조건 ${j.stats.conditions} · 해석 불가 ${j.stats.unparsed}`];
+  if ((j.extract_warnings||[]).length) lines.push("배치 경고 " + j.extract_warnings.length + "건");
+  if ((j.warnings||[]).length) lines.push("대조 경고 " + j.warnings.length + "건 — 화면 상단 '경고 보기'");
+  say(lines.join("\n"), "ok");
+}
+async function load(){
+  const j = await call(`${API}/screens`);
+  $("list").innerHTML = j.screens.length ? j.screens.map(m=>`<div class="item ${m.id===CUR?"on":""}" data-id="${esc(m.id)}">
+     <div class="t">${esc(m.title||m.id)}</div>
+     <div class="m">${esc(m.id)}<br>심볼 ${m.stats?.objects??"-"} · 확인 ${m.stats?.verified??"-"} · 조건 ${m.stats?.conditions??"-"} · 경고 ${m.warnings??"-"} · ${esc(m.extractor||"")}</div></div>`).join("")
+    : `<div class="body muted">아직 만든 화면이 없습니다.</div>`;
+  document.querySelectorAll(".item").forEach(e=>e.onclick=()=>open_(e.dataset.id));
+}
+function open_(id){
+  CUR = id; load();
+  $("curH").firstChild.textContent = id + " ";
+  $("viewBox").innerHTML = `<iframe src="${API}/screens/${encodeURIComponent(id)}/view?embed=1&t=${Date.now()}"></iframe>`;
+  if ($("layBox").style.display !== "none") loadLayout();
+}
+async function loadLayout(){ if(!CUR) return; const j = await call(`${API}/screens/${encodeURIComponent(CUR)}/layout`); $("layTxt").value = JSON.stringify(j, null, 1); }
+$("tView").onclick = ()=>{ $("tView").classList.add("on"); $("tLay").classList.remove("on"); $("viewBox").style.display=""; $("layBox").style.display="none"; if(CUR) open_(CUR); };
+$("tLay").onclick = ()=>{ $("tLay").classList.add("on"); $("tView").classList.remove("on"); $("viewBox").style.display="none"; $("layBox").style.display=""; loadLayout().catch(e=>say(e.message,"err")); };
+$("bSave").onclick = async ()=>{
+  if(!CUR) return; let lay;
+  try { lay = JSON.parse($("layTxt").value); } catch(e){ return say("JSON 형식 오류: " + e.message, "err"); }
+  try { const j = await call(`${API}/screens/${encodeURIComponent(CUR)}/layout`, {method:"PUT", headers:hdr({"Content-Type":"application/json"}), body:JSON.stringify(lay)}); report(j); }
+  catch(e){ say(e.message, "err"); }
+};
+$("bRebuild").onclick = async ()=>{
+  if(!CUR) return;
+  try { const j = await call(`${API}/screens/${encodeURIComponent(CUR)}/rebuild`, {method:"POST", headers:hdr()}); report(Object.assign({id:CUR}, j)); open_(CUR); }
+  catch(e){ say(e.message, "err"); }
+};
+$("bUp").onclick = async ()=>{
+  const f = $("file").files[0]; if(!f) return say("이미지를 고르십시오", "err");
+  $("bUp").disabled = true; say("이미지 준비 중…");
+  try {
+    const img = await shrink(f);
+    const q = new URLSearchParams({title: $("title").value || f.name.replace(/\.[^.]+$/,""), name: img.name, hint: $("hint").value});
+    // 비동기 — MAXIS 노드 게이트웨이가 15초에 요청을 끊으므로 시작만 하고 폴링한다
+    const {job} = await call(`${API}/jobs?${q}`, {method:"POST", headers:hdr({"Content-Type":"application/octet-stream"}), body: img.buf});
+    for (;;){
+      await new Promise(r=>setTimeout(r, 2000));
+      const s = await call(`${API}/jobs/${job}`);
+      if (s.state === "done"){ report(s.result); await load(); open_(s.result.id); break; }
+      if (s.state === "error") throw new Error(s.error);
+      say(`${s.stage} … ${s.elapsed}s`);
+    }
+  } catch(e){ say(e.message, "err"); } finally { $("bUp").disabled = false; }
+};
+// 게이트웨이 본문 크기 제한에 걸리지 않게 큰 캡처는 올리기 전에 줄인다.
+// 긴 변 2400px 이하 · 1.5MB 이하면 원본 그대로.
+async function shrink(f){
+  const raw = await f.arrayBuffer();
+  const bmp = await createImageBitmap(f).catch(()=>null);
+  if (!bmp) return {buf: raw, name: f.name};
+  const big = Math.max(bmp.width, bmp.height);
+  if (raw.byteLength <= 1.5e6 && big <= 2400) return {buf: raw, name: f.name};
+  const k = Math.min(1, 2400/big), c = document.createElement("canvas");
+  c.width = Math.round(bmp.width*k); c.height = Math.round(bmp.height*k);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise(r=>c.toBlob(r, "image/png"));
+  let out = blob;
+  if (blob.size > 1.5e6) out = await new Promise(r=>c.toBlob(r, "image/jpeg", 0.92));
+  return {buf: await out.arrayBuffer(), name: f.name.replace(/\.[^.]+$/, out.type==="image/png"?".png":".jpg")};
+}
+$("bLay").onclick = ()=>$("layFile").click();
+$("layFile").onchange = async ()=>{
+  const f = $("layFile").files[0]; if(!f) return;
+  try {
+    const lay = JSON.parse(await f.text());
+    const q = new URLSearchParams({title: $("title").value || f.name.replace(/\.[^.]+$/,"")});
+    const j = await call(`${API}/screens/layout?${q}`, {method:"POST", headers:hdr({"Content-Type":"application/json"}), body:JSON.stringify(lay)});
+    report(j); await load(); open_(j.id);
+  } catch(e){ say(e.message, "err"); }
+  $("layFile").value = "";
+};
+$("bRef").onclick = ()=>load().catch(e=>say(e.message,"err"));
+const want = new URLSearchParams(location.search).get("id");
+load().then(()=>{ if(want) open_(want); }).catch(e=>say("목록을 읽지 못했습니다: " + e.message, "err"));
+</script>
+</body>
+</html>

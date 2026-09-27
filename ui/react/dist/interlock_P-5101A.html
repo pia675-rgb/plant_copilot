@@ -396,13 +396,31 @@ const SCN = [
 let scn = null;
 const scnBtn = document.getElementById("scn"), scnCap = document.getElementById("scnCap");
 
+// 지금 도는 중인지를 부모 앱에 알린다.
+//
+// 챗봇에 "정지해줘" 라고만 해도 시나리오가 멈춰야 하는데, 그러려면
+// **도는 중인지**를 알아야 한다. 모르면 그 말이 P-5101A 정지 인터락
+// 조회와 구별되지 않는다 (패치 36). 상태를 아는 곳은 이 화면뿐이다 —
+// 사람이 화면의 버튼을 직접 눌러도, 조작을 만져 저절로 멈춰도 여기서만
+// 알 수 있으므로, 부모가 짐작하게 두지 않고 바뀔 때마다 알린다.
+function scnNotify(){
+  try {
+    if (window.parent && window.parent !== window)
+      window.parent.postMessage(
+        {source:"plant-graphic", type:"scenario", playing: !!scn},
+        window.location.origin);
+  } catch(e) { /* 부모가 없으면 그냥 둔다 */ }
+}
 function scnStop(){
   scn = null; scnCap.textContent = "";
   scnBtn.textContent = "▶ 시나리오 재생"; scnBtn.dataset.on = "0";
+  scnNotify();
 }
 function scnStart(){
   scn = {i:-1, t:0}; scnBtn.textContent = "■ 정지"; scnBtn.dataset.on = "ok";
+  scnNotify();
 }
+scnNotify();   // 열릴 때 한 번 — 부모가 처음부터 알고 있어야 한다
 // 부모 앱(챗봇 명령)이 재생을 시킬 수 있다. 같은 서버에서 내려주는
 // 페이지끼리만 받는다 (origin 검사).
 window.addEventListener("message", (e)=>{

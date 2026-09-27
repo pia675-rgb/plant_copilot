@@ -183,26 +183,76 @@ def prewarm(timeout=180):
         return False, "%s 예열 실패 — %s: %s" % (model, type(e).__name__, str(e)[:120])
 
 
+# ── temperature 를 받지 않는 모델 (패치 38) ─────────────────
+# GPT-5 계열·o 계열(추론형)은 temperature 기본값(1) 말고는 거절한다 —
+# 0 을 보내면 400 Bad Request. 모델을 GPT-5.5 로 바꾼 뒤 조치 순서·추측이
+# 전부 "HTTP Error 400" 으로 떨어진 원인이 이것이었다.
+#
+# 이름으로 먼저 거르고, 이름이 사내 별칭(esg-… 등)이라 못 알아봐도 400
+# 본문에 temperature 가 적혀 있으면 빼고 한 번 더 보낸다. 한 번 거절된
+# 모델은 기억해 두고 다음부터는 처음부터 뺀다.
+#
+# 재현성(temperature 0)은 이 모델들에서 보장되지 않는다. 평가 수치를
+# 이 모델로 다시 잴 때는 그 점을 적는다.
+_NO_TEMP_RE = re.compile(r"(^|[^a-z])(gpt-5|o1|o3|o4)", re.I)
+_NO_TEMP = set()
+if os.environ.get("COPILOT_LLM_NO_TEMPERATURE", "").strip() in ("1", "true", "yes"):
+    _NO_TEMP.add("*")
+
+
+def _temp_ok(model):
+    return not ("*" in _NO_TEMP or model in _NO_TEMP
+                or _NO_TEMP_RE.search(str(model or "")))
+
+
+def _post_chat(url, payload, headers, timeout, model):
+    """chat/completions 호출. temperature 거절이면 빼고 한 번 더.
+
+    실패하면 응답 본문 앞부분을 오류에 싣는다. 'HTTP Error 400: Bad
+    Request' 만으로는 모델 이름이 틀렸는지, 파라미터가 틀렸는지 모른다.
+    """
+    body = dict(payload)
+    if _temp_ok(model):
+        body["temperature"] = 0
+    for attempt in (1, 2):
+        try:
+            return _post(url, body, headers, timeout)
+        except urllib.error.HTTPError as e:
+            try:
+                detail = e.read().decode("utf-8", "replace")
+            except Exception:                               # noqa: BLE001
+                detail = ""
+            if attempt == 1 and e.code == 400 and "temperature" in body \
+                    and "temperature" in detail.lower():
+                _NO_TEMP.add(model)
+                body.pop("temperature", None)
+                sys.stderr.write("[advisor] %s 는 temperature 를 받지 않음 — "
+                                 "빼고 재시도\n" % model)
+                continue
+            raise AdvisorError("모델 호출 실패 HTTP %s (%s): %s"
+                               % (e.code, model, re.sub(r"\s+", " ", detail)[:240]))
+
+
 def _chat_azure(messages, timeout):
     dep = os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT", config.LLM_MODEL)
     if not config.AOAI_ENDPOINT or not config.AOAI_API_KEY:
         raise AdvisorError("AZURE_OPENAI_ENDPOINT / API_KEY 가 없습니다.")
     url = "%s/openai/deployments/%s/chat/completions?api-version=%s" % (
         config.AOAI_ENDPOINT, dep, config.AOAI_API_VERSION)
-    d = _post(url, {"messages": messages, "temperature": 0},
-              {"Content-Type": "application/json",
-               "api-key": config.AOAI_API_KEY}, timeout)
+    d = _post_chat(url, {"messages": messages},
+                   {"Content-Type": "application/json",
+                    "api-key": config.AOAI_API_KEY}, timeout, dep)
     return d["choices"][0]["message"]["content"]
 
 
 def _chat_openai(messages, timeout):
     if not config.OPENAI_API_KEY:
         raise AdvisorError("OPENAI_API_KEY 가 없습니다.")
-    d = _post(config.OPENAI_BASE_URL + "/chat/completions",
-              {"model": config.LLM_MODEL, "messages": messages,
-               "temperature": 0},
-              {"Content-Type": "application/json",
-               "Authorization": "Bearer %s" % config.OPENAI_API_KEY}, timeout)
+    d = _post_chat(config.OPENAI_BASE_URL + "/chat/completions",
+                   {"model": config.LLM_MODEL, "messages": messages},
+                   {"Content-Type": "application/json",
+                    "Authorization": "Bearer %s" % config.OPENAI_API_KEY},
+                   timeout, config.LLM_MODEL)
     return d["choices"][0]["message"]["content"]
 
 

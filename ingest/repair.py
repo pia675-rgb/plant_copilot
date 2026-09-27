@@ -40,7 +40,9 @@ def _load_sheet(io_path):
     """워크북·시트·헤더행·열지도. 쓰기 가능 모드로 연다(호출자가 닫는다)."""
     import openpyxl
     wb = openpyxl.load_workbook(io_path)
-    ws = wb.active
+    from ingest.io_standard import pick_sheet
+    _ps = pick_sheet(wb.sheetnames)
+    ws = wb[_ps] if _ps else wb.active
     hdr_row = None
     for i, row in enumerate(ws.iter_rows(min_row=1, max_row=10,
                                          values_only=True), 1):
@@ -57,6 +59,16 @@ def _load_sheet(io_path):
         name = str(cell.value).strip() if cell.value is not None else ""
         if name:
             colmap[name] = j
+    # L1 표준양식 — 채널 검사가 보는 열을 내부 이름으로 가리킨다.
+    # L1 의 'PLC' 는 제어 유형(DI·COM·PID)이라 그대로 두면 카드가 제어
+    # 유형별로 쪼개져 채널 중복을 못 본다. CPU 가 제어기 이름이다.
+    from ingest.io_standard import is_l1_header
+    if is_l1_header(list(colmap)):
+        colmap["__L1__"] = 0
+        if "CPU" in colmap:
+            colmap["PLC"] = colmap["CPU"]
+        if "PN" in colmap:
+            colmap["PN(DP)"] = colmap["PN"]
     return wb, ws, hdr_row, colmap
 
 
@@ -87,7 +99,10 @@ def analyze_channels(io_path=None):
     io_path = io_path or str(config.IO_LIST)
     wb, ws, hdr_row, colmap = _load_sheet(io_path)
     try:
-        missing = [c for c in _NEED_COLS if c not in colmap]
+        # L1 양식에는 RACK 열이 없다 — PN 하나가 랙 하나다
+        need = [c for c in _NEED_COLS
+                if not (c == "RACK" and "__L1__" in colmap)]
+        missing = [c for c in need if c not in colmap]
         if missing:
             return [], {}, "IO List 에 %s 열이 없어 채널 검사를 건너뜁니다" \
                 % ", ".join(missing)
@@ -176,6 +191,20 @@ def _header_proposals(io_path=None):
         return []
     wb, ws, hdr_row, colmap = _load_sheet(io_path)
     wb.close()
+    if "__L1__" in colmap:
+        # L1 표준양식은 L1 열 순서와 대조한다. 24종과 대조하면 표준 열이
+        # 전부 '없음' 으로 나오고, 근사 일치가 L1 열 이름을 24종 이름으로
+        # 바꾸자고 제안한다 — 멀쩡한 양식을 망가뜨리는 수리안이다.
+        from ingest.io_standard import L1_ORDER as STANDARD_ORDER
+        std_label = "L1 표준양식"
+        # 별칭(PLC→CPU 등)을 뺀 원래 머리글로 다시 짠다
+        colmap = {}
+        for j, cell in enumerate(ws[hdr_row], 1):
+            name = str(cell.value).strip() if cell.value is not None else ""
+            if name:
+                colmap[name] = j
+    else:
+        std_label = "표준 24종"
     got = list(colmap.keys())
     miss = [c for c in STANDARD_ORDER if c not in got]
     extra = [c for c in got if c not in STANDARD_ORDER]
@@ -188,7 +217,7 @@ def _header_proposals(io_path=None):
                 "id": "hdr:%s→%s" % (x, y), "kind": "header_rename",
                 "auto": True, "file": os.path.basename(io_path),
                 "col": colmap[x], "row": hdr_row, "old": x, "new": y,
-                "before": "열 이름 '%s' — 표준 24종에 없음" % x,
+                "before": "열 이름 '%s' — %s에 없음" % (x, std_label),
                 "after": "'%s' 로 변경 (표준의 '%s' 와 근사 일치)" % (y, y),
                 "rationale": "표준 열만 파서가 읽습니다. 오기로 보이면 "
                              "표준 이름으로 되돌립니다.",

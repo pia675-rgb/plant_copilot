@@ -55,6 +55,8 @@ COPY graph/ ./graph/
 COPY ingest/ ./ingest/
 COPY retrieval/ ./retrieval/
 COPY tools/ ./tools/
+# 공정 모의 화면 (패치 37) — 서버가 기동 시 가져온다. 빠지면 서버가 죽는다
+COPY sim/ ./sim/
 
 # 데모 자료와 색인 (실물 자료는 넣지 않는다)
 COPY demo_data/ ./demo_data/

@@ -313,8 +313,121 @@ def c_scenario_stop():
         return False, 'P-5101A 화면이 열리지 않습니다'
     if r.get('playScenario'):
         return False, '열기만 시켰는데 재생까지 켭니다'
-    return True, ('정지 4종 · 없는 화면 거절 3종 · 열기/재생 구분 · '
-                  'LLM 스키마 포함')
+    # ── 낱말만 남은 정지 (패치 36) ─────────────────────────
+    #
+    # 위 네 표현은 모두 시나리오·시뮬레이션·재생 중 한 낱말을 함께 갖고
+    # 있다. 정작 사람이 한 말은 「정지해줘」 였고, 그 표현은 이 가드가
+    # 본 적이 없어 알람 조회로 실행되는 동안 아무도 몰랐다. **고친 표현만
+    # 보는 가드는 고친 것만 지킨다.**
+    from api.server import ChatContext, GraphicState
+    playing = ChatContext(
+        tag='P-5101A', tab='interlock',
+        graphic=GraphicState(open=True, playing=True, tag='P-5101A'))
+    idle = ChatContext(
+        tag='P-5101A', tab='interlock',
+        graphic=GraphicState(open=True, playing=False, tag='P-5101A'))
+
+    # (1) 시나리오가 도는 중이면 낱말 하나로도 멈춘다
+    for m in ('정지해줘', '멈춰줘', '멈춰주세요', '중지', '스톱', '정지'):
+        r = rule_intent(m, 'P-5101A', 'interlock', ctx=playing) or {}
+        if not r.get('stopScenario'):
+            return False, ("재생 중인데 '%s' 가 %s 로 갑니다 — 맥락을 "
+                           "보지 않습니다" % (m, r.get('type')))
+        if r.get('playScenario'):
+            return False, "'%s' 가 재생을 함께 켭니다" % m
+        if r.get('tag') != 'P-5101A':
+            return False, "'%s' 가 %s 를 멈추려 합니다" % (m, r.get('tag'))
+
+    # (2) 맥락이 없으면 **실행하지 않고 되묻는다.** 알람 조회로 실행하던
+    #     것이 이 사고의 본체였다.
+    for name, ctx in (('도는 중 아님', idle), ('맥락 없음', None)):
+        r = rule_intent('정지해줘', 'P-5101A', 'interlock', ctx=ctx) or {}
+        if r.get('type') != 'chat' or r.get('stopScenario'):
+            return False, "%s 인데 '정지해줘' 가 %s 로 실행됩니다" % (
+                name, r.get('type'))
+        rep = r.get('reply') or ''
+        if '시나리오' not in rep or '인터락' not in rep:
+            return False, "%s 되묻기가 두 갈래를 제시하지 않습니다" % name
+        if r.get('generic'):
+            return False, ("%s 되묻기가 포괄 응답이라 매뉴얼 검색으로 "
+                           "샙니다" % name)
+    # 문장에 태그가 있으면 그 태그로 되묻는다 — 우리가 바꿔 물으면 안 된다
+    r = rule_intent('XV-4101 정지해줘', 'P-5101A', 'interlock') or {}
+    if 'XV-4101' not in (r.get('reply') or ''):
+        return False, "'XV-4101 정지해줘' 를 다른 설비로 되묻습니다"
+
+    # (3) 조회는 그대로여야 한다 — 정지 인터락 조회, 알람 어휘의 STOP
+    r = rule_intent('P-5101A 정지 인터락 조회해줘', None, 'alarm',
+                    ctx=playing) or {}
+    if r.get('type') != 'interlock' or r.get('action') != 'STOP' \
+            or r.get('stopScenario'):
+        return False, ("재생 중에 정지 인터락 조회가 %s/%s 로 샙니다"
+                       % (r.get('type'), r.get('action')))
+    r = rule_intent('P-5101A CMD STOP 알람 조회해줘', None, 'alarm') or {}
+    if r.get('type') != 'diagnose':
+        return False, ("알람 어휘의 STOP 이 %s 로 갑니다 — 되묻기가 조회를 "
+                       "막습니다" % r.get('type'))
+
+    # (4) 맥락은 화면이 실어 보내는 것이다. 서버만 고치고 화면을 안 고치면
+    #     판정은 통과하는데 실제로는 맥락이 영영 오지 않는다 (패치 29b 와
+    #     같은 자리).
+    for rel in ('ui/react/public/interlock_P-5101A.html',
+                'ui/react/dist/interlock_P-5101A.html'):
+        p2 = os.path.join(here, rel)
+        if not os.path.isfile(p2):
+            continue
+        with open(p2, encoding='utf-8') as f:
+            page = f.read()
+        if 'plant-graphic' not in page:
+            return False, '%s 가 재생 상태를 알려주지 않습니다' % rel
+        # 알리는 함수가 있는 것으로는 부족하다 — 재생과 정지 **양쪽에서**
+        # 불러야 한다. 한쪽만 부르면 멈춘 뒤에도 도는 중으로 남는다.
+        if page.count('scnNotify();') < 2:
+            return False, ('%s 가 재생·정지 양쪽에서 상태를 알리지 '
+                           '않습니다 (호출 %d곳)'
+                           % (rel, page.count('scnNotify();')))
+
+        # 주석으로 꺼 둔 것도 안 부르는 것이다. 글자만 세면 꺼 둔 줄이
+        # 그대로 통과한다 — 실제로 이 시험에서 한 번 새어 나갔다.
+        if re.search(r'//\s*scnNotify|/\*\s*scnNotify', page):
+            return False, '%s 의 상태 알림이 주석 처리되어 있습니다' % rel
+    app, app_path = _ui_src('ui/react/src/App.jsx')
+    if 'plant-graphic' not in app:
+        return False, 'App.jsx 가 재생 상태를 받지 않습니다'
+    if 'graphic: {' not in app:
+        return False, 'App.jsx 가 재생 상태를 챗봇 맥락에 싣지 않습니다'
+    # 선언보다 앞에서 쓰면 렌더 중에 ReferenceError(TDZ) 가 나 화면이
+    # 통째로 죽는다. 빌드도 통과하고 위의 글자 검사도 통과했다 — 띄워
+    # 보고서야 콘솔에서 찾았다. 그 순서를 여기서 못 박는다 (패치 36).
+    if app.index('const [graphicOpen') > app.index('playing: !!(graphicOpen'):
+        return False, ('App.jsx 가 graphicOpen 을 선언보다 먼저 씁니다 — '
+                       '화면이 렌더 중에 죽습니다')
+    import glob as _glob
+    js = _glob.glob(os.path.join(here, 'ui', 'react', 'dist', 'assets', '*.js'))
+    newest = max(js, key=os.path.getmtime) if js else None
+    if not newest or os.path.getmtime(newest) < os.path.getmtime(app_path):
+        return False, '빌드본이 App.jsx 보다 오래되었습니다 — npm run build'
+    with open(newest, encoding='utf-8') as f:
+        if 'plant-graphic' not in f.read():
+            return False, '빌드본에 재생 상태 수신이 없습니다 — 빌드가 낡았습니다'
+
+    # (5) 모델도 같은 맥락을 받아야 한다. 규칙만 맥락을 보면 규칙이 아는
+    #     표현만 되고 나머지는 다시 엉뚱한 곳으로 간다 (패치 33·35).
+    from api.server import ChatRequest, llm_user_line
+    line = llm_user_line(
+        ChatRequest(message='정지해줘', tag='P-5101A', tab='interlock',
+                    context=playing), '정지해줘')
+    if 'scenario=playing' not in line:
+        return False, '모델에게 재생 상태가 가지 않습니다 — %s' % line[:60]
+    if 'scenario=' not in llm_user_line(
+            ChatRequest(message='정지해줘'), '정지해줘'):
+        return False, '맥락이 없을 때도 상태 칸은 있어야 합니다'
+    if 'scenario' not in prompt:
+        return False, '명령 지침이 재생 상태 칸을 설명하지 않습니다'
+
+    return True, ('정지 4종 · 낱말 단독 6종(재생 중) · 맥락 없을 때 되묻기 · '
+                  '없는 화면 거절 3종 · 열기/재생 구분 · 조회 무손상 · '
+                  '화면·빌드본·LLM 스키마 포함')
 
 
 def c_preflight_gate():
@@ -2163,9 +2276,13 @@ def c_tool_registry():
         if not t.example:
             continue
         r = rule_intent(t.example, None, "alarm") or {}
-        if r.get("type") != t.returns:
+        # 되물을 수 있는 도구는 chat 도 정답이다 — 맥락이 없을 때
+        # 실행하지 않고 묻는 것이 그 도구의 본래 동작이다 (패치 36).
+        want = {t.returns, "chat"} if t.asks_back else {t.returns}
+        if r.get("type") not in want:
             return False, "%s 의 예시 '%s' 가 %s 로 갑니다 (기대 %s)" % (
-                t.key, t.example[:20], r.get("type"), t.returns)
+                t.key, t.example[:20], r.get("type"),
+                "/".join(sorted(want)))
         if r["type"] in ("chat", "followup"):
             continue
         if r["type"] not in schema:
@@ -2300,6 +2417,252 @@ def c_tool_registry():
 
 
 # ── 실행 ────────────────────────────────────────────────────
+ROOT_DIR_37 = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# ── 패치 37 — L1 IO LIST 표준양식 · 공정 모의 화면 ───────────────
+
+_L1_TEMPLATE = os.path.join(ROOT_DIR_37, "demo", "L1_IO_LIST_표준양식_Rev0_1.xlsx")
+
+
+def _l1_fixture(tmp):
+    from tools.convert_io_to_l1 import convert
+    out = os.path.join(tmp, "IO_LIST_L1.xlsx")
+    convert(str(config.IO_LIST), _L1_TEMPLATE, out)
+    return out
+
+
+def c_io_l1_equiv():
+    """L1 표준양식 동등성 [주입] — 같은 자료를 두 양식으로 읽어 같은 점이 나오는가.
+    주입: L1 의 UNIT(공정 대분류) 칸에 'RO' 를 적어 공학 단위로 새지 않는지 본다."""
+    import tempfile
+    import openpyxl
+    from ingest.lists import load_points
+    spec = getattr(config, "INSTRUMENT_SPECS", None) or getattr(config, "INSTRUMENT_SPEC", None)
+    with tempfile.TemporaryDirectory() as tmp:
+        fx = _l1_fixture(tmp)
+        a = load_points(str(config.IO_LIST), spec, None, getattr(config, "TB_LIST", None))
+        b = load_points(fx, spec, None, getattr(config, "TB_LIST", None))
+        if set(a) != set(b):
+            return False, "점 집합이 다름 (24종 %d · L1 %d)" % (len(a), len(b))
+        keys = ("PLC", "PANEL", "SLOT", "CH", "UNIT", "IO TYPE", "DESCRIPTION",
+                "P&ID TAG", "TYPE", "RANGE MIN", "RANGE MAX", "TERMINAL")
+        diff = [(t, k) for t in a for k in keys if str(a[t].get(k)) != str(b[t].get(k))]
+        if diff:
+            return False, "필드 불일치 %d건 — %s" % (len(diff), diff[:3])
+        # 주입 — 뜻이 겹치는 열
+        wb = openpyxl.load_workbook(fx)
+        ws = wb["IO LIST"]
+        hdr = [c.value for c in ws[1]]
+        ws.cell(row=2, column=hdr.index("UNIT") + 1, value="RO")
+        ws.cell(row=2, column=hdr.index("PLC") + 1, value="PID")
+        ws.cell(row=2, column=hdr.index("RANGE (단위)") + 1, value="0~250 kPa")
+        tag = ws.cell(row=2, column=hdr.index("TAG") + 1).value
+        wb.save(fx)
+        c = load_points(fx, spec, None, None)[tag]
+        if c.get("UNIT") == "RO" or c.get("PLC") == "PID":
+            return False, "L1 의 UNIT/PLC 가 공학 단위/제어기 이름으로 샘 (%s/%s)" % (c.get("UNIT"), c.get("PLC"))
+        if c.get("UNIT") != "kPa" or float(c.get("RANGE MAX")) != 250:
+            return False, "RANGE (단위) 를 읽지 못함 — %s %s" % (c.get("RANGE MAX"), c.get("UNIT"))
+    return True, "%d점 × %d필드 일치 / 주입(UNIT=RO·PLC=PID·0~250 kPa) 격리 확인" % (len(a), len(keys))
+
+
+def c_io_l1_repair():
+    """L1 수리안 [주입] — 깨끗한 L1 에 수리안 0건, 채널 중복·헤더 오기는 잡는가.
+    24종 기준으로 대조하면 L1 열 이름을 24종 이름으로 바꾸자는 수리안이 나온다."""
+    import tempfile
+    import openpyxl
+    from ingest import repair
+    with tempfile.TemporaryDirectory() as tmp:
+        fx = _l1_fixture(tmp)
+        n0 = repair.propose(io_path=fx, include_cross=False)["counts"]["total"]
+        if n0:
+            return False, "깨끗한 L1 에 수리안 %d건 — 양식을 24종으로 보고 있음" % n0
+        wb = openpyxl.load_workbook(fx)
+        ws = wb["IO LIST"]
+        hdr = [c.value for c in ws[1]]
+        for k in ("CPU", "PN", "SLOT", "CH", "PANEL"):
+            j = hdr.index(k) + 1
+            ws.cell(row=4, column=j, value=ws.cell(row=3, column=j).value)
+        ws.cell(row=1, column=hdr.index("DESCRIPTION") + 1, value="DESCRIPTON")
+        wb.save(fx)
+        ids = [p["id"] for p in repair.propose(io_path=fx, include_cross=False)["proposals"]]
+    kinds = {i.split(":")[0] for i in ids}
+    if not {"ch", "hdr"} <= kinds:
+        return False, "주입 2종(채널 중복·헤더 오기) 중 못 잡음 — %s" % ids
+    return True, "깨끗한 L1 수리안 0건 / 주입 채널 중복·헤더 오기 검출"
+
+
+def _sim_model():
+    import json as _j
+    from sim.model import build_model, load_sources
+    lay = _j.load(open(os.path.join(ROOT_DIR_37, "demo", "sim", "layout_P5101_demo.json"),
+                       encoding="utf-8"))
+    src = load_sources()
+    return build_model(lay, sources=src, title="selfcheck"), src
+
+
+def c_sim_trace():
+    """공정 모의 근거 추적 [주입] — 조건·설정값·지연이 인터락 원문에서만 오는가.
+    주입: 모델의 설정값 하나를 바꿔 추적이 잡는지, 리스트에 없는 태그가 '미확인' 인지."""
+    import copy
+    from sim.model import trace_problems
+    m, src = _sim_model()
+    if not m["conds"]:
+        return False, "P-5101A 대조 배치에서 조건 0건 — 인터락 연결 실패"
+    probs = trace_problems(m, src["interlocks"])
+    if probs:
+        return False, "근거 추적 실패 %d건 — %s" % (len(probs), probs[:2])
+    bad = copy.deepcopy(m)
+    k = next(c for c, v in bad["conds"].items() if v["test"].get("t") == "cmp")
+    bad["conds"][k]["test"]["sp"] += 1.5
+    if not trace_problems(bad, src["interlocks"]):
+        return False, "주입한 설정값 변조를 추적이 못 잡음"
+    unk = [o["tag"] for o in m["objects"] if o.get("tag") and not o["verify"]["known"]]
+    if unk != ["UPW-TK"]:
+        return False, "미확인 판정이 다름 — %s (기대 UPW-TK)" % unk
+    if "UPW-TK" in m["devices"] and m["devices"]["UPW-TK"]["groups"]:
+        return False, "리스트에 없는 태그에 로직이 붙음"
+    return True, "조건 %d건 원문 추적 / 주입 변조 검출 / 미확인 태그 UPW-TK 무로직" % len(m["conds"])
+
+
+def c_sim_routes():
+    """공정 모의 API [주입] — 열쇠 없는 쓰기 401, 생성·조회·배치 교체·경로 탈출 차단."""
+    import json as _j
+    import tempfile
+    from fastapi.testclient import TestClient
+    import api.server as srv
+    lay = _j.load(open(os.path.join(ROOT_DIR_37, "demo", "sim", "layout_P5101_demo.json"),
+                       encoding="utf-8"))
+    old_d, old_k = config.DERIVED_DIR, os.environ.get("COPILOT_INGEST_KEY")
+    with tempfile.TemporaryDirectory() as tmp:
+        config.DERIVED_DIR = tmp                     # 산출물을 격리한다
+        os.environ["COPILOT_INGEST_KEY"] = "sc-sim-key"
+        try:
+            c = TestClient(srv.app)
+            r = c.post("/api/sim/screens/layout?title=sc", json=lay)
+            if r.status_code != 401:
+                return False, "무열쇠 생성이 %d — 401 이어야 함" % r.status_code
+            h = {"X-Ingest-Key": "sc-sim-key", "X-Ingest-Session": "sc"}
+            r = c.post("/api/sim/screens/layout?title=sc", json=lay, headers=h)
+            if r.status_code != 200:
+                return False, "생성 실패 %d %s" % (r.status_code, r.text[:120])
+            sid = r.json()["id"]
+            v = c.get("/api/sim/screens/%s/view" % sid).text
+            if "const M = {" not in v or v.count("</script>") != 1:
+                return False, "모의 화면에 모델이 안 실렸거나 스크립트가 끊김"
+            if "P-5101A" not in c.get("/api/sim/tag/P-5101A").json()["screens"][0] + sid and \
+                    sid not in c.get("/api/sim/tag/P-5101A").json()["screens"]:
+                return False, "태그→화면 조회 실패"
+            lay2 = c.get("/api/sim/screens/%s/layout" % sid).json()
+            lay2["objects"] = [o for o in lay2["objects"] if o["tag"] != "UV-5102"]
+            r = c.put("/api/sim/screens/%s/layout" % sid, json=lay2, headers=h)
+            if r.status_code != 200 or r.json()["stats"]["objects"] != 5:
+                return False, "배치 교체 실패 %d" % r.status_code
+            if not os.path.isfile(os.path.join(tmp, "sim", sid, "layout.prev.json")):
+                return False, "배치 교체 전 판(.prev) 보존 없음"
+            if c.get("/api/sim/screens/..%2F..%2Fconfig/view").status_code != 404:
+                return False, "경로 탈출 차단 실패"
+        finally:
+            config.DERIVED_DIR = old_d
+            if old_k is None:
+                os.environ.pop("COPILOT_INGEST_KEY", None)
+            else:
+                os.environ["COPILOT_INGEST_KEY"] = old_k
+            try:
+                srv._edit_lease["owner"] = None
+            except Exception:
+                pass
+    return True, "무열쇠 401 · 생성·화면·태그 조회 · 배치 교체(.prev) · 경로 탈출 404"
+
+
+def c_sim_engine():
+    """공정 모의 엔진 [주입] — 조건 점검이 리스트대로 PASS 하고, 래치를 못 거는 엔진은 FAIL 하는가.
+    주입은 모델이 아니라 엔진에 심는다. 기대 동작도 모델(리스트)에서 오므로, 모델을
+    바꾸면 기대와 동작이 함께 바뀌어 점검이 통과해 버린다 — 그것은 고장 검출이 아니다.
+    브라우저(playwright)가 있을 때만 실제로 띄워 본다 (화면 코드는 띄워 봐야 안다)."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception:
+        return None, "playwright 없음 — 건너뜀 (pip install playwright · playwright install chromium)"
+    import tempfile
+    from sim.store import render_html
+    m, _ = _sim_model()
+    good = render_html(m)
+    hook = "st.latch[g.il_no]=true"
+    if good.count(hook) != 1:
+        return False, "엔진의 래치 설정 지점을 찾지 못함 — 주입 지점 갱신 필요"
+    bad = good.replace(hook, "void 0")              # 주입: 래치를 못 거는 엔진
+    res = []
+    with tempfile.TemporaryDirectory() as tmp, sync_playwright() as p:
+        b = p.chromium.launch()
+        for html in (good, bad):
+            f = os.path.join(tmp, "s.html")
+            open(f, "w", encoding="utf-8").write(html)
+            pg = b.new_page()
+            errs = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            pg.goto("file://" + f)
+            pg.wait_for_timeout(300)
+            pg.evaluate("runTests()")
+            res.append((pg.evaluate("window.__TEST__"), errs))
+            pg.close()
+        b.close()
+    (ok, e1), (ng, e2) = res
+    if e1 or e2:
+        return False, "화면 스크립트 오류 — %s" % (e1 or e2)[:2]
+    if ok["FAIL"] or ok["PASS"] < 15:
+        return False, "정상 모델 점검 PASS %d · FAIL %d" % (ok["PASS"], ok["FAIL"])
+    if not ng["FAIL"]:
+        return False, "래치를 못 거는 엔진을 점검이 못 잡음"
+    return True, "정상 PASS %d·FAIL 0·SKIP %d / 주입(엔진 래치 상실) FAIL %d 검출" % (
+        ok["PASS"], ok["SKIP"], ng["FAIL"])
+
+
+def c_llm_no_temperature():
+    """temperature 거절 모델 [주입] — GPT-5 계열이 temperature 0 을 400 으로
+    거절해도 조치 생성이 살아남는가. 네트워크 없이 _post 를 바꿔 끼워 본다.
+    주입 1: 별칭 모델이 400(temperature) → 빼고 재시도해 성공해야 한다.
+    주입 2: 모델 이름 오류 400 → 재시도 없이, 본문이 실린 오류여야 한다."""
+    import io
+    import urllib.error
+    from graph import advisor as A
+    sent = []
+
+    def fake(url, payload, headers, timeout=120):
+        sent.append(dict(payload))
+        if payload.get("model") == "bad-name":
+            raise urllib.error.HTTPError(url, 400, "Bad Request", {},
+                                         io.BytesIO(b'{"error":"Invalid model name"}'))
+        if "temperature" in payload:
+            raise urllib.error.HTTPError(url, 400, "Bad Request", {}, io.BytesIO(
+                b'{"error":{"message":"Unsupported value: \'temperature\' does not support 0"}}'))
+        return {"choices": [{"message": {"content": "ok"}}]}
+
+    orig, A._post = A._post, fake
+    try:
+        r = A._post_chat("u", {"model": "alias-x"}, {}, 5, "alias-x")
+        if r["choices"][0]["message"]["content"] != "ok" or len(sent) != 2:
+            return False, "temperature 거절 후 재시도 실패 (호출 %d회)" % len(sent)
+        sent.clear()
+        A._post_chat("u", {"model": "alias-x"}, {}, 5, "alias-x")
+        if len(sent) != 1 or "temperature" in sent[0]:
+            return False, "거절된 모델을 기억하지 못함"
+        sent.clear()
+        if "temperature" in (A._post_chat("u", {"model": "esg-gpt-5.5"}, {}, 5,
+                                          "esg-gpt-5.5") and sent[0]):
+            return False, "gpt-5 계열에 temperature 를 보냄"
+        sent.clear()
+        try:
+            A._post_chat("u", {"model": "bad-name"}, {}, 5, "bad-name")
+            return False, "모델 이름 오류가 통과됨"
+        except A.AdvisorError as e:
+            if len(sent) != 1 or "Invalid model name" not in str(e):
+                return False, "이름 오류에 재시도했거나 본문이 없음 — %s" % e
+    finally:
+        A._post = orig
+        A._NO_TEMP.discard("alias-x")
+    return True, "거절 시 빼고 재시도·기억 / gpt-5 계열 처음부터 제외 / 이름 오류는 본문과 함께 실패"
+
 def main():
     ap = argparse.ArgumentParser(description="시연 전 전 경로 점검")
     ap.add_argument("--skip-llm", action="store_true",
@@ -2378,6 +2741,12 @@ def main():
     run("매뉴얼 용어 오인 금지 [주입]", c_manual_vocab_not_blocked)
     run("화면 안내 3건 [주입]", c_screen_notices)
     run("도구 목록 통합 [주입]", c_tool_registry)
+    run("L1 표준양식 동등성 [주입]", c_io_l1_equiv)
+    run("L1 수리안 [주입]", c_io_l1_repair)
+    run("공정 모의 근거 추적 [주입]", c_sim_trace)
+    run("공정 모의 API [주입]", c_sim_routes)
+    run("공정 모의 엔진 [주입]", c_sim_engine, critical=False)
+    run("temperature 거절 모델 [주입]", c_llm_no_temperature)
     run("한글 PDF 폰트", c_report_font, critical=False)
     if not args.skip_llm:
         run("조치 생성 모델 연결", c_advisor_reachable, critical=False)
